@@ -22,14 +22,5 @@ resource "netbox_contact" "with_tags" {
   name  = "Bob Wilson"
   email = "bob.wilson@example.com"
 
-  tags = [
-    {
-      name = "primary"
-      slug = "primary"
-    },
-    {
-      name = "on-call"
-      slug = "on-call"
-    }
-  ]
+  tags = ["primary", "on-call"]
 }

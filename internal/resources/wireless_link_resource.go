@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -197,6 +198,8 @@ func (r *WirelessLinkResource) Schema(ctx context.Context, req resource.SchemaRe
 
 	// Add common metadata attributes (tags, custom_fields)
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -381,8 +384,11 @@ func (r *WirelessLinkResource) Create(ctx context.Context, req resource.CreateRe
 	planTags := data.Tags
 	planCustomFields := data.CustomFields
 
-	// Apply common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, request, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply description/comments and metadata fields
+	utils.ApplyDescription(request, data.Description)
+	utils.ApplyComments(request, data.Comments)
+	utils.ApplyTagsFromSlugs(ctx, r.client, request, data.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFields(ctx, request, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -409,7 +415,19 @@ func (r *WirelessLinkResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case result.HasTags() && len(result.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(result.GetTags()))
+		for _, tag := range result.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
@@ -473,11 +491,18 @@ func (r *WirelessLinkResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	// Only populate tags if they were in the state (owned by config)
-	if utils.IsSet(stateTags) {
-		data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), stateTags, &resp.Diagnostics)
-	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+	switch {
+	case result.HasTags() && len(result.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(result.GetTags()))
+		for _, tag := range result.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 
@@ -641,8 +666,11 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 	planTags := plan.Tags
 	planCustomFields := plan.CustomFields
 
-	// Apply common fields with merge-aware helpers
-	utils.ApplyCommonFieldsWithMerge(ctx, request, plan.Description, plan.Comments, plan.Tags, state.Tags, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
+	// Apply description/comments and metadata fields with merge-aware helpers
+	utils.ApplyDescription(request, plan.Description)
+	utils.ApplyComments(request, plan.Comments)
+	utils.ApplyTagsFromSlugs(ctx, r.client, request, plan.Tags, &resp.Diagnostics)
+	utils.ApplyCustomFieldsWithMerge(ctx, request, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -669,11 +697,18 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	// Only populate tags if they were in the plan (owned by config)
-	if utils.IsSet(planTags) {
-		plan.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), planTags, &resp.Diagnostics)
-	} else {
-		plan.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case result.HasTags() && len(result.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(result.GetTags()))
+		for _, tag := range result.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
 	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 

@@ -173,16 +173,7 @@ resource "netbox_device_type" "test" {
   model        = %[1]q
   slug         = %[2]q
 
-  tags = [
-    {
-      name = netbox_tag.dt_test1.name
-      slug = netbox_tag.dt_test1.slug
-    },
-    {
-      name = netbox_tag.dt_test2.name
-      slug = netbox_tag.dt_test2.slug
-    }
-  ]
+	tags = [netbox_tag.dt_test1.slug, netbox_tag.dt_test2.slug]
 
   custom_fields = [
     {

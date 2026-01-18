@@ -317,13 +317,13 @@ func (d *IPAddressDataSource) mapIPAddressToState(ctx context.Context, ipAddress
 		data.Comments = types.StringNull()
 	}
 
-	// Tags
+	// Tags (slug list)
 	if len(ipAddress.Tags) > 0 {
-		tagNames := make([]string, 0, len(ipAddress.Tags))
+		tagSlugs := make([]string, 0, len(ipAddress.Tags))
 		for _, tag := range ipAddress.Tags {
-			tagNames = append(tagNames, tag.Name)
+			tagSlugs = append(tagSlugs, tag.Slug)
 		}
-		tagList, _ := types.ListValueFrom(ctx, types.StringType, tagNames)
+		tagList, _ := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		data.Tags = tagList
 	} else {
 		data.Tags = types.ListNull(types.StringType)

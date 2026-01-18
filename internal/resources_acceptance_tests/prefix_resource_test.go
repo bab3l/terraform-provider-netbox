@@ -308,16 +308,7 @@ resource "netbox_prefix" "test" {
   is_pool       = true
   mark_utilized = true
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
@@ -372,16 +363,7 @@ resource "netbox_prefix" "test" {
   is_pool       = false
   mark_utilized = false
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
@@ -620,16 +602,7 @@ resource "netbox_prefix" "test" {
   prefix = %q
   tenant = netbox_tenant.test.id
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, tenantName, tenantSlug, tag1Name, tag1Slug, tag2Name, tag2Slug, prefix)
 }
@@ -970,48 +943,24 @@ resource "netbox_tag" "tag3" {
 }
 `, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug)
 
+	var tagsConfig string
+
 	//nolint:goconst // tagSet values are test-specific identifiers
 	switch tagSet {
 	case "tag1_tag2":
-		return baseConfig + fmt.Sprintf(`
-resource "netbox_prefix" "test" {
-  prefix = %[1]q
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
-}
-`, prefix)
+		tagsConfig = tagsDoubleSlug
 	case "tag2_tag3":
-		return baseConfig + fmt.Sprintf(`
-resource "netbox_prefix" "test" {
-  prefix = %[1]q
-  tags = [
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    }
-  ]
-}
-`, prefix)
+		tagsConfig = "tags = [netbox_tag.tag2.slug, netbox_tag.tag3.slug]"
 	default: // "none"
-		return baseConfig + fmt.Sprintf(`
-resource "netbox_prefix" "test" {
-  prefix = %[1]q
-  tags   = []
-}
-`, prefix)
+		tagsConfig = tagsEmpty
 	}
+
+	return baseConfig + fmt.Sprintf(`
+resource "netbox_prefix" "test" {
+	prefix = %[1]q
+	%[2]s
+}
+`, prefix, tagsConfig)
 }
 
 // TestAccPrefixResource_tagOrderInvariance tests tag order using RunTagOrderTest helper.
@@ -1059,16 +1008,7 @@ resource "netbox_tag" "tag2" {
 		return baseConfig + fmt.Sprintf(`
 resource "netbox_prefix" "test" {
   prefix = %[1]q
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, prefix)
 	}
@@ -1076,16 +1016,7 @@ resource "netbox_prefix" "test" {
 	return baseConfig + fmt.Sprintf(`
 resource "netbox_prefix" "test" {
   prefix = %[1]q
-  tags = [
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    }
-  ]
+		tags = [netbox_tag.tag2.slug, netbox_tag.tag1.slug]
 }
 `, prefix)
 }

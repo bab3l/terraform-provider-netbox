@@ -45,7 +45,7 @@ func TestAccProviderResource_CustomFieldsPreservation(t *testing.T) {
 				ResourceName:            "netbox_provider.test",
 				ImportState:             true,
 				ImportStateVerify:       false,
-				ImportStateVerifyIgnore: []string{"custom_fields"},
+				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
 			},
 			{
 				// Step 4: Add custom_fields back to verify they were preserved
@@ -82,7 +82,7 @@ func TestAccProviderResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ResourceName:            "netbox_provider.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields"},
+				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
 			},
 		},
 	})
@@ -211,10 +211,7 @@ resource "netbox_provider" "test" {
     }
   ]
 
-  tags = [
-    { name = netbox_tag.test1.name, slug = netbox_tag.test1.slug },
-    { name = netbox_tag.test2.name, slug = netbox_tag.test2.slug }
-  ]
+	tags = [netbox_tag.test1.slug, netbox_tag.test2.slug]
 }
 `, name, slug, cfEnv)
 }

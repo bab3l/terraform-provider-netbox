@@ -49,7 +49,7 @@ type VirtualDeviceContextDataSourceModel struct {
 	Description  types.String `tfsdk:"description"`
 	Comments     types.String `tfsdk:"comments"`
 	DisplayName  types.String `tfsdk:"display_name"`
-	Tags         types.Set    `tfsdk:"tags"`
+	Tags         types.List   `tfsdk:"tags"`
 	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
@@ -115,7 +115,11 @@ func (d *VirtualDeviceContextDataSource) Schema(ctx context.Context, req datasou
 				MarkdownDescription: "Display name of the VDC.",
 				Computed:            true,
 			},
-			"tags":          nbschema.DSTagsAttribute(),
+			"tags": schema.ListAttribute{
+				MarkdownDescription: "Tags assigned to this virtual device context.",
+				Computed:            true,
+				ElementType:         types.StringType,
+			},
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
@@ -255,14 +259,17 @@ func (d *VirtualDeviceContextDataSource) mapToState(ctx context.Context, result 
 		data.DisplayName = types.StringNull()
 	}
 
-	// Map tags
+	// Map tags (slug list)
 	if result.HasTags() && len(result.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(result.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+		tagSlugs := make([]string, 0, len(result.GetTags()))
+		for _, tag := range result.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		diags.Append(tagDiags...)
 		data.Tags = tagsValue
 	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		data.Tags = types.ListNull(types.StringType)
 	}
 
 	// Map custom fields

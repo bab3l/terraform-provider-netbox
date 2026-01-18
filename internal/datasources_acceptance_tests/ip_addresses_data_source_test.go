@@ -125,12 +125,7 @@ resource "netbox_ip_address" "test" {
   address = %q
   status  = "active"
 
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags = [netbox_tag.test.slug]
 }
 
 data "netbox_ip_addresses" "test" {

@@ -11,6 +11,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -116,8 +117,9 @@ func (r *EventRuleResource) Schema(ctx context.Context, req resource.SchemaReque
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("event rule"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add tags and custom fields
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -210,9 +212,15 @@ func (r *EventRuleResource) Create(ctx context.Context, req resource.CreateReque
 		request.ActionObjectId = *netbox.NewNullableInt64(nil)
 	}
 
-	// Apply common fields (description, tags, custom_fields)
+	// Apply description
 	utils.ApplyDescription(request, data.Description)
-	utils.ApplyTags(ctx, request, data.Tags, &resp.Diagnostics)
+
+	// Store plan values for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
+	// Apply tags and custom fields
+	utils.ApplyTagsFromSlugs(ctx, r.client, request, data.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFields(ctx, request, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -232,6 +240,22 @@ func (r *EventRuleResource) Create(ctx context.Context, req resource.CreateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case result.HasTags() && len(result.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(result.GetTags()))
+		for _, tag := range result.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 	tflog.Debug(ctx, "Created event rule", map[string]interface{}{
 		"id": data.ID.ValueString(),
 	})
@@ -246,7 +270,8 @@ func (r *EventRuleResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	// Preserve original custom_fields from state for potential restoration
+	// Preserve original tags/custom_fields from state for potential restoration
+	originalTags := data.Tags
 	originalCustomFields := data.CustomFields
 
 	id, err := utils.ParseID(data.ID.ValueString())
@@ -270,6 +295,22 @@ func (r *EventRuleResource) Read(ctx context.Context, req resource.ReadRequest, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !originalTags.IsNull() && !originalTags.IsUnknown() && len(originalTags.Elements()) == 0
+	switch {
+	case result.HasTags() && len(result.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(result.GetTags()))
+		for _, tag := range result.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, originalCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 
 	// If custom_fields was null or empty before (not managed or explicitly cleared),
 	// restore that state after mapping.
@@ -362,9 +403,15 @@ func (r *EventRuleResource) Update(ctx context.Context, req resource.UpdateReque
 		request.ActionObjectId = *netbox.NewNullableInt64(nil)
 	}
 
-	// Apply common fields (description, tags, custom_fields with merge)
+	// Apply description
 	utils.ApplyDescription(request, plan.Description)
-	utils.ApplyTags(ctx, request, plan.Tags, &resp.Diagnostics)
+
+	// Apply tags - merge-aware: use plan if provided, else use state
+	if utils.IsSet(plan.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, request, plan.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, request, state.Tags, &resp.Diagnostics)
+	}
 	utils.ApplyCustomFieldsWithMerge(ctx, request, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -390,6 +437,22 @@ func (r *EventRuleResource) Update(ctx context.Context, req resource.UpdateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case result.HasTags() && len(result.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(result.GetTags()))
+		for _, tag := range result.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
+	}
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -491,12 +554,5 @@ func (r *EventRuleResource) mapToState(ctx context.Context, result *netbox.Event
 		data.Description = types.StringNull()
 	}
 
-	// Handle tags using FromAPI helper (tags don't use filter-to-owned)
-	data.Tags = utils.PopulateTagsFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
-	}
-
-	// Handle custom fields using filter-to-owned helper
-	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, result.GetCustomFields(), diags)
+	// Tags and custom fields are handled in Create/Read/Update methods using filter-to-owned pattern.
 }

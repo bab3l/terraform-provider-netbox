@@ -295,16 +295,7 @@ resource "netbox_cluster_group" "test" {
     }
   ]
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug, clusterGroupName, clusterGroupSlug)
 }

@@ -37,7 +37,7 @@ type WebhookDataSourceModel struct {
 	BodyTemplate      types.String `tfsdk:"body_template"`
 	SSLVerification   types.Bool   `tfsdk:"ssl_verification"`
 	CAFilePath        types.String `tfsdk:"ca_file_path"`
-	Tags              types.Set    `tfsdk:"tags"`
+	Tags              types.List   `tfsdk:"tags"`
 	CustomFields      types.Set    `tfsdk:"custom_fields"`
 }
 
@@ -60,8 +60,12 @@ func (d *WebhookDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"body_template":      nbschema.DSComputedStringAttribute("Jinja2 template for a custom request body."),
 			"ssl_verification":   nbschema.DSComputedBoolAttribute("Whether SSL certificate verification is enabled."),
 			"ca_file_path":       nbschema.DSComputedStringAttribute("The specific CA certificate file to use for SSL verification."),
-			"tags":               nbschema.DSTagsAttribute(),
-			"custom_fields":      nbschema.DSCustomFieldsAttribute(),
+			"tags": schema.ListAttribute{
+				MarkdownDescription: "Tags assigned to this webhook.",
+				Computed:            true,
+				ElementType:         types.StringType,
+			},
+			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
 }
@@ -199,15 +203,18 @@ func (d *WebhookDataSource) mapWebhookToState(ctx context.Context, webhook *netb
 		data.DisplayName = types.StringNull()
 	}
 
-	// Handle tags
-	if webhook.HasTags() {
-		tags := utils.NestedTagsToTagModels(webhook.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+	// Handle tags (slug list)
+	if webhook.HasTags() && len(webhook.GetTags()) > 0 {
+		tagSlugs := make([]string, 0, len(webhook.GetTags()))
+		for _, tag := range webhook.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		if !tagDiags.HasError() {
 			data.Tags = tagsValue
 		}
 	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		data.Tags = types.ListNull(types.StringType)
 	}
 
 	// Map custom fields

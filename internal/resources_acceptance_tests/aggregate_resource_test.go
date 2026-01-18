@@ -510,16 +510,7 @@ resource "netbox_tag" "tag3" {
 resource "netbox_aggregate" "test" {
   prefix = %[1]q
   rir    = netbox_rir.test.id
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, prefix)
 	case "tag2_tag3":
@@ -527,16 +518,7 @@ resource "netbox_aggregate" "test" {
 resource "netbox_aggregate" "test" {
   prefix = %[1]q
   rir    = netbox_rir.test.id
-  tags = [
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    }
-  ]
+	tags = [netbox_tag.tag2.slug, netbox_tag.tag3.slug]
 }
 `, prefix)
 	default: // "none"
@@ -603,16 +585,7 @@ resource "netbox_tag" "tag2" {
 resource "netbox_aggregate" "test" {
   prefix = %[1]q
   rir    = netbox_rir.test.id
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, prefix)
 	}
@@ -621,16 +594,7 @@ resource "netbox_aggregate" "test" {
 resource "netbox_aggregate" "test" {
   prefix = %[1]q
   rir    = netbox_rir.test.id
-  tags = [
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    }
-  ]
+	tags = [netbox_tag.tag2.slug, netbox_tag.tag1.slug]
 }
 `, prefix)
 }

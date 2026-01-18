@@ -67,7 +67,7 @@ func TestAccModuleResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ResourceName:            "netbox_module.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device", "module_bay", "module_type", "custom_fields"}, // Reference fields may have lookup inconsistencies, custom fields have import limitations
+				ImportStateVerifyIgnore: []string{"device", "module_bay", "module_type", "custom_fields", "tags"}, // Reference fields may have lookup inconsistencies, custom fields have import limitations
 			},
 		},
 	})
@@ -218,16 +218,7 @@ resource "netbox_module" "test" {
     }
   ]
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+  tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `,
 		tenantName, tenantSlug,

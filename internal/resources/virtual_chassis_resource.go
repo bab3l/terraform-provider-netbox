@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -103,7 +104,8 @@ func (r *VirtualChassisResource) Schema(ctx context.Context, req resource.Schema
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("virtual chassis"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -401,7 +403,7 @@ func (r *VirtualChassisResource) buildRequest(ctx context.Context, plan *Virtual
 	// Set common fields with merge-aware helpers
 	utils.ApplyDescription(vcRequest, plan.Description)
 	utils.ApplyComments(vcRequest, plan.Comments)
-	utils.ApplyTags(ctx, vcRequest, plan.Tags, &diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, vcRequest, plan.Tags, &diags)
 	// For custom fields, use state if available (Update), otherwise nil (Create)
 	var stateCustomFields types.Set
 	if state != nil {
@@ -466,10 +468,19 @@ func (r *VirtualChassisResource) mapResponseToModel(ctx context.Context, vc *net
 
 	data.MemberCount = types.Int64Value(int64(vc.GetMemberCount()))
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, vc.HasTags(), vc.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags (slug list) with empty-set preservation
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case vc.HasTags() && len(vc.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(vc.GetTags()))
+		for _, tag := range vc.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// Handle custom fields using consolidated helper

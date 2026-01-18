@@ -12,6 +12,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -92,7 +93,7 @@ func (r *ASNResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				MarkdownDescription: "Additional comments or notes about this ASN.",
 				Optional:            true,
 			},
-			"tags":          nbschema.TagsAttribute(),
+			"tags":          nbschema.TagsSlugAttribute(),
 			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
@@ -357,8 +358,8 @@ func (r *ASNResource) buildASNRequest(ctx context.Context, data *ASNResourceMode
 		asnRequest.SetComments("")
 	}
 
-	// Apply tags
-	utils.ApplyTags(ctx, asnRequest, data.Tags, &diags)
+	// Apply tags (slug list)
+	utils.ApplyTagsFromSlugs(ctx, r.client, asnRequest, data.Tags, &diags)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -413,8 +414,21 @@ func (r *ASNResource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, d
 		data.Comments = types.StringNull()
 	}
 
-	// Tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, asn.HasTags(), asn.GetTags(), data.Tags, diags)
+	// Tags (slug list)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case asn.HasTags():
+		for _, tag := range asn.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	if diags.HasError() {
 		return
 	}

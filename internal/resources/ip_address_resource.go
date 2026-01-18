@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -109,7 +110,7 @@ func (r *IPAddressResource) Schema(ctx context.Context, req resource.SchemaReque
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("IP address"))
 
 	// Add tags and custom_fields attributes
-	resp.Schema.Attributes["tags"] = nbschema.TagsAttribute()
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
@@ -142,6 +143,10 @@ func (r *IPAddressResource) Create(ctx context.Context, req resource.CreateReque
 	// Create the IP address request
 	ipRequest := netbox.NewWritableIPAddressRequest(data.Address.ValueString())
 
+	// Store plan values for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
 	// Set optional fields (pass nil for state since this is Create)
 	r.setOptionalFields(ctx, ipRequest, &data, nil, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
@@ -162,8 +167,29 @@ func (r *IPAddressResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	// Map response to model (use filter-to-owned for custom fields)
+	// Map response to model
 	r.mapIPAddressToState(ctx, ipAddress, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case len(ipAddress.Tags) > 0:
+		tagSlugs := make([]string, 0, len(ipAddress.Tags))
+		for _, tag := range ipAddress.Tags {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
+
+	// Apply filter-to-owned pattern for custom fields
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, ipAddress.CustomFields, &resp.Diagnostics)
 	tflog.Debug(ctx, "Created IP address", map[string]interface{}{
 		"id":      data.ID.ValueString(),
 		"address": data.Address.ValueString(),
@@ -211,11 +237,33 @@ func (r *IPAddressResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	// Save original custom_fields state before mapping
+	// Save original tags/custom_fields state before mapping
+	originalTags := data.Tags
 	originalCustomFields := data.CustomFields
 
-	// Map response to model (use filter-to-owned for custom fields)
+	// Map response to model
 	r.mapIPAddressToState(ctx, ipAddress, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !originalTags.IsNull() && !originalTags.IsUnknown() && len(originalTags.Elements()) == 0
+	switch {
+	case len(ipAddress.Tags) > 0:
+		tagSlugs := make([]string, 0, len(ipAddress.Tags))
+		for _, tag := range ipAddress.Tags {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
+
+	// Apply filter-to-owned pattern for custom fields
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, originalCustomFields, ipAddress.CustomFields, &resp.Diagnostics)
 
 	// Preserve original custom_fields state if it was null or empty
 	// This prevents unmanaged/cleared fields from reappearing in state
@@ -277,8 +325,29 @@ func (r *IPAddressResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	// Map response to model (use filter-to-owned for custom fields)
+	// Map response to model
 	r.mapIPAddressToState(ctx, ipAddress, &plan, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
+	switch {
+	case len(ipAddress.Tags) > 0:
+		tagSlugs := make([]string, 0, len(ipAddress.Tags))
+		for _, tag := range ipAddress.Tags {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
+	}
+
+	// Apply filter-to-owned pattern for custom fields
+	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, ipAddress.CustomFields, &resp.Diagnostics)
 	tflog.Debug(ctx, "Updated IP address", map[string]interface{}{
 		"id":      plan.ID.ValueString(),
 		"address": plan.Address.ValueString(),
@@ -424,7 +493,7 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 	}
 
 	// Handle tags
-	utils.ApplyTags(ctx, ipRequest, plan.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, ipRequest, plan.Tags, diags)
 	if diags.HasError() {
 		return
 	}
@@ -521,9 +590,5 @@ func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *
 		data.Comments = types.StringNull()
 	}
 
-	// Tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(ipAddress.Tags) > 0, ipAddress.Tags, data.Tags, diags)
-
-	// Custom Fields - use filter-to-owned pattern
-	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, ipAddress.CustomFields, diags)
+	// Tags and custom fields are handled in Create/Read/Update methods using filter-to-owned pattern.
 }

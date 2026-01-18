@@ -183,16 +183,10 @@ resource "netbox_ip_address" "test" {
   address = %q
   tenant     = netbox_tenant.test.id
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [
+		netbox_tag.tag1.slug,
+		netbox_tag.tag2.slug,
+	]
 }
 `, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug, ip)
 }
@@ -745,14 +739,8 @@ resource "netbox_tag" "tag3" {
 resource "netbox_ip_address" "test" {
   address = %[1]q
   tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
+		netbox_tag.tag1.slug,
+		netbox_tag.tag2.slug,
   ]
 }
 `, address)
@@ -761,14 +749,8 @@ resource "netbox_ip_address" "test" {
 resource "netbox_ip_address" "test" {
   address = %[1]q
   tags = [
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    }
+		netbox_tag.tag2.slug,
+		netbox_tag.tag3.slug,
   ]
 }
 `, address)
@@ -828,14 +810,8 @@ resource "netbox_tag" "tag2" {
 resource "netbox_ip_address" "test" {
   address = %[1]q
   tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
+		netbox_tag.tag1.slug,
+		netbox_tag.tag2.slug,
   ]
 }
 `, address)
@@ -845,14 +821,8 @@ resource "netbox_ip_address" "test" {
 resource "netbox_ip_address" "test" {
   address = %[1]q
   tags = [
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    }
+		netbox_tag.tag2.slug,
+		netbox_tag.tag1.slug,
   ]
 }
 `, address)

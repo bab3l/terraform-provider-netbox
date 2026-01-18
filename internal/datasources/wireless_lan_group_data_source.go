@@ -41,7 +41,7 @@ type WirelessLANGroupDataSourceModel struct {
 	DisplayName  types.String `tfsdk:"display_name"`
 	ParentID     types.Int64  `tfsdk:"parent_id"`
 	ParentName   types.String `tfsdk:"parent_name"`
-	Tags         types.Set    `tfsdk:"tags"`
+	Tags         types.List   `tfsdk:"tags"`
 	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
@@ -88,7 +88,7 @@ func (d *WirelessLANGroupDataSource) Schema(ctx context.Context, req datasource.
 				MarkdownDescription: "The name of the parent wireless LAN group.",
 				Computed:            true,
 			},
-			"tags": schema.SetAttribute{
+			"tags": schema.ListAttribute{
 				MarkdownDescription: "Tags associated with this wireless LAN group.",
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -221,20 +221,20 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 		data.ParentName = types.StringNull()
 	}
 
-	// Handle tags (simplified - just names)
+	// Handle tags (slug list)
 	if group.HasTags() && len(group.GetTags()) > 0 {
-		tagNames := make([]string, 0, len(group.GetTags()))
+		tagSlugs := make([]string, 0, len(group.GetTags()))
 		for _, tag := range group.GetTags() {
-			tagNames = append(tagNames, tag.GetName())
+			tagSlugs = append(tagSlugs, tag.Slug)
 		}
-		tagsValue, diags := types.SetValueFrom(ctx, types.StringType, tagNames)
+		tagsValue, diags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
 		data.Tags = tagsValue
 	} else {
-		data.Tags = types.SetNull(types.StringType)
+		data.Tags = types.ListNull(types.StringType)
 	}
 
 	// Handle custom fields - datasources return ALL fields

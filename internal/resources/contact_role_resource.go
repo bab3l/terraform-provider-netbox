@@ -51,19 +51,19 @@ func (r *ContactRoleResource) Schema(ctx context.Context, req resource.SchemaReq
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a contact role in Netbox. Contact roles define the function or responsibility of a contact within an organization (e.g., Technical, Administrative, Billing).",
 		Attributes: map[string]schema.Attribute{
-			"id":          nbschema.IDAttribute("contact role"),
-			"name":        nbschema.NameAttribute("contact role", 100),
-			"slug":        nbschema.SlugAttribute("contact role"),
-			"description": nbschema.DescriptionAttribute("contact role"),
+			"id":            nbschema.IDAttribute("contact role"),
+			"name":          nbschema.NameAttribute("contact role", 100),
+			"slug":          nbschema.SlugAttribute("contact role"),
+			"description":   nbschema.DescriptionAttribute("contact role"),
+			"tags":          nbschema.TagsSlugAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("contact role"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
-	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	// Tags and custom fields are defined directly in the schema above.
 }
 
 func (r *ContactRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

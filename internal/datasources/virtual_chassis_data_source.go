@@ -42,7 +42,7 @@ type VirtualChassisDataSourceModel struct {
 	Comments     types.String `tfsdk:"comments"`
 	MemberCount  types.Int64  `tfsdk:"member_count"`
 	DisplayName  types.String `tfsdk:"display_name"`
-	Tags         types.Set    `tfsdk:"tags"`
+	Tags         types.List   `tfsdk:"tags"`
 	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
@@ -90,7 +90,11 @@ func (d *VirtualChassisDataSource) Schema(ctx context.Context, req datasource.Sc
 				MarkdownDescription: "Display name of the virtual chassis.",
 				Computed:            true,
 			},
-			"tags":          nbschema.DSTagsAttribute(),
+			"tags": schema.ListAttribute{
+				MarkdownDescription: "Tags assigned to this virtual chassis.",
+				Computed:            true,
+				ElementType:         types.StringType,
+			},
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
@@ -235,17 +239,20 @@ func (d *VirtualChassisDataSource) mapResponseToModel(ctx context.Context, vc *n
 	// Map member_count
 	data.MemberCount = types.Int64Value(int64(vc.GetMemberCount()))
 
-	// Handle tags
+	// Handle tags (slug list)
 	if vc.HasTags() && len(vc.GetTags()) > 0 {
-		tags := utils.NestedTagsToTagModels(vc.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+		tagSlugs := make([]string, 0, len(vc.GetTags()))
+		for _, tag := range vc.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		tagList, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		diags.Append(tagDiags...)
 		if diags.HasError() {
 			return
 		}
-		data.Tags = tagsValue
+		data.Tags = tagList
 	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		data.Tags = types.ListNull(types.StringType)
 	}
 
 	// Handle custom fields

@@ -1125,16 +1125,7 @@ resource "netbox_cable" "test" {
       object_id   = netbox_interface.test_b.id
     }
   ]
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `
 	case "tag2_tag3":
@@ -1152,16 +1143,7 @@ resource "netbox_cable" "test" {
       object_id   = netbox_interface.test_b.id
     }
   ]
-  tags = [
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    }
-  ]
+	tags = [netbox_tag.tag2.slug, netbox_tag.tag3.slug]
 }
 `
 	default: // "none"
@@ -1258,20 +1240,7 @@ resource "netbox_cable" "test" {
       object_id   = netbox_interface.test_b.id
     }
   ]
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug, netbox_tag.tag3.slug]
 }
 `
 	}
@@ -1290,20 +1259,7 @@ resource "netbox_cable" "test" {
       object_id   = netbox_interface.test_b.id
     }
   ]
-  tags = [
-    {
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    }
-  ]
+	tags = [netbox_tag.tag3.slug, netbox_tag.tag2.slug, netbox_tag.tag1.slug]
 }
 `
 }

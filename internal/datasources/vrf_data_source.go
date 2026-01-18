@@ -38,7 +38,7 @@ type VRFDataSourceModel struct {
 	Description   types.String `tfsdk:"description"`
 	DisplayName   types.String `tfsdk:"display_name"`
 	Comments      types.String `tfsdk:"comments"`
-	Tags          types.Set    `tfsdk:"tags"`
+	Tags          types.List   `tfsdk:"tags"`
 	CustomFields  types.Set    `tfsdk:"custom_fields"`
 }
 
@@ -84,7 +84,11 @@ func (d *VRFDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 				MarkdownDescription: "Additional comments or notes about the VRF.",
 				Computed:            true,
 			},
-			"tags":          nbschema.DSTagsAttribute(),
+			"tags": schema.ListAttribute{
+				MarkdownDescription: "Tags assigned to this VRF.",
+				Computed:            true,
+				ElementType:         types.StringType,
+			},
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
@@ -229,17 +233,20 @@ func (d *VRFDataSource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data
 		data.DisplayName = types.StringNull()
 	}
 
-	// Tags
-	if vrf.HasTags() {
-		tags := utils.NestedTagsToTagModels(vrf.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+	// Tags (slug list)
+	if vrf.HasTags() && len(vrf.GetTags()) > 0 {
+		tagSlugs := make([]string, 0, len(vrf.GetTags()))
+		for _, tag := range vrf.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		diags.Append(tagDiags...)
 		if diags.HasError() {
 			return
 		}
 		data.Tags = tagsValue
 	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		data.Tags = types.ListNull(types.StringType)
 	}
 
 	// Custom fields - datasources return ALL fields

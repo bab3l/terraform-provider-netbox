@@ -13,6 +13,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -119,7 +120,7 @@ func (r *DeviceTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 			},
 			"description":   nbschema.DescriptionAttribute("device type"),
 			"comments":      nbschema.CommentsAttribute("device type"),
-			"tags":          nbschema.TagsAttribute(),
+			"tags":          nbschema.TagsSlugAttribute(),
 			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
@@ -236,8 +237,20 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 		deviceTypeRequest.WeightUnit = &empty
 	}
 
-	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, &deviceTypeRequest, data.Description, data.Comments, data.Tags, data.CustomFields, &resp.Diagnostics)
+	// Apply description and comments
+	utils.ApplyDescription(&deviceTypeRequest, data.Description)
+	utils.ApplyComments(&deviceTypeRequest, data.Comments)
+
+	// Store plan values for filter-to-owned pattern
+	planTags := data.Tags
+	planCustomFields := data.CustomFields
+
+	// Apply tags and custom fields
+	utils.ApplyTagsFromSlugs(ctx, r.client, &deviceTypeRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, &deviceTypeRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -262,6 +275,22 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case deviceType.HasTags() && len(deviceType.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(deviceType.GetTags()))
+		for _, tag := range deviceType.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, deviceType.GetCustomFields(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -305,11 +334,31 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
+	// Store state values for filter-to-owned pattern
+	stateTags := data.Tags
+	stateCustomFields := data.CustomFields
+
 	// Map response to state
 	r.mapDeviceTypeToState(ctx, deviceType, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+	switch {
+	case deviceType.HasTags() && len(deviceType.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(deviceType.GetTags()))
+		for _, tag := range deviceType.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, deviceType.GetCustomFields(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -414,8 +463,22 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 	// Note: weight_unit has a DB NOT NULL constraint and cannot be cleared once set
 
-	// Set common fields with merge-aware custom fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFieldsWithMerge(ctx, &deviceTypeRequest, data.Description, data.Comments, data.Tags, state.Tags, data.CustomFields, state.CustomFields, &resp.Diagnostics)
+	// Apply description and comments
+	utils.ApplyDescription(&deviceTypeRequest, data.Description)
+	utils.ApplyComments(&deviceTypeRequest, data.Comments)
+
+	// Apply tags - merge-aware: use plan if provided, else use state
+	if utils.IsSet(data.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, &deviceTypeRequest, data.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, &deviceTypeRequest, state.Tags, &resp.Diagnostics)
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Apply custom fields with merge-aware logic
+	utils.ApplyCustomFieldsWithMerge(ctx, &deviceTypeRequest, data.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -440,6 +503,22 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Apply filter-to-owned pattern for tags
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case deviceType.HasTags() && len(deviceType.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(deviceType.GetTags()))
+		for _, tag := range deviceType.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, deviceType.GetCustomFields(), &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -579,11 +658,5 @@ func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceTyp
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, deviceType.HasTags(), deviceType.GetTags(), data.Tags, diags)
-
-	// Handle custom fields - only populate fields that are in plan (owned by this resource)
-	if deviceType.HasCustomFields() {
-		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, deviceType.GetCustomFields(), diags)
-	}
+	// Tags and custom fields are handled in Create/Read/Update methods using filter-to-owned pattern.
 }

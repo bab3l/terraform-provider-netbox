@@ -187,12 +187,7 @@ resource "netbox_wireless_link" "test" {
   ssid        = %[1]q
   description = "Initial description"
 
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags = [netbox_tag.test.slug]
 
   custom_fields = [
     {

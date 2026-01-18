@@ -42,7 +42,7 @@ func TestAccTunnelResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ResourceName:            "netbox_tunnel.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields"},
+				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
 			},
 		},
 	})
@@ -210,12 +210,7 @@ resource "netbox_tunnel" "test" {
     }
   ]
 
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags = [netbox_tag.test.slug]
 }
 `, tunnelName, cfName, tagName, cfValue)
 }

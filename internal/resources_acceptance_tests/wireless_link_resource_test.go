@@ -45,8 +45,7 @@ func TestAccWirelessLinkResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_wireless_link.test", "description", "Full test wireless link with all optional fields"),
 					resource.TestCheckResourceAttr("netbox_wireless_link.test", "comments", "Comprehensive test configuration"),
 					resource.TestCheckResourceAttr("netbox_wireless_link.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("netbox_wireless_link.test", "tags.0.name", tagName),
-					resource.TestCheckResourceAttr("netbox_wireless_link.test", "tags.0.slug", tagSlug),
+					resource.TestCheckTypeSetElemAttr("netbox_wireless_link.test", "tags.*", tagSlug),
 				),
 			},
 		},
@@ -188,12 +187,7 @@ resource "netbox_wireless_link" "test" {
   distance_unit = "km"
   description   = "Full test wireless link with all optional fields"
   comments      = "Comprehensive test configuration"
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags = [netbox_tag.test.slug]
 }
 `, siteName, siteSlug, tenantName, tenantSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceNameA, interfaceNameB, tagName, tagSlug)
 }

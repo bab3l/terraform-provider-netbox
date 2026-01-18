@@ -344,13 +344,13 @@ func (d *PrefixDataSource) mapPrefixToState(ctx context.Context, prefix *netbox.
 		data.Comments = types.StringNull()
 	}
 
-	// Tags
+	// Tags (slug list)
 	if len(prefix.Tags) > 0 {
-		tagNames := make([]string, 0, len(prefix.Tags))
+		tagSlugs := make([]string, 0, len(prefix.Tags))
 		for _, tag := range prefix.Tags {
-			tagNames = append(tagNames, tag.Name)
+			tagSlugs = append(tagSlugs, tag.Slug)
 		}
-		tagList, _ := types.ListValueFrom(ctx, types.StringType, tagNames)
+		tagList, _ := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		data.Tags = tagList
 	} else {
 		data.Tags = types.ListNull(types.StringType)

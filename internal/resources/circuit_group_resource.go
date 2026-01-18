@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -73,8 +74,9 @@ func (r *CircuitGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("circuit group"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -120,8 +122,11 @@ func (r *CircuitGroupResource) Create(ctx context.Context, req resource.CreateRe
 		groupRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
 	}
 
-	utils.ApplyMetadataFields(ctx, groupRequest, data.Tags, data.CustomFields, &resp.Diagnostics)
-
+	utils.ApplyTagsFromSlugs(ctx, r.client, groupRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.ApplyCustomFields(ctx, groupRequest, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -235,9 +240,9 @@ func (r *CircuitGroupResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Apply tags with conditional logic (use plan if set, otherwise state)
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, groupRequest, data.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, groupRequest, data.Tags, &resp.Diagnostics)
 	} else if !state.Tags.IsNull() && !state.Tags.IsUnknown() {
-		utils.ApplyTags(ctx, groupRequest, state.Tags, &resp.Diagnostics)
+		utils.ApplyTagsFromSlugs(ctx, r.client, groupRequest, state.Tags, &resp.Diagnostics)
 	}
 
 	// Handle custom fields with merge-aware logic
@@ -337,8 +342,21 @@ func (r *CircuitGroupResource) mapResponseToState(ctx context.Context, group *ne
 		data.TenantID = types.StringNull()
 	}
 
-	// Populate tags and custom fields using unified helpers
-	data.Tags = utils.PopulateTagsFromAPI(ctx, group.HasTags(), group.GetTags(), data.Tags, diags)
+	// Tags (slug list)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case group.HasTags():
+		for _, tag := range group.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	if diags.HasError() {
 		return
 	}

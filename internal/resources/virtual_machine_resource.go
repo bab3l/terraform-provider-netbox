@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -156,7 +157,8 @@ func (r *VirtualMachineResource) Schema(ctx context.Context, req resource.Schema
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("virtual machine"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure sets up the resource with the provider client.
@@ -420,7 +422,10 @@ func (r *VirtualMachineResource) buildVirtualMachineRequest(ctx context.Context,
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
-	utils.ApplyCommonFields(ctx, vmRequest, data.Description, data.Comments, data.Tags, data.CustomFields, diags)
+	utils.ApplyDescription(vmRequest, data.Description)
+	utils.ApplyComments(vmRequest, data.Comments)
+	utils.ApplyTagsFromSlugs(ctx, r.client, vmRequest, data.Tags, diags)
+	utils.ApplyCustomFields(ctx, vmRequest, data.CustomFields, diags)
 	if diags.HasError() {
 		return nil
 	}
@@ -543,7 +548,7 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 	utils.ApplyDescriptiveFields(vmRequest, plan.Description, plan.Comments)
 
 	// Apply tags
-	utils.ApplyTags(ctx, vmRequest, plan.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, vmRequest, plan.Tags, diags)
 	if diags.HasError() {
 		return nil
 	}
@@ -616,7 +621,19 @@ func (r *VirtualMachineResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, vm.HasTags(), vm.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case vm.HasTags() && len(vm.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(vm.GetTags()))
+		for _, tag := range vm.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, vm.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -696,7 +713,19 @@ func (r *VirtualMachineResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 
 	// Preserve null/empty state values for tags and custom_fields
-	data.Tags = utils.PopulateTagsFromAPI(ctx, vm.HasTags(), vm.GetTags(), stateTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+	switch {
+	case vm.HasTags() && len(vm.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(vm.GetTags()))
+		for _, tag := range vm.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, vm.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -784,7 +813,19 @@ func (r *VirtualMachineResource) Update(ctx context.Context, req resource.Update
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	plan.Tags = utils.PopulateTagsFromAPI(ctx, vm.HasTags(), vm.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case vm.HasTags() && len(vm.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(vm.GetTags()))
+		for _, tag := range vm.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
+	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, vm.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

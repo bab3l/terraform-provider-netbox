@@ -259,13 +259,13 @@ func (d *VirtualDiskDataSource) mapVirtualDiskToDataSourceModel(ctx context.Cont
 		data.Description = types.StringNull()
 	}
 
-	// Tags - convert to list of strings (tag names)
+	// Tags - convert to list of strings (tag slugs)
 	if len(vd.Tags) > 0 {
-		tagNames := make([]string, len(vd.Tags))
+		tagSlugs := make([]string, len(vd.Tags))
 		for i, tag := range vd.Tags {
-			tagNames[i] = tag.Name
+			tagSlugs[i] = tag.Slug
 		}
-		tagsList, _ := types.ListValueFrom(ctx, types.StringType, tagNames)
+		tagsList, _ := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		data.Tags = tagsList
 	} else {
 		data.Tags = types.ListNull(types.StringType)

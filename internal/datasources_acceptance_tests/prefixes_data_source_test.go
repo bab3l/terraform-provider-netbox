@@ -125,12 +125,7 @@ resource "netbox_prefix" "test" {
   prefix = %q
   status = "active"
 
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags = [netbox_tag.test.slug]
 }
 
 data "netbox_prefixes" "test" {

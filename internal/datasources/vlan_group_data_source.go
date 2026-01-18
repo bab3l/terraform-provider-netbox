@@ -37,7 +37,7 @@ type VLANGroupDataSourceModel struct {
 	ScopeID      types.String `tfsdk:"scope_id"`
 	Description  types.String `tfsdk:"description"`
 	DisplayName  types.String `tfsdk:"display_name"`
-	Tags         types.Set    `tfsdk:"tags"`
+	Tags         types.List   `tfsdk:"tags"`
 	CustomFields types.Set    `tfsdk:"custom_fields"`
 }
 
@@ -80,7 +80,11 @@ func (d *VLANGroupDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				MarkdownDescription: "Display name for the VLAN Group.",
 				Computed:            true,
 			},
-			"tags":          nbschema.DSTagsAttribute(),
+			"tags": schema.ListAttribute{
+				MarkdownDescription: "Tags assigned to this VLAN Group.",
+				Computed:            true,
+				ElementType:         types.StringType,
+			},
 			"custom_fields": nbschema.DSCustomFieldsAttribute(),
 		},
 	}
@@ -241,17 +245,20 @@ func (d *VLANGroupDataSource) mapVLANGroupToState(ctx context.Context, vlanGroup
 		data.DisplayName = types.StringNull()
 	}
 
-	// Tags
-	if vlanGroup.HasTags() {
-		tags := utils.NestedTagsToTagModels(vlanGroup.GetTags())
-		tagsValue, tagDiags := types.SetValueFrom(ctx, utils.GetTagsAttributeType().ElemType, tags)
+	// Tags (slug list)
+	if vlanGroup.HasTags() && len(vlanGroup.GetTags()) > 0 {
+		tagSlugs := make([]string, 0, len(vlanGroup.GetTags()))
+		for _, tag := range vlanGroup.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
 		diags.Append(tagDiags...)
 		if diags.HasError() {
 			return
 		}
 		data.Tags = tagsValue
 	} else {
-		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
+		data.Tags = types.ListNull(types.StringType)
 	}
 
 	// Custom fields - datasources return ALL fields

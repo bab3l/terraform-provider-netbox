@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -106,7 +107,8 @@ func (r *WirelessLANGroupResource) Schema(ctx context.Context, req resource.Sche
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("wireless LAN group"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -178,7 +180,7 @@ func (r *WirelessLANGroupResource) Create(ctx context.Context, req resource.Crea
 	planCustomFields := data.CustomFields
 
 	// Apply tags and custom fields
-	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
@@ -215,7 +217,19 @@ func (r *WirelessLANGroupResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case response.HasTags() && len(response.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(response.GetTags()))
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Trace(ctx, "Created wireless LAN group", map[string]interface{}{
@@ -289,7 +303,19 @@ func (r *WirelessLANGroupResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	// Populate tags and custom fields filtered to owned fields only (preserves null/empty state)
-	data.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), stateTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+	switch {
+	case response.HasTags() && len(response.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(response.GetTags()))
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -352,7 +378,7 @@ func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.Upda
 	utils.ApplyDescription(apiReq, plan.Description)
 
 	// Apply tags and custom fields with merge-aware helpers
-	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, plan.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
@@ -391,7 +417,19 @@ func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	plan.Tags = utils.PopulateTagsFromAPI(ctx, response.HasTags(), response.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case response.HasTags() && len(response.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(response.GetTags()))
+		for _, tag := range response.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
+	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -520,12 +558,21 @@ func (r *WirelessLANGroupResource) mapResponseToModel(ctx context.Context, group
 		data.Parent = types.StringNull()
 	}
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, group.HasTags(), group.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags (slug list) with empty-set preservation
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case group.HasTags() && len(group.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(group.GetTags()))
+		for _, tag := range group.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, group.HasCustomFields(), group.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, group.GetCustomFields(), diags)
 }

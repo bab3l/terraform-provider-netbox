@@ -79,12 +79,7 @@ resource "netbox_contact" "test" {
   group       = netbox_contact_group.test.id
   description = "Initial description"
 
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug]
 }
 `, contactName, groupName, groupSlug, tag1, tag1Slug)
 }

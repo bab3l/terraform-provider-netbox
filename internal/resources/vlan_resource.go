@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -111,7 +112,8 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("VLAN"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 func (r *VLANResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -538,7 +540,7 @@ func (r *VLANResource) setOptionalFields(ctx context.Context, vlanRequest *netbo
 	// Set common fields (description, comments, tags)
 	vlanRequest.Description = utils.StringPtr(data.Description)
 	vlanRequest.Comments = utils.StringPtr(data.Comments)
-	utils.ApplyTags(ctx, vlanRequest, data.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, vlanRequest, data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
@@ -628,10 +630,19 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, vlan.HasTags(), vlan.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags (slug list) with empty-set preservation
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case vlan.HasTags() && len(vlan.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(vlan.GetTags()))
+		for _, tag := range vlan.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// Handle custom fields using filter-to-owned pattern

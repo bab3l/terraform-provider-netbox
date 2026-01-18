@@ -61,9 +61,6 @@ resource "netbox_wireless_link" "complete" {
   ]
 
   tags = [
-    {
-      name = "production"
-      slug = "production"
-    }
+    "production"
   ]
 }

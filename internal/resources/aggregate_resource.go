@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -86,8 +87,9 @@ func (r *AggregateResource) Schema(ctx context.Context, req resource.SchemaReque
 	// Add description and comments attributes
 	maps.Copy(resp.Schema.Attributes, nbschema.CommonDescriptiveAttributes("aggregate"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure sets the client for the resource.
@@ -357,8 +359,8 @@ func (r *AggregateResource) buildCreateRequest(ctx context.Context, data *Aggreg
 		createReq.SetComments("")
 	}
 
-	// Apply tags
-	utils.ApplyTags(ctx, createReq, data.Tags, &diags)
+	// Apply tags (slug list)
+	utils.ApplyTagsFromSlugs(ctx, r.client, createReq, data.Tags, &diags)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -418,8 +420,21 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 		data.Comments = types.StringNull()
 	}
 
-	// Tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(aggregate.Tags) > 0, aggregate.Tags, data.Tags, &diags)
+	// Tags (slug list)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case len(aggregate.GetTags()) > 0:
+		for _, tag := range aggregate.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	if diags.HasError() {
 		return
 	}

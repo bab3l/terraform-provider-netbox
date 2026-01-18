@@ -785,16 +785,7 @@ resource "netbox_asn_range" "test" {
   rir   = netbox_rir.test.id
   start = "65200"
   end   = "65300"
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, name, slug)
 	case "tag2_tag3":
@@ -805,16 +796,7 @@ resource "netbox_asn_range" "test" {
   rir   = netbox_rir.test.id
   start = "65200"
   end   = "65300"
-  tags = [
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    }
-  ]
+	tags = [netbox_tag.tag2.slug, netbox_tag.tag3.slug]
 }
 `, name, slug)
 	default: // "none"
@@ -865,36 +847,10 @@ resource "netbox_asn_range" "test" {
 	switch tagOrder {
 	case "tag1_tag2_tag3":
 		tagConfig = `
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    }
-  ]`
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug, netbox_tag.tag3.slug]`
 	case "tag3_tag2_tag1":
 		tagConfig = `
-  tags = [
-    {
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    }
-  ]`
+	tags = [netbox_tag.tag3.slug, netbox_tag.tag2.slug, netbox_tag.tag1.slug]`
 	}
 
 	return baseConfig + tagConfig + "\n}\n"

@@ -12,6 +12,7 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -100,14 +101,15 @@ func (r *ConsoleServerPortResource) Schema(ctx context.Context, req resource.Sch
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
 			},
+			"tags":          nbschema.TagsSlugAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
 
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("console server port"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Tags and custom fields are defined directly in the schema above.
 }
 
 // Configure adds the provider configured client to the resource.
@@ -164,7 +166,7 @@ func (r *ConsoleServerPortResource) Create(ctx context.Context, req resource.Cre
 
 	// Handle description, tags, and custom fields using helpers
 	utils.ApplyDescription(apiReq, data.Description)
-	utils.ApplyTags(ctx, apiReq, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, data.Tags, &resp.Diagnostics)
 	utils.ApplyCustomFields(ctx, apiReq, data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -304,7 +306,11 @@ func (r *ConsoleServerPortResource) Update(ctx context.Context, req resource.Upd
 
 	// Handle description, tags, and custom fields using merge-aware helpers
 	utils.ApplyDescription(apiReq, plan.Description)
-	utils.ApplyTags(ctx, apiReq, plan.Tags, &resp.Diagnostics)
+	if utils.IsSet(plan.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, plan.Tags, &resp.Diagnostics)
+	} else if utils.IsSet(state.Tags) {
+		utils.ApplyTagsFromSlugs(ctx, r.client, apiReq, state.Tags, &resp.Diagnostics)
+	}
 	// Apply custom fields with merge logic to preserve unmanaged fields
 	utils.ApplyCustomFieldsWithMerge(ctx, apiReq, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
@@ -452,8 +458,20 @@ func (r *ConsoleServerPortResource) mapResponseToModel(ctx context.Context, cons
 		data.MarkConnected = types.BoolValue(false)
 	}
 
-	// Handle tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, consoleServerPort.HasTags(), consoleServerPort.GetTags(), data.Tags, diags)
+	// Tags (slug list)
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case consoleServerPort.HasTags() && len(consoleServerPort.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(consoleServerPort.GetTags()))
+		for _, tag := range consoleServerPort.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(context.Background(), tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 
 	// Handle custom fields - filter to only owned fields
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, consoleServerPort.GetCustomFields(), diags)

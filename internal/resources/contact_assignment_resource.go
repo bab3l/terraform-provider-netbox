@@ -5,7 +5,6 @@ package resources
 import (
 	"context"
 	"fmt"
-	"maps"
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
@@ -93,12 +92,10 @@ func (r *ContactAssignmentResource) Schema(ctx context.Context, req resource.Sch
 					stringvalidator.OneOf("primary", "secondary", "tertiary", "inactive", ""),
 				},
 			},
+			"tags":          nbschema.TagsSlugAttribute(),
+			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
-
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
-	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 }
 
 func (r *ContactAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

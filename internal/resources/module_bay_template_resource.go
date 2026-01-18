@@ -41,15 +41,13 @@ type ModuleBayTemplateResource struct {
 
 // ModuleBayTemplateResourceModel describes the resource data model.
 type ModuleBayTemplateResourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	DeviceType   types.String `tfsdk:"device_type"`
-	ModuleType   types.String `tfsdk:"module_type"`
-	Name         types.String `tfsdk:"name"`
-	Label        types.String `tfsdk:"label"`
-	Position     types.String `tfsdk:"position"`
-	Description  types.String `tfsdk:"description"`
-	Tags         types.Set    `tfsdk:"tags"`
-	CustomFields types.Set    `tfsdk:"custom_fields"`
+	ID          types.String `tfsdk:"id"`
+	DeviceType  types.String `tfsdk:"device_type"`
+	ModuleType  types.String `tfsdk:"module_type"`
+	Name        types.String `tfsdk:"name"`
+	Label       types.String `tfsdk:"label"`
+	Position    types.String `tfsdk:"position"`
+	Description types.String `tfsdk:"description"`
 }
 
 // Metadata returns the resource type name.
@@ -99,8 +97,7 @@ func (r *ModuleBayTemplateResource) Schema(ctx context.Context, req resource.Sch
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("module bay template"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// This resource does not support tags or custom fields.
 }
 
 // Configure adds the provider configured client to the resource.
@@ -234,25 +231,25 @@ func (r *ModuleBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 
 // Update updates the resource.
 func (r *ModuleBayTemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data ModuleBayTemplateResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	var plan ModuleBayTemplateResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse ID
 	var id int32
-	_, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id)
+	_, err := fmt.Sscanf(plan.ID.ValueString(), "%d", &id)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error parsing module bay template ID",
-			fmt.Sprintf("Could not parse ID '%s': %s", data.ID.ValueString(), err.Error()),
+			fmt.Sprintf("Could not parse ID '%s': %s", plan.ID.ValueString(), err.Error()),
 		)
 		return
 	}
 
 	// Validate that at least one of device_type or module_type is set
-	if data.DeviceType.IsNull() && data.ModuleType.IsNull() {
+	if plan.DeviceType.IsNull() && plan.ModuleType.IsNull() {
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",
 			"Either device_type or module_type must be specified.",
@@ -261,11 +258,11 @@ func (r *ModuleBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Build request
-	apiReq := netbox.NewModuleBayTemplateRequest(data.Name.ValueString())
+	apiReq := netbox.NewModuleBayTemplateRequest(plan.Name.ValueString())
 
 	// Set device type or module type
-	if !data.DeviceType.IsNull() && !data.DeviceType.IsUnknown() {
-		deviceType, diags := lookup.LookupDeviceType(ctx, r.client, data.DeviceType.ValueString())
+	if !plan.DeviceType.IsNull() && !plan.DeviceType.IsUnknown() {
+		deviceType, diags := lookup.LookupDeviceType(ctx, r.client, plan.DeviceType.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -273,8 +270,8 @@ func (r *ModuleBayTemplateResource) Update(ctx context.Context, req resource.Upd
 		apiReq.SetDeviceType(*deviceType)
 	}
 
-	if !data.ModuleType.IsNull() && !data.ModuleType.IsUnknown() {
-		moduleType, diags := lookup.LookupModuleType(ctx, r.client, data.ModuleType.ValueString())
+	if !plan.ModuleType.IsNull() && !plan.ModuleType.IsUnknown() {
+		moduleType, diags := lookup.LookupModuleType(ctx, r.client, plan.ModuleType.ValueString())
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -283,25 +280,25 @@ func (r *ModuleBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Set optional fields
-	utils.ApplyLabel(apiReq, data.Label)
+	utils.ApplyLabel(apiReq, plan.Label)
 	switch {
-	case data.Position.IsUnknown():
+	case plan.Position.IsUnknown():
 		// Leave position unset when unknown to avoid sending an invalid value.
-	case data.Position.IsNull():
+	case plan.Position.IsNull():
 		// NetBox PATCH semantics: omitted fields are preserved, so explicitly clear.
 		apiReq.SetPosition("")
 	default:
-		apiReq.SetPosition(data.Position.ValueString())
+		apiReq.SetPosition(plan.Position.ValueString())
 	}
 
 	// Apply description
-	utils.ApplyDescription(apiReq, data.Description)
+	utils.ApplyDescription(apiReq, plan.Description)
 
 	tflog.Debug(ctx, "Updating module bay template", map[string]interface{}{
 		"id":          id,
-		"name":        data.Name.ValueString(),
-		"device_type": data.DeviceType.ValueString(),
-		"module_type": data.ModuleType.ValueString(),
+		"name":        plan.Name.ValueString(),
+		"device_type": plan.DeviceType.ValueString(),
+		"module_type": plan.ModuleType.ValueString(),
 	})
 
 	// Update the resource
@@ -316,11 +313,11 @@ func (r *ModuleBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Map response to state
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	r.mapToState(ctx, result, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource.

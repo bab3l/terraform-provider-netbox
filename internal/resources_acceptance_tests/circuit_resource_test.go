@@ -717,16 +717,7 @@ resource "netbox_circuit" "test" {
   cid              = %[1]q
   circuit_provider = netbox_provider.test.slug
   type             = netbox_circuit_type.test.slug
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, cid)
 	case "tag2_tag3":
@@ -735,16 +726,7 @@ resource "netbox_circuit" "test" {
   cid              = %[1]q
   circuit_provider = netbox_provider.test.slug
   type             = netbox_circuit_type.test.slug
-  tags = [
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag3.name
-      slug = netbox_tag.tag3.slug
-    }
-  ]
+	tags = [netbox_tag.tag2.slug, netbox_tag.tag3.slug]
 }
 `, cid)
 	default: // "none"
@@ -788,16 +770,7 @@ resource "netbox_circuit" "test" {
   cid              = %[1]q
   circuit_provider = netbox_provider.test.slug
   type             = netbox_circuit_type.test.slug
-  tags = [
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    },
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    }
-  ]
+	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, cid)
 	}
@@ -807,16 +780,7 @@ resource "netbox_circuit" "test" {
   cid              = %[1]q
   circuit_provider = netbox_provider.test.slug
   type             = netbox_circuit_type.test.slug
-  tags = [
-    {
-      name = netbox_tag.tag2.name
-      slug = netbox_tag.tag2.slug
-    },
-    {
-      name = netbox_tag.tag1.name
-      slug = netbox_tag.tag1.slug
-    }
-  ]
+	tags = [netbox_tag.tag2.slug, netbox_tag.tag1.slug]
 }
 `, cid)
 }

@@ -179,12 +179,7 @@ resource "netbox_virtual_machine" "test" {
 	cluster = netbox_cluster.test.id
 	status  = "active"
 
-	tags = [
-		{
-			name = netbox_tag.test.name
-			slug = netbox_tag.test.slug
-		}
-	]
+	tags = [netbox_tag.test.slug]
 }
 
 data "netbox_virtual_machines" "test" {
@@ -220,12 +215,7 @@ resource "netbox_virtual_machine" "test" {
 	cluster = netbox_cluster.test.id
 	status  = "active"
 
-	tags = [
-		{
-			name = netbox_tag.test.name
-			slug = netbox_tag.test.slug
-		}
-	]
+	tags = [netbox_tag.test.slug]
 }
 
 data "netbox_virtual_machines" "test" {

@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -152,7 +153,8 @@ func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("VM interface"))
 
 	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure sets up the resource with the provider client.
@@ -263,14 +265,23 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 		data.VRF = types.StringNull()
 	}
 
-	// Handle tags using consolidated helper
-	data.Tags = utils.PopulateTagsFromAPI(ctx, iface.HasTags(), iface.GetTags(), data.Tags, diags)
-	if diags.HasError() {
-		return
+	// Handle tags (slug list) with empty-set preservation
+	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+	switch {
+	case iface.HasTags() && len(iface.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(iface.GetTags()))
+		for _, tag := range iface.GetTags() {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// Handle custom fields using consolidated helper
-	data.CustomFields = utils.PopulateCustomFieldsFromAPI(ctx, iface.HasCustomFields(), iface.GetCustomFields(), data.CustomFields, diags)
+	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, iface.GetCustomFields(), diags)
 }
 
 // buildVMInterfaceRequest builds a WritableVMInterfaceRequest from the resource model.
@@ -380,7 +391,7 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, plan 
 
 	// Apply metadata fields individually with merge-aware helpers
 
-	utils.ApplyTags(ctx, ifaceRequest, plan.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, ifaceRequest, plan.Tags, diags)
 	utils.ApplyCustomFieldsWithMerge(ctx, ifaceRequest, plan.CustomFields, state.CustomFields, diags)
 
 	if diags.HasError() {

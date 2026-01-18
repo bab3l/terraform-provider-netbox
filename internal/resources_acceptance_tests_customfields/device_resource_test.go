@@ -1030,16 +1030,7 @@ resource "netbox_device" "test" {
   site        = netbox_site.test.id
   status      = "active"
 
-  tags = [
-    {
-      name = netbox_tag.test1.name
-      slug = netbox_tag.test1.slug
-    },
-    {
-      name = netbox_tag.test2.name
-      slug = netbox_tag.test2.slug
-    }
-  ]
+	tags = [netbox_tag.test1.slug, netbox_tag.test2.slug]
 
   custom_fields = [
     {

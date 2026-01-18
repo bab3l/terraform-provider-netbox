@@ -195,16 +195,7 @@ resource "netbox_interface" "test" {
   name   = %[1]q
   type   = "1000base-t"
 
-  tags = [
-    {
-      name = netbox_tag.int_test1.name
-      slug = netbox_tag.int_test1.slug
-    },
-    {
-      name = netbox_tag.int_test2.name
-      slug = netbox_tag.int_test2.slug
-    }
-  ]
+  tags = [netbox_tag.int_test1.slug, netbox_tag.int_test2.slug]
 
   custom_fields = [
     {

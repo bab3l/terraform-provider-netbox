@@ -14,6 +14,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -103,8 +104,9 @@ func (r *ASNRangeResource) Schema(ctx context.Context, req resource.SchemaReques
 	// Add description attribute
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("ASN range"))
 
-	// Add common metadata attributes (tags, custom_fields)
-	maps.Copy(resp.Schema.Attributes, nbschema.CommonMetadataAttributes())
+	// Add metadata attributes (slug list tags, custom_fields)
+	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
+	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -413,7 +415,7 @@ func (r *ASNRangeResource) setOptionalFields(ctx context.Context, asnRangeReques
 	utils.ApplyDescription(asnRangeRequest, data.Description)
 
 	// Tags
-	utils.ApplyTags(ctx, asnRangeRequest, data.Tags, diags)
+	utils.ApplyTagsFromSlugs(ctx, r.client, asnRangeRequest, data.Tags, diags)
 	if diags.HasError() {
 		return
 	}
@@ -459,7 +461,20 @@ func (r *ASNRangeResource) mapASNRangeToState(ctx context.Context, asnRange *net
 	}
 
 	// Tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, len(asnRange.Tags) > 0, asnRange.Tags, data.Tags, diags)
+	var tagSlugs []string
+	switch {
+	case data.Tags.IsNull():
+		data.Tags = types.SetNull(types.StringType)
+	case len(data.Tags.Elements()) == 0:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	case len(asnRange.GetTags()) > 0:
+		for _, tag := range asnRange.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	default:
+		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
+	}
 	if diags.HasError() {
 		return
 	}

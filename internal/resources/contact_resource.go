@@ -11,7 +11,7 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -59,7 +59,7 @@ func (r *ContactResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"name":  nbschema.NameAttribute("contact", 100),
 			"group": nbschema.ReferenceAttributeWithDiffSuppress("contact group", "ID or slug of the contact group this contact belongs to."),
 
-			"tags": nbschema.TagsAttribute(),
+			"tags": nbschema.TagsSlugAttribute(),
 			"title": schema.StringAttribute{
 				MarkdownDescription: "Job title or role of the contact.",
 				Optional:            true,
@@ -186,7 +186,10 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 	planTags := data.Tags
 
 	// Handle tags
-	utils.ApplyTags(ctx, contactRequest, data.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, contactRequest, data.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsCreate(ctx).ContactRequest(*contactRequest).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
@@ -206,7 +209,19 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 	r.mapContactToState(ctx, contact, &data)
 
 	// Apply filter-to-owned pattern for tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, contact.HasTags(), contact.GetTags(), planTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
+	switch {
+	case contact.HasTags() && len(contact.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(contact.GetTags()))
+		for _, tag := range contact.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	tflog.Debug(ctx, "Created contact", map[string]interface{}{
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
@@ -240,7 +255,19 @@ func (r *ContactResource) Read(ctx context.Context, req resource.ReadRequest, re
 	stateTags := data.Tags
 	r.mapContactToState(ctx, contact, &data)
 	// Apply filter-to-owned pattern for tags
-	data.Tags = utils.PopulateTagsFromAPI(ctx, contact.HasTags(), contact.GetTags(), stateTags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+	switch {
+	case contact.HasTags() && len(contact.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(contact.GetTags()))
+		for _, tag := range contact.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		data.Tags = types.SetNull(types.StringType)
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -317,11 +344,9 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 	utils.ApplyComments(contactRequest, plan.Comments)
 
 	// Handle tags (tags use replace-all semantics)
-	// If tags are not specified in plan (null), explicitly clear them on API side
-	if plan.Tags.IsNull() {
-		contactRequest.SetTags([]netbox.NestedTagRequest{})
-	} else {
-		utils.ApplyTags(ctx, contactRequest, plan.Tags, &resp.Diagnostics)
+	utils.ApplyTagsFromSlugs(ctx, r.client, contactRequest, plan.Tags, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsUpdate(ctx, contactID).ContactRequest(*contactRequest).Execute()
@@ -339,8 +364,18 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 	// After update, populate tags based on what the user specified
 	// If tags were null in plan (not specified), keep them null to match config
 	// Otherwise, populate from API response (replace-all semantics)
-	if !plan.Tags.IsNull() {
-		plan.Tags = utils.PopulateTagsFromAPI(ctx, contact.HasTags(), contact.GetTags(), plan.Tags, &resp.Diagnostics)
+	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
+	switch {
+	case contact.HasTags() && len(contact.GetTags()) > 0:
+		tagSlugs := make([]string, 0, len(contact.GetTags()))
+		for _, tag := range contact.GetTags() {
+			tagSlugs = append(tagSlugs, tag.GetSlug())
+		}
+		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+	case wasExplicitlyEmpty:
+		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	default:
+		plan.Tags = types.SetNull(types.StringType)
 	}
 
 	tflog.Debug(ctx, "Updated contact", map[string]interface{}{
@@ -438,7 +473,5 @@ func (r *ContactResource) mapContactToState(ctx context.Context, contact *netbox
 		data.Comments = types.StringNull()
 	}
 
-	// Handle tags
-	var diags diag.Diagnostics
-	data.Tags = utils.PopulateTagsFromAPI(ctx, contact.HasTags(), contact.GetTags(), data.Tags, &diags)
+	// Tags are handled in Create/Read/Update with filter-to-owned pattern.
 }
