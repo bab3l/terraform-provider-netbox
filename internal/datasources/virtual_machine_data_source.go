@@ -112,7 +112,7 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 
 	// Determine if we're searching by ID or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Search by ID
 		vmID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading virtual machine by ID", map[string]interface{}{
@@ -129,7 +129,7 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		vm, httpResp, err = d.client.VirtualizationAPI.VirtualizationVirtualMachinesRetrieve(ctx, vmIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Search by name
 		vmName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading virtual machine by name", map[string]interface{}{

@@ -91,6 +91,7 @@ A lookup bug was found in the Cluster Type datasource: optional/computed fields 
 - Identifier lookup logic ignores unknown values.
 - At least one datasource test verifies **name lookup with a distinct slug**.
 - Existing `by_id` and `by_slug` tests continue to pass.
+- All datasource acceptance tests for the batch pass.
 
 ## Notes
 - Prioritize datasources where user reports indicate failures first.
