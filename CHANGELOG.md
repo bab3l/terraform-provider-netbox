@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### 🧪 Testing
+- Added missing datasource lookup acceptance coverage for id/slug/name where supported.
+- Documented script datasource lookup tests as skipped due to NetBox API filesystem limitations.
+
 ## v0.0.15 (2026-01-15)
 
 ### 🧪 Testing Excellence: Comprehensive Acceptance Test Suite
