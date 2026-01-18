@@ -89,7 +89,7 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	// Determine if we're searching by ID, slug, or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		regionID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading region by ID", map[string]interface{}{"id": regionID})
 		var regionIDInt int32
@@ -100,7 +100,7 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		region, httpResp, err = d.client.DcimAPI.DcimRegionsRetrieve(ctx, regionIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		regionSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading region by slug", map[string]interface{}{"slug": regionSlug})
 		var regions *netbox.PaginatedRegionList
@@ -120,7 +120,7 @@ func (d *RegionDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		}
 		region = &regions.GetResults()[0]
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		regionName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading region by name", map[string]interface{}{"name": regionName})
 		var regions *netbox.PaginatedRegionList

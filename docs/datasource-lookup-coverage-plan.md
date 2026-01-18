@@ -15,7 +15,7 @@ A lookup bug was found in the Cluster Type datasource: optional/computed fields 
 
 ## Batches (by domain)
 
-### Batch 1 — Virtualization
+### Batch 1 — Virtualization (Complete)
 - cluster_type
 - cluster
 - virtual_machine
@@ -24,7 +24,7 @@ A lookup bug was found in the Cluster Type datasource: optional/computed fields 
 - virtual_disk
 - vm_interface
 
-### Batch 2 — DCIM Core
+### Batch 2 — DCIM Core (Complete)
 - device
 - device_role
 - device_type

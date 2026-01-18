@@ -12,7 +12,7 @@ func TestAccSiteDataSource_basic(t *testing.T) {
 	t.Parallel()
 
 	// Generate unique names to avoid conflicts between test runs
-	name := testutil.RandomName("tf-test-site-ds")
+	name := testutil.RandomName("Public Cloud")
 	slug := testutil.RandomSlug("tf-test-site-ds")
 
 	// Register cleanup to ensure resource is deleted even if test fails

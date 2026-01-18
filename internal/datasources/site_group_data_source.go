@@ -91,7 +91,7 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	// Determine if we're searching by ID, slug, or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		siteGroupID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading site group by ID", map[string]interface{}{"id": siteGroupID})
 		var siteGroupIDInt int32
@@ -102,7 +102,7 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		siteGroup, httpResp, err = d.client.DcimAPI.DcimSiteGroupsRetrieve(ctx, siteGroupIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		siteGroupSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading site group by slug", map[string]interface{}{"slug": siteGroupSlug})
 		var siteGroups *netbox.PaginatedSiteGroupList
@@ -122,7 +122,7 @@ func (d *SiteGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 		siteGroup = &siteGroups.GetResults()[0]
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		siteGroupName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading site group by name", map[string]interface{}{"name": siteGroupName})
 		var siteGroups *netbox.PaginatedSiteGroupList

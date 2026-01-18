@@ -15,7 +15,7 @@ func TestAccPlatformDataSource_basic(t *testing.T) {
 	// Platform requires a manufacturer, so we create both
 	mfrName := testutil.RandomName("tf-test-mfr-for-plat-ds")
 	mfrSlug := testutil.RandomSlug("tf-test-mfr-pds")
-	platName := testutil.RandomName("tf-test-plat-ds")
+	platName := testutil.RandomName("Public Cloud")
 	platSlug := testutil.RandomSlug("tf-test-plat-ds")
 
 	// Register cleanup for both resources

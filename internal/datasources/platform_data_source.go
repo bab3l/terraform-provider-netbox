@@ -80,7 +80,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	// Lookup by id, slug, or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		platformID := data.ID.ValueString()
 		var platformIDInt int32
 		if _, parseErr := fmt.Sscanf(platformID, "%d", &platformIDInt); parseErr != nil {
@@ -94,7 +94,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 			platform = p
 		}
 
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		slug := data.Slug.ValueString()
 		var platforms *netbox.PaginatedPlatformList
 		platforms, httpResp, err = d.client.DcimAPI.DcimPlatformsList(ctx).Slug([]string{slug}).Execute()
@@ -103,7 +103,7 @@ func (d *PlatformDataSource) Read(ctx context.Context, req datasource.ReadReques
 			platform = &platforms.GetResults()[0]
 		}
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		name := data.Name.ValueString()
 		var platforms *netbox.PaginatedPlatformList
 		platforms, httpResp, err = d.client.DcimAPI.DcimPlatformsList(ctx).Name([]string{name}).Execute()

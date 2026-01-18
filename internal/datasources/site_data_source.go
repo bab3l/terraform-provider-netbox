@@ -108,7 +108,7 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	// Determine if we're searching by ID, slug, or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		siteID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading site by ID", map[string]interface{}{"id": siteID})
 		var siteIDInt int32
@@ -119,7 +119,7 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		site, httpResp, err = d.client.DcimAPI.DcimSitesRetrieve(ctx, siteIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		siteSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading site by slug", map[string]interface{}{"slug": siteSlug})
 		var sites *netbox.PaginatedSiteList
@@ -139,7 +139,7 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		}
 		site = &sites.GetResults()[0]
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		siteName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading site by name", map[string]interface{}{"name": siteName})
 		var sites *netbox.PaginatedSiteList

@@ -12,7 +12,7 @@ func TestAccSiteGroupDataSource_basic(t *testing.T) {
 	t.Parallel()
 
 	// Generate unique names
-	name := testutil.RandomName("tf-test-sg-ds")
+	name := testutil.RandomName("Public Cloud")
 	slug := testutil.RandomSlug("tf-test-sg-ds")
 
 	// Register cleanup

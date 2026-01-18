@@ -107,7 +107,7 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	// Determine if we're searching by ID, slug, or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		locationID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading location by ID", map[string]interface{}{
 			"id": locationID,
@@ -123,7 +123,7 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		location, httpResp, err = d.client.DcimAPI.DcimLocationsRetrieve(ctx, locationIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		locationSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading location by slug", map[string]interface{}{
 			"slug": locationSlug,
@@ -154,7 +154,7 @@ func (d *LocationDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 		location = &locations.GetResults()[0]
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		locationName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading location by name", map[string]interface{}{
 			"name": locationName,

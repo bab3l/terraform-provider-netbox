@@ -130,7 +130,7 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	// Look up device by ID, name, or serial
 	switch {
-	case !data.ID.IsNull() && data.ID.ValueString() != "":
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		// Look up by ID
 		var id int32
 		if _, parseErr := fmt.Sscanf(data.ID.ValueString(), "%d", &id); parseErr != nil {
@@ -153,7 +153,7 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			return
 		}
 
-	case !data.Name.IsNull() && data.Name.ValueString() != "":
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Look up by name
 		tflog.Debug(ctx, "Looking up device by name", map[string]interface{}{
 			"name": data.Name.ValueString(),
@@ -183,7 +183,7 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		}
 		device = &list.Results[0]
 
-	case !data.Serial.IsNull() && data.Serial.ValueString() != "":
+	case !data.Serial.IsNull() && !data.Serial.IsUnknown() && data.Serial.ValueString() != "":
 		// Look up by serial
 		tflog.Debug(ctx, "Looking up device by serial", map[string]interface{}{
 			"serial": data.Serial.ValueString(),

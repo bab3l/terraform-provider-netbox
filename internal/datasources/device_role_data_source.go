@@ -96,7 +96,7 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	// Determine if we're searching by ID, slug, or name
 	switch {
-	case !data.ID.IsNull():
+	case !data.ID.IsNull() && !data.ID.IsUnknown():
 		// Search by ID
 		deviceRoleID := data.ID.ValueString()
 		tflog.Debug(ctx, "Reading device role by ID", map[string]interface{}{
@@ -117,7 +117,7 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		deviceRole, httpResp, err = d.client.DcimAPI.DcimDeviceRolesRetrieve(ctx, deviceRoleIDInt).Execute()
 		defer utils.CloseResponseBody(httpResp)
 
-	case !data.Slug.IsNull():
+	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		// Search by slug
 		deviceRoleSlug := data.Slug.ValueString()
 		tflog.Debug(ctx, "Reading device role by slug", map[string]interface{}{
@@ -154,7 +154,7 @@ func (d *DeviceRoleDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		}
 		deviceRole = &deviceRoles.GetResults()[0]
 
-	case !data.Name.IsNull():
+	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Search by name
 		deviceRoleName := data.Name.ValueString()
 		tflog.Debug(ctx, "Reading device role by name", map[string]interface{}{

@@ -12,7 +12,7 @@ func TestAccDeviceTypeDataSource_basic(t *testing.T) {
 	t.Parallel()
 
 	// Generate unique names
-	model := testutil.RandomName("tf-test-devicetype-ds")
+	model := testutil.RandomName("Public Cloud")
 	slug := testutil.RandomSlug("tf-test-dt-ds")
 	manufacturerName := testutil.RandomName("tf-test-mfr-ds")
 	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-ds")
