@@ -35,7 +35,7 @@ A lookup bug was found in the Cluster Type datasource: optional/computed fields 
 - location
 - region
 
-### Batch 3 — DCIM Components
+### Batch 3 — DCIM Components (Complete; no slug-based name fields)
 - interface
 - front_port
 - rear_port
