@@ -102,6 +102,51 @@ func TestAccDeviceDataSource_bySerial(t *testing.T) {
 	})
 }
 
+func TestAccDeviceDataSource_byID(t *testing.T) {
+	t.Parallel()
+
+	deviceName := testutil.RandomName("tf-test-device")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr")
+	deviceTypeModel := testutil.RandomName("tf-test-device-type")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt")
+	deviceRoleName := testutil.RandomName("tf-test-device-role")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-dr")
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckManufacturerDestroy,
+			testutil.CheckSiteDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceDataSourceConfig_byID(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_device.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_device.test", "name", deviceName),
+					resource.TestCheckResourceAttr("data.netbox_device.test", "device_type", deviceTypeModel),
+					resource.TestCheckResourceAttr("data.netbox_device.test", "role", deviceRoleName),
+					resource.TestCheckResourceAttr("data.netbox_device.test", "site", siteName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDeviceDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
@@ -214,4 +259,41 @@ data "netbox_device" "test" {
   serial = netbox_device.test.serial
 }
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial)
+}
+
+func testAccDeviceDataSourceConfig_byID(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+	name = %[1]q
+	slug = %[2]q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.slug
+	model        = %[3]q
+	slug         = %[4]q
+}
+
+resource "netbox_device_role" "test" {
+	name = %[5]q
+	slug = %[6]q
+}
+
+resource "netbox_site" "test" {
+	name   = %[7]q
+	slug   = %[8]q
+	status = "active"
+}
+
+resource "netbox_device" "test" {
+	name        = %[9]q
+	device_type = netbox_device_type.test.slug
+	role        = netbox_device_role.test.slug
+	site        = netbox_site.test.slug
+}
+
+data "netbox_device" "test" {
+	id = netbox_device.test.id
+}
+`, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName)
 }

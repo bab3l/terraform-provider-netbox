@@ -114,6 +114,32 @@ func TestAccDeviceRoleDataSource_byName(t *testing.T) {
 	})
 }
 
+func TestAccDeviceRoleDataSource_bySlug(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-devicerole-ds")
+	slug := testutil.RandomSlug("tf-test-dr-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterDeviceRoleCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckDeviceRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceRoleDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_device_role.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_device_role.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_device_role.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccDeviceRoleDataSourceConfigByName(name, slug string) string {
 	return fmt.Sprintf(`
 terraform {

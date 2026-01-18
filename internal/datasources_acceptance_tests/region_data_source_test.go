@@ -113,6 +113,32 @@ func TestAccRegionDataSource_byName(t *testing.T) {
 	})
 }
 
+func TestAccRegionDataSource_bySlug(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-region-ds")
+	slug := testutil.RandomSlug("tf-test-region-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterRegionCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckRegionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRegionDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_region.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_region.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_region.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func testAccRegionDataSourceConfig(name, slug string) string {
 	return fmt.Sprintf(`
 terraform {

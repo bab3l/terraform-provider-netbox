@@ -88,6 +88,32 @@ func TestAccSiteDataSource_byName(t *testing.T) {
 	})
 }
 
+func TestAccSiteDataSource_bySlug(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-site-ds")
+	slug := testutil.RandomSlug("tf-test-site-ds")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(slug)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckSiteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSiteDataSourceConfig(name, slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_site.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_site.test", "name", name),
+					resource.TestCheckResourceAttr("data.netbox_site.test", "slug", slug),
+				),
+			},
+		},
+	})
+}
+
 func TestAccSiteDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
