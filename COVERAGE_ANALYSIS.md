@@ -464,13 +464,13 @@
 
 ### 85. Tunnel Group (vpn_tunnel_group)
 - 11 tests passing (includes 1 consistency test)
-- Duration: ~9.7s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+- Duration: ~6.9s
+- **Notable**: ✅ Phase 2 complete (commit 2d00a1d) - uses slug list tags
 
 ### 86. Tunnel Termination (vpn_tunnel_termination)
 - 11 tests passing (includes 1 consistency test)
-- Duration: ~7.1s
-- **Notable**: ⚠️ Uses nested tag format - needs conversion to slug list (Phase 2)
+- Duration: ~6.7s
+- **Notable**: ✅ Phase 2 complete (commit aba33ad) - uses slug list tags
 
 ## Standard Test Pattern
 
