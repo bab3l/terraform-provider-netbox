@@ -119,7 +119,7 @@ func (d *VRFDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	// Look up by ID or name
 	switch {
-	case !data.ID.IsNull() && data.ID.ValueString() != "":
+	case !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "":
 		var id int32
 		if _, err := fmt.Sscanf(data.ID.ValueString(), "%d", &id); err != nil {
 			resp.Diagnostics.AddError("Invalid VRF ID", fmt.Sprintf("VRF ID must be a number, got: %s", data.ID.ValueString()))
@@ -139,7 +139,7 @@ func (d *VRFDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		}
 		vrf = vrfResp
 
-	case !data.Name.IsNull() && data.Name.ValueString() != "":
+	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Look up by name
 		name := data.Name.ValueString()
 		tflog.Debug(ctx, "Looking up VRF by name", map[string]interface{}{

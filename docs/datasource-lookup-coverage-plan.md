@@ -46,7 +46,7 @@ A lookup bug was found in the Cluster Type datasource: optional/computed fields 
 - power_feed
 - inventory_item
 
-### Batch 4 — IPAM
+### Batch 4 — IPAM (Complete)
 - ip_address
 - prefix
 - ip_range
