@@ -2,9 +2,16 @@
 
 ## Unreleased
 
+### 🐛 Fixes
+- Hardened datasource lookup handling to ignore unknown values across multiple datasources.
+
 ### 🧪 Testing
+- Standardized acceptance test patterns and slug-tag usage for tunnel, tunnel group, tunnel termination, journal entry, and tenant tests.
 - Added missing datasource lookup acceptance coverage for id/slug/name where supported.
 - Documented script datasource lookup tests as skipped due to NetBox API filesystem limitations.
+
+### 📚 Docs
+- Regenerated documentation and removed legacy checklist docs.
 
 ## v0.0.15 (2026-01-15)
 
