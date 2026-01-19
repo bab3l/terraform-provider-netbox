@@ -58,6 +58,7 @@ func TestAccJournalEntryResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_journal_entry.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,
 				ImportStateVerifyIgnore: []string{"custom_fields"},
 			},

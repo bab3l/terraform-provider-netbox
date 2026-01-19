@@ -32,3 +32,17 @@ resource "netbox_provider_account" "test" {
     "primary-account"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_provider_account.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "account_manager:text",
+      "billing_contact:text",
+      "annual_spend:integer",
+    ]
+  }
+}

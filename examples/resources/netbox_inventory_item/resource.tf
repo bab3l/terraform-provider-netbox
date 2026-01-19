@@ -61,3 +61,18 @@ resource "netbox_inventory_item" "test" {
     "warranty-tracked"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_inventory_item.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "serial_number:text",
+      "purchase_date:date",
+      "warranty_expiry:date",
+      "asset_tag:text",
+    ]
+  }
+}

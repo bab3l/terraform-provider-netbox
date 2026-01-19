@@ -164,11 +164,11 @@ func TestAccTenantGroupResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				Config:                  testAccTenantGroupResourceImportConfig_full(groupName, groupSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:            "netbox_tenant_group.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
+				Config:            testAccTenantGroupResourceImportConfig_full(groupName, groupSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:      "netbox_tenant_group.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			{
 				Config:   testAccTenantGroupResourceImportConfig_full(groupName, groupSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),

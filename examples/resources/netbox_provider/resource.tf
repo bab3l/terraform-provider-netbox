@@ -26,3 +26,17 @@ resource "netbox_provider" "test" {
     "production"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_provider.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "account_manager:text",
+      "support_phone:text",
+      "support_email:text",
+    ]
+  }
+}

@@ -45,3 +45,18 @@ resource "netbox_prefix" "test" {
     "datacenter"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_prefix.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "subnet_purpose:text",
+      "vlan_id:integer",
+      "dhcp_enabled:boolean",
+      "gateway_ip:text",
+    ]
+  }
+}

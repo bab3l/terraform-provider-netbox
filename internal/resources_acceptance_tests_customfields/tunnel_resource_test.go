@@ -39,10 +39,16 @@ func TestAccTunnelResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_tunnel.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
+				ResourceName:      "netbox_tunnel.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config: testAccTunnelConfig_importWithCustomFieldsAndTags(
+					tunnelName, cfText, tagName, "import-value",
+				),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -94,6 +100,7 @@ func TestAccTunnelResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_tunnel.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,
 				ImportStateVerifyIgnore: []string{"custom_fields"},
 			},
@@ -153,6 +160,7 @@ func TestAccTunnelResource_CustomFieldsFilterToOwned(t *testing.T) {
 				// Step 3: Import to verify both fields exist in NetBox
 				ResourceName:            "netbox_tunnel.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,
 				ImportStateVerifyIgnore: []string{"custom_fields"},
 			},

@@ -25,3 +25,17 @@ resource "netbox_region" "test" {
     "us-west"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_region.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "region_code:text",
+      "timezone:text",
+      "contact_email:text",
+    ]
+  }
+}

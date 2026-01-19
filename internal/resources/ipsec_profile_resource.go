@@ -30,6 +30,7 @@ var (
 	_ resource.Resource                = &IPSecProfileResource{}
 	_ resource.ResourceWithConfigure   = &IPSecProfileResource{}
 	_ resource.ResourceWithImportState = &IPSecProfileResource{}
+	_ resource.ResourceWithIdentity    = &IPSecProfileResource{}
 )
 
 // NewIPSecProfileResource returns a new IPSecProfile resource.
@@ -101,6 +102,10 @@ func (r *IPSecProfileResource) Schema(ctx context.Context, req resource.SchemaRe
 	// Add tags and custom_fields
 	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
+}
+
+func (r *IPSecProfileResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 func (r *IPSecProfileResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -179,6 +184,11 @@ func (r *IPSecProfileResource) Create(ctx context.Context, req resource.CreateRe
 		"name": data.Name.ValueString(),
 	})
 
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -243,6 +253,11 @@ func (r *IPSecProfileResource) Read(ctx context.Context, req resource.ReadReques
 
 		data.CustomFields = originalCustomFields
 
+	}
+
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Save updated data into Terraform state
@@ -325,6 +340,11 @@ func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRe
 	// Apply filter-to-owned pattern for custom fields
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, ipsec.GetCustomFields(), &resp.Diagnostics)
 
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	tflog.Debug(ctx, "Updated IPSecProfile", map[string]interface{}{
 		"id":   plan.ID.ValueString(),
 		"name": plan.Name.ValueString(),
@@ -377,6 +397,82 @@ func (r *IPSecProfileResource) Delete(ctx context.Context, req resource.DeleteRe
 
 // ImportState imports the resource state from an existing resource.
 func (r *IPSecProfileResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		id, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid Import ID", fmt.Sprintf("IPSec profile ID must be a number, got: %s", parsed.ID))
+			return
+		}
+
+		ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecProfilesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError("Error importing IPSecProfile", utils.FormatAPIError("read IPSec profile", err, httpResp))
+			return
+		}
+
+		var data IPSecProfileResourceModel
+		if ipsec.HasTags() {
+			tagSlugs := make([]string, 0, len(ipsec.GetTags()))
+			for _, tag := range ipsec.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetNull(types.StringType)
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapIPSecProfileToState(ctx, ipsec, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, ipsec.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

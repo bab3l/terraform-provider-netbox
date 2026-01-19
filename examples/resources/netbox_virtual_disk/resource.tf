@@ -5,6 +5,19 @@ resource "netbox_virtual_disk" "root" {
   size            = "50" # 50 GB
 }
 
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_virtual_disk.root
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "disk_tier:text",
+      "iops_limit:integer",
+    ]
+  }
+}
+
 # Example: Virtual disk with description
 resource "netbox_virtual_disk" "data" {
   virtual_machine = netbox_virtual_machine.example.name

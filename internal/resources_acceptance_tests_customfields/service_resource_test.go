@@ -20,10 +20,6 @@ import (
 
 // Filter-to-owned pattern:
 
-// - Custom fields declared in config are managed by Terraform
-
-// - Custom fields NOT in config are preserved in NetBox but invisible to Terraform
-
 func TestAccServiceResource_CustomFieldsPreservation(t *testing.T) {
 
 	serviceName := "svc-" + acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
@@ -80,9 +76,11 @@ func TestAccServiceResource_CustomFieldsPreservation(t *testing.T) {
 
 				ImportState: true,
 
+				ImportStateKind: resource.ImportCommandWithID,
+
 				ImportStateVerify: false,
 
-				ImportStateVerifyIgnore: []string{"custom_fields"},
+				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
 			},
 
 			{
@@ -225,20 +223,11 @@ func TestAccServiceResource_importWithCustomFields(t *testing.T) {
 
 			{
 
-				Config: testAccServiceConfig_importTest(cfField),
-
-				PlanOnly: true,
-			},
-
-			{
-
-				ResourceName: "netbox_service.test",
-
-				ImportState: true,
-
+				Config:            testAccServiceConfig_importTest(cfField),
+				ResourceName:      "netbox_service.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
 				ImportStateVerify: false,
-
-				ImportStateVerifyIgnore: []string{"custom_fields"},
 			},
 
 			{
@@ -358,7 +347,7 @@ resource "netbox_custom_field" "owner" {
 
 resource "netbox_service" "test" {
 
-  device   = netbox_device.test.id
+  device   = netbox_device.test.name
 
   name     = %[1]q
 
@@ -564,7 +553,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_service" "test" {
 
-  device   = netbox_device.test.id
+  device   = netbox_device.test.name
 
   name     = %[1]q
 
@@ -646,7 +635,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_service" "test" {
 
-  device   = netbox_device.test.id
+  device   = netbox_device.test.name
 
   name     = %[1]q
 
@@ -874,7 +863,7 @@ resource "netbox_custom_field" "test_field" {
 
 resource "netbox_service" "test" {
 
-  device   = netbox_device.test.id
+  device   = netbox_device.test.name
 
   name     = "http"
 

@@ -81,7 +81,8 @@ func TestAccRIRResource_CustomFieldsPreservation(t *testing.T) {
 
 				ResourceName: "netbox_rir.test",
 
-				ImportState: true,
+				ImportState:     true,
+				ImportStateKind: resource.ImportCommandWithID,
 
 				ImportStateVerify: false,
 
@@ -235,7 +236,8 @@ func TestAccRIRResource_importWithCustomFields(t *testing.T) {
 
 				ResourceName: "netbox_rir.test",
 
-				ImportState: true,
+				ImportState:     true,
+				ImportStateKind: resource.ImportBlockWithResourceIdentity,
 
 				ImportStateVerify: false,
 

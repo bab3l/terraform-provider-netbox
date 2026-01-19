@@ -65,3 +65,18 @@ resource "netbox_tenant" "standalone_tenant" {
   slug        = "standalone-tenant"
   description = "A tenant without a group"
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_tenant.example_tenant
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "account_id:text",
+      "billing_contact:text",
+      "contract_end_date:date",
+      "support_tier:text",
+    ]
+  }
+}

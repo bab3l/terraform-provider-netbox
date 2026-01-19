@@ -37,6 +37,19 @@ resource "netbox_interface" "example" {
   ]
 }
 
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_interface.example
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "circuit_id:text",
+      "vlan_purpose:text",
+    ]
+  }
+}
+
 # Interface with full configuration
 resource "netbox_interface" "complete" {
   device         = netbox_device.example.name
@@ -72,6 +85,20 @@ resource "netbox_interface" "complete" {
     "uplink",
     "high-speed"
   ]
+}
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_interface.complete
+  id = "124"
+
+  identity = {
+    custom_fields = [
+      "transceiver_type:text",
+      "uplink_provider:text",
+      "monitoring_enabled:boolean",
+    ]
+  }
 }
 
 # Virtual interface

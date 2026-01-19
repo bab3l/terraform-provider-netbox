@@ -86,6 +86,7 @@ func TestAccWirelessLinkResource_CustomFieldsAndTagsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields and tags still exist in NetBox
 				ResourceName:            "netbox_wireless_link.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,                                       // Can't verify - config has no custom_fields/tags
 				ImportStateVerifyIgnore: []string{"custom_fields", "tags", "status"}, // Different because filter-to-owned
 			},

@@ -65,10 +65,25 @@ func TestAccL2vpnResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_l2vpn.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"display_name", "tenant", "custom_fields", "tags"},
+				Config: testAccL2vpnResourceImportConfig_full(
+					name, slug, tenantName, tenantSlug,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue,
+					tag1, tag1Slug, tag2, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+				),
+				ResourceName:      "netbox_l2vpn.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config: testAccL2vpnResourceImportConfig_full(
+					name, slug, tenantName, tenantSlug,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue,
+					tag1, tag1Slug, tag2, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+				),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -236,6 +251,14 @@ func TestAccL2VPNResource_CustomFieldsPreservation(t *testing.T) {
 					// Custom fields omitted from config, so not in state (filtered-to-owned)
 					resource.TestCheckResourceAttr("netbox_l2vpn.test", "custom_fields.#", "0"),
 				),
+			},
+			// Step 3: Import to verify custom fields still exist in NetBox
+			{
+				ResourceName:            "netbox_l2vpn.test",
+				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
+				ImportStateVerify:       false,
+				ImportStateVerifyIgnore: []string{"custom_fields"},
 			},
 			// Step 3: Re-add custom_fields to verify preservation in NetBox
 			{

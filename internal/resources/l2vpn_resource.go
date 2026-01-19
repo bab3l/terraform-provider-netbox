@@ -26,6 +26,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &L2VPNResource{}
 var _ resource.ResourceWithImportState = &L2VPNResource{}
+var _ resource.ResourceWithIdentity = &L2VPNResource{}
 
 func NewL2VPNResource() resource.Resource {
 	return &L2VPNResource{}
@@ -117,6 +118,10 @@ func (r *L2VPNResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 	// Add common metadata attributes (tags, custom_fields)
 	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
+}
+
+func (r *L2VPNResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 func (r *L2VPNResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -237,6 +242,10 @@ func (r *L2VPNResource) Create(ctx context.Context, req resource.CreateRequest, 
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
 	})
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -274,6 +283,10 @@ func (r *L2VPNResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 	// Map response to state
 	r.mapResponseToState(ctx, l2vpn, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -397,6 +410,10 @@ func (r *L2VPNResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -438,6 +455,109 @@ func (r *L2VPNResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 }
 
 func (r *L2VPNResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		idInt, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid ID format", fmt.Sprintf("Could not parse L2VPN ID '%s': %s", parsed.ID, err.Error()))
+			return
+		}
+		l2vpn, httpResp, err := r.client.VpnAPI.VpnL2vpnsRetrieve(ctx, idInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError("Error importing L2VPN", utils.FormatAPIError("read L2VPN", err, httpResp))
+			return
+		}
+
+		var data L2VPNResourceModel
+		if l2vpn.HasTenant() && l2vpn.GetTenant().Id != 0 {
+			tenant := l2vpn.GetTenant()
+			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		}
+		if l2vpn.HasImportTargets() && len(l2vpn.GetImportTargets()) > 0 {
+			var targetIDs []string
+			for _, target := range l2vpn.GetImportTargets() {
+				targetIDs = append(targetIDs, fmt.Sprintf("%d", target.GetId()))
+			}
+			importSet, setDiags := types.SetValueFrom(ctx, types.StringType, targetIDs)
+			resp.Diagnostics.Append(setDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			data.ImportTargets = importSet
+		}
+		if l2vpn.HasExportTargets() && len(l2vpn.GetExportTargets()) > 0 {
+			var targetIDs []string
+			for _, target := range l2vpn.GetExportTargets() {
+				targetIDs = append(targetIDs, fmt.Sprintf("%d", target.GetId()))
+			}
+			exportSet, setDiags := types.SetValueFrom(ctx, types.StringType, targetIDs)
+			resp.Diagnostics.Append(setDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			data.ExportTargets = exportSet
+		}
+		if l2vpn.HasTags() {
+			tagSlugs := make([]string, 0, len(l2vpn.GetTags()))
+			for _, tag := range l2vpn.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetNull(types.StringType)
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapResponseToState(ctx, l2vpn, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, l2vpn.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

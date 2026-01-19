@@ -53,3 +53,16 @@ resource "netbox_device_bay" "test" {
     "expansion-slot"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_device_bay.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "bay_type:text",
+      "max_power_watts:integer",
+    ]
+  }
+}

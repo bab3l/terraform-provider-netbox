@@ -24,6 +24,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &LocationResource{}
 var _ resource.ResourceWithImportState = &LocationResource{}
+var _ resource.ResourceWithIdentity = &LocationResource{}
 
 func NewLocationResource() resource.Resource {
 	return &LocationResource{}
@@ -74,6 +75,10 @@ func (r *LocationResource) Schema(ctx context.Context, req resource.SchemaReques
 	// Add common metadata attributes (tags, custom_fields)
 	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
+}
+
+func (r *LocationResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 func (r *LocationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -185,6 +190,7 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	tflog.Trace(ctx, "created a location resource")
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -235,6 +241,7 @@ func (r *LocationResource) Read(ctx context.Context, req resource.ReadRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -347,6 +354,7 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 	tflog.Trace(ctx, "updated a location resource")
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -393,6 +401,99 @@ func (r *LocationResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 func (r *LocationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		locationIDInt, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid Location ID",
+				fmt.Sprintf("Location ID must be a number, got: %s", parsed.ID),
+			)
+			return
+		}
+		location, httpResp, err := r.client.DcimAPI.DcimLocationsRetrieve(ctx, locationIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error importing location",
+				utils.FormatAPIError(fmt.Sprintf("read location ID %s", parsed.ID), err, httpResp),
+			)
+			return
+		}
+
+		var data LocationResourceModel
+		site := location.GetSite()
+		if site.Id != 0 {
+			data.Site = types.StringValue(fmt.Sprintf("%d", site.GetId()))
+		}
+		if location.HasParent() && location.GetParent().Id != 0 {
+			parent := location.GetParent()
+			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
+		}
+		if location.HasTenant() && location.GetTenant().Id != 0 {
+			tenant := location.GetTenant()
+			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		}
+		if location.HasTags() {
+			tagSlugs := make([]string, 0, len(location.GetTags()))
+			for _, tag := range location.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetNull(types.StringType)
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapLocationToState(ctx, location, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, location.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

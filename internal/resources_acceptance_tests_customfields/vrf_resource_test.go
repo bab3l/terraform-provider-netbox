@@ -51,6 +51,7 @@ func TestAccVRFResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_vrf.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,
 				ImportStateVerifyIgnore: []string{"custom_fields"},
 			},
@@ -405,10 +406,11 @@ func TestAccVRFResource_importWithCustomFieldsAndTags(t *testing.T) {
 				PlanOnly: true,
 			},
 			{
-				ResourceName:            "netbox_vrf.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"tenant", "custom_fields"}, // Tenant may have lookup inconsistencies, custom fields have import limitations
+				Config:            testAccVRFResourceImportConfig_full(vrfName, tenantName, tenantSlug),
+				ResourceName:      "netbox_vrf.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			{
 				Config:   testAccVRFResourceImportConfig_full(vrfName, tenantName, tenantSlug),

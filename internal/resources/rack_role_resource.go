@@ -28,6 +28,7 @@ import (
 var _ resource.Resource = &RackRoleResource{}
 
 var _ resource.ResourceWithImportState = &RackRoleResource{}
+var _ resource.ResourceWithIdentity = &RackRoleResource{}
 
 func NewRackRoleResource() resource.Resource {
 	return &RackRoleResource{}
@@ -82,6 +83,10 @@ func (r *RackRoleResource) Schema(ctx context.Context, req resource.SchemaReques
 	// Add tags and custom fields attributes
 	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
+}
+
+func (r *RackRoleResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 func (r *RackRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -217,7 +222,10 @@ func (r *RackRoleResource) Create(ctx context.Context, req resource.CreateReques
 	tflog.Trace(ctx, "created a rack role resource")
 
 	// Save data into Terraform state
-
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -302,7 +310,10 @@ func (r *RackRoleResource) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 
 	// Save updated data into Terraform state
-
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -415,7 +426,10 @@ func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	// Save updated data into Terraform state
-
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -491,6 +505,81 @@ func (r *RackRoleResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 func (r *RackRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		rackRoleIDInt, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid Rack Role ID", fmt.Sprintf("Rack Role ID must be a number, got: %s", parsed.ID))
+			return
+		}
+		rackRole, httpResp, err := r.client.DcimAPI.DcimRackRolesRetrieve(ctx, rackRoleIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError("Error importing rack role", utils.FormatAPIError(fmt.Sprintf("read rack role ID %s", parsed.ID), err, httpResp))
+			return
+		}
+
+		var data RackRoleResourceModel
+		if rackRole.HasTags() {
+			tagSlugs := make([]string, 0, len(rackRole.GetTags()))
+			for _, tag := range rackRole.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetNull(types.StringType)
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapRackRoleToState(ctx, rackRole, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, rackRole.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

@@ -76,6 +76,32 @@ resource "netbox_asn_range" "full" {
   ]
 }
 
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_asn_range.basic
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "allocation_purpose:text",
+    ]
+  }
+}
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_asn_range.full
+  id = "124"
+
+  identity = {
+    custom_fields = [
+      "allocation_purpose:text",
+      "utilization_threshold:integer",
+      "contact_team:text",
+    ]
+  }
+}
+
 # Reference an existing tenant
 resource "netbox_tenant" "example" {
   name = "Example Tenant"

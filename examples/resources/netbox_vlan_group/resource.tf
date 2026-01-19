@@ -33,3 +33,17 @@ resource "netbox_vlan_group" "test" {
     "datacenter"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_vlan_group.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "vlan_range:text",
+      "group_purpose:text",
+      "max_vlans:integer",
+    ]
+  }
+}

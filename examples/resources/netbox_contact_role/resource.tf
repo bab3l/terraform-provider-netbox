@@ -27,6 +27,20 @@ resource "netbox_contact_role" "technical" {
   ]
 }
 
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_contact_role.technical
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "response_time_sla:text",
+      "role_priority:text",
+      "escalation_required:boolean",
+    ]
+  }
+}
+
 # Example: Contact role with description
 resource "netbox_contact_role" "administrative" {
   name        = "Administrative"

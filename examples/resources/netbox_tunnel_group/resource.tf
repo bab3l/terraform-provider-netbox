@@ -21,3 +21,16 @@ resource "netbox_tunnel_group" "test" {
     "production"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_tunnel_group.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "group_purpose:text",
+      "redundancy_level:text",
+    ]
+  }
+}

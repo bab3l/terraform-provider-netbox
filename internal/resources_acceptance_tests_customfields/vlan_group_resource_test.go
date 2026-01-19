@@ -44,6 +44,7 @@ func TestAccVLANGroupResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_vlan_group.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,
 				ImportStateVerifyIgnore: []string{"custom_fields"},
 			},
@@ -79,10 +80,14 @@ func TestAccVLANGroupResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_vlan_group.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields"},
+				ResourceName:      "netbox_vlan_group.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config:   testAccVLANGroupConfig_importTest(vlanGroupName, vlanGroupSlug, cfEnvironment),
+				PlanOnly: true,
 			},
 		},
 	})

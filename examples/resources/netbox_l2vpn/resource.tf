@@ -28,3 +28,17 @@ resource "netbox_l2vpn" "test" {
     "datacenter-interconnect"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_l2vpn.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "vni:integer",
+      "mtu:integer",
+      "encryption_enabled:boolean",
+    ]
+  }
+}

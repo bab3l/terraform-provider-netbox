@@ -65,10 +65,14 @@ func TestAccVirtualChassisResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_virtual_chassis.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields"}, // Custom fields have import limitations
+				ResourceName:      "netbox_virtual_chassis.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config:   testAccVirtualChassisResourceImportConfig_full(virtualChassisName, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -241,6 +245,7 @@ func TestAccVirtualChassisResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_virtual_chassis.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,                     // Can't verify - config has no custom_fields
 				ImportStateVerifyIgnore: []string{"custom_fields"}, // Different because filter-to-owned
 			},

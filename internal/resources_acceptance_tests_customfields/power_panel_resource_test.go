@@ -69,8 +69,9 @@ func TestAccPowerPanelResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_power_panel.test",
 				ImportState:             true,
-				ImportStateVerify:       false,                     // Can't verify - config has no custom_fields
-				ImportStateVerifyIgnore: []string{"custom_fields"}, // Different because filter-to-owned
+				ImportStateKind:         resource.ImportCommandWithID,
+				ImportStateVerify:       false,                             // Can't verify - config has no custom_fields
+				ImportStateVerifyIgnore: []string{"custom_fields", "tags"}, // Different because filter-to-owned
 			},
 			{
 				// Step 4: Add custom_fields back to config to verify they were preserved

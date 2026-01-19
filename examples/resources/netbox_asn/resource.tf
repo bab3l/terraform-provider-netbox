@@ -31,3 +31,17 @@ resource "netbox_asn" "test" {
     "bgp"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_asn.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "asn_type:text",
+      "routing_policy:text",
+      "contact_email:text",
+    ]
+  }
+}

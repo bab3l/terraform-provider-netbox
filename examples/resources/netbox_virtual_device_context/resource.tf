@@ -34,3 +34,16 @@ resource "netbox_virtual_device_context" "test" {
   device = netbox_device.test.name
   status = "active"
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_virtual_device_context.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "environment:text",
+      "owner:text",
+    ]
+  }
+}

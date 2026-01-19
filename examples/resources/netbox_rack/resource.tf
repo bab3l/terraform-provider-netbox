@@ -46,3 +46,18 @@ resource "netbox_rack" "test" {
     "server-rack"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_rack.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "power_circuit_a:text",
+      "power_circuit_b:text",
+      "max_power_draw_watts:integer",
+      "cooling_zone:text",
+    ]
+  }
+}

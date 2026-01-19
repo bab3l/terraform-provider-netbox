@@ -20,3 +20,16 @@ resource "netbox_circuit_group" "test" {
     "circuit-group"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_circuit_group.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "group_type:text",
+      "cost_center:text",
+    ]
+  }
+}

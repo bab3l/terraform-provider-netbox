@@ -14,6 +14,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -28,6 +29,7 @@ var (
 	_ resource.Resource                = &PowerOutletResource{}
 	_ resource.ResourceWithConfigure   = &PowerOutletResource{}
 	_ resource.ResourceWithImportState = &PowerOutletResource{}
+	_ resource.ResourceWithIdentity    = &PowerOutletResource{}
 )
 
 // NewPowerOutletResource returns a new resource implementing the power outlet resource.
@@ -111,6 +113,10 @@ func (r *PowerOutletResource) Schema(ctx context.Context, req resource.SchemaReq
 	// Add tags and custom_fields attributes
 	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
+}
+
+func (r *PowerOutletResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -201,6 +207,11 @@ func (r *PowerOutletResource) Create(ctx context.Context, req resource.CreateReq
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	tflog.Trace(ctx, "Created power outlet", map[string]interface{}{
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
@@ -245,6 +256,11 @@ func (r *PowerOutletResource) Read(ctx context.Context, req resource.ReadRequest
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -350,6 +366,11 @@ func (r *PowerOutletResource) Update(ctx context.Context, req resource.UpdateReq
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -387,29 +408,82 @@ func (r *PowerOutletResource) Delete(ctx context.Context, req resource.DeleteReq
 
 // ImportState imports an existing resource.
 func (r *PowerOutletResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	outletID, err := utils.ParseID(req.ID)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Invalid Import ID",
-			fmt.Sprintf("Power Outlet ID must be a number, got: %s", req.ID),
-		)
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		outletID, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid Import ID", fmt.Sprintf("Power Outlet ID must be a number, got: %s", parsed.ID))
+			return
+		}
+		response, httpResp, err := r.client.DcimAPI.DcimPowerOutletsRetrieve(ctx, outletID).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError("Error importing power outlet", utils.FormatAPIError(fmt.Sprintf("import power outlet ID %d", outletID), err, httpResp))
+			return
+		}
+
+		var data PowerOutletResourceModel
+		if response.HasTags() {
+			var tagSlugs []string
+			for _, tag := range response.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetNull(types.StringType)
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, response.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 		return
 	}
-	response, httpResp, err := r.client.DcimAPI.DcimPowerOutletsRetrieve(ctx, outletID).Execute()
-	defer utils.CloseResponseBody(httpResp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error importing power outlet",
-			utils.FormatAPIError(fmt.Sprintf("import power outlet ID %d", outletID), err, httpResp),
-		)
-		return
-	}
-	var data PowerOutletResourceModel
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // mapResponseToModel maps the API response to the Terraform model.

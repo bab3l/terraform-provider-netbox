@@ -14,6 +14,19 @@ resource "netbox_device_type" "chassis" {
 resource "netbox_device_bay_template" "basic" {
   device_type = netbox_device_type.chassis.model
   name        = "Bay 1"
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others preserved
+  custom_fields = [
+    {
+      name  = "bay_type"
+      value = "compute"
+    },
+    {
+      name  = "max_power_watts"
+      value = "150"
+    }
+  ]
 }
 
 # Create a device bay template with all optional fields
@@ -22,6 +35,44 @@ resource "netbox_device_bay_template" "full" {
   name        = "Bay 2"
   label       = "SLOT-2"
   description = "Second blade slot"
+
+  # Partial custom fields management
+  custom_fields = [
+    {
+      name  = "bay_type"
+      value = "storage"
+    },
+    {
+      name  = "max_power_watts"
+      value = "200"
+    }
+  ]
+}
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_device_bay_template.basic
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "bay_type:text",
+      "max_power_watts:integer",
+    ]
+  }
+}
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_device_bay_template.full
+  id = "124"
+
+  identity = {
+    custom_fields = [
+      "bay_type:text",
+      "max_power_watts:integer",
+    ]
+  }
 }
 
 # Create multiple device bay templates using count

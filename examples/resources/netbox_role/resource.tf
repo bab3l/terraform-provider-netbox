@@ -27,3 +27,16 @@ resource "netbox_role" "test" {
     }
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_role.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "cost_center:text",
+      "managed_by_terraform:boolean",
+    ]
+  }
+}

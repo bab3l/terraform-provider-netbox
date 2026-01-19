@@ -54,10 +54,14 @@ func TestAccRackTypeResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_rack_type.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"manufacturer", "custom_fields", "tags"}, // Manufacturer reference may have lookup inconsistencies, custom fields have import limitations
+				ResourceName:      "netbox_rack_type.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config:   testAccRackTypeResourceImportConfig_full(model, slug, mfgName, mfgSlug, cfText, cfInteger, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -99,7 +103,7 @@ resource "netbox_tag" "tag2" {
 resource "netbox_rack_type" "test" {
   model        = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.slug
+	manufacturer = netbox_manufacturer.test.name
   form_factor  = "4-post-frame"
 
   custom_fields = [

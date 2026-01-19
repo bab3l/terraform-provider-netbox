@@ -33,6 +33,8 @@ var _ resource.Resource = &TunnelResource{}
 
 var _ resource.ResourceWithImportState = &TunnelResource{}
 
+var _ resource.ResourceWithIdentity = &TunnelResource{}
+
 func NewTunnelResource() resource.Resource {
 	return &TunnelResource{}
 }
@@ -164,6 +166,10 @@ func (r *TunnelResource) Schema(ctx context.Context, req resource.SchemaRequest,
 	// Add metadata attributes (slug list tags, custom_fields)
 	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
+}
+
+func (r *TunnelResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 func (r *TunnelResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -349,6 +355,10 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Save data into Terraform state
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -498,8 +508,15 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 	if tunnel.HasCustomFields() {
 		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, tunnel.GetCustomFields(), &resp.Diagnostics)
 	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Save updated data into Terraform state
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -686,6 +703,10 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	// Save updated data into Terraform state
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -747,5 +768,126 @@ func (r *TunnelResource) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 func (r *TunnelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		tunnelID, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid Tunnel ID", fmt.Sprintf("Tunnel ID must be a number, got: %s", parsed.ID))
+			return
+		}
+
+		tunnel, httpResp, err := r.client.VpnAPI.VpnTunnelsRetrieve(ctx, tunnelID).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError("Error importing tunnel", utils.FormatAPIError("read tunnel", err, httpResp))
+			return
+		}
+
+		var data TunnelResourceModel
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		data.ID = types.StringValue(fmt.Sprintf("%d", tunnel.GetId()))
+		data.Name = types.StringValue(tunnel.GetName())
+		data.Status = types.StringValue(string(tunnel.Status.GetValue()))
+		data.Encapsulation = types.StringValue(string(tunnel.Encapsulation.GetValue()))
+
+		if tunnel.HasGroup() && tunnel.Group.IsSet() && tunnel.Group.Get() != nil {
+			group := tunnel.Group.Get()
+			data.Group = utils.UpdateReferenceAttribute(data.Group, group.GetName(), group.GetSlug(), group.GetId())
+		} else {
+			data.Group = types.StringNull()
+		}
+
+		if tunnel.HasIpsecProfile() && tunnel.IpsecProfile.IsSet() && tunnel.IpsecProfile.Get() != nil {
+			ip := tunnel.IpsecProfile.Get()
+			data.IPSecProfile = utils.UpdateReferenceAttribute(data.IPSecProfile, ip.GetName(), "", ip.GetId())
+		} else {
+			data.IPSecProfile = types.StringNull()
+		}
+
+		if tunnel.HasTenant() && tunnel.Tenant.IsSet() && tunnel.Tenant.Get() != nil {
+			tenant := tunnel.Tenant.Get()
+			data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
+		} else {
+			data.Tenant = types.StringNull()
+		}
+
+		if tunnel.HasTunnelId() && tunnel.TunnelId.IsSet() {
+			if val := tunnel.TunnelId.Get(); val != nil {
+				data.TunnelID = types.Int64Value(*val)
+			} else {
+				data.TunnelID = types.Int64Null()
+			}
+		} else {
+			data.TunnelID = types.Int64Null()
+		}
+
+		if tunnel.HasDescription() && tunnel.GetDescription() != "" {
+			data.Description = types.StringValue(tunnel.GetDescription())
+		} else {
+			data.Description = types.StringNull()
+		}
+
+		if tunnel.HasComments() && tunnel.GetComments() != "" {
+			data.Comments = types.StringValue(tunnel.GetComments())
+		} else {
+			data.Comments = types.StringNull()
+		}
+
+		if tunnel.HasTags() {
+			var tagSlugs []string
+			for _, tag := range tunnel.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetNull(types.StringType)
+		}
+
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, tunnel.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

@@ -53,3 +53,16 @@ resource "netbox_module_bay" "test" {
     "expansion-slot"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_module_bay.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "bay_type:text",
+      "supported_modules:text",
+    ]
+  }
+}

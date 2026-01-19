@@ -58,11 +58,15 @@ func TestAccPowerOutletResource_importWithCustomFieldsAndTags(t *testing.T) {
 			},
 			// Then test import
 			{
-				Config:                  testAccPowerOutletResourceImportConfig_full(powerOutletName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:            "netbox_power_outlet.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device", "custom_fields", "tags"}, // Device reference may have lookup inconsistencies
+				Config:            testAccPowerOutletResourceImportConfig_full(powerOutletName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:      "netbox_power_outlet.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config:   testAccPowerOutletResourceImportConfig_full(powerOutletName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -163,7 +167,7 @@ resource "netbox_tag" "test_2" {
 
 # Power outlet with custom fields and tags
 resource "netbox_power_outlet" "test" {
-  device = netbox_device.test.id
+  device = netbox_device.test.name
   name = %q
   type = "iec-60320-c13"
 

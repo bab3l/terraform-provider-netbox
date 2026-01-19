@@ -32,3 +32,18 @@ resource "netbox_site" "example" {
     "datacenter"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_site.example
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "datacenter_tier:text",
+      "power_capacity_kw:integer",
+      "cooling_type:text",
+      "primary_contact:text",
+    ]
+  }
+}

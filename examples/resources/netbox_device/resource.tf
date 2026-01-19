@@ -51,3 +51,16 @@ resource "netbox_device" "test" {
     "production"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_device.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "environment:text",
+      "owner_team:text",
+    ]
+  }
+}

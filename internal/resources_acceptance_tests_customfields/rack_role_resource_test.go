@@ -71,6 +71,7 @@ func TestAccRackRoleResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_rack_role.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,                     // Can't verify - config has no custom_fields
 				ImportStateVerifyIgnore: []string{"custom_fields"}, // Different because filter-to-owned
 			},

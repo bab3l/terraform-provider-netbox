@@ -40,3 +40,16 @@ resource "netbox_l2vpn_termination" "test" {
     "site-a"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_l2vpn_termination.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "termination_side:text",
+      "bandwidth_mbps:integer",
+    ]
+  }
+}

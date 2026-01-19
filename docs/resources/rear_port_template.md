@@ -29,6 +29,32 @@ resource "netbox_rear_port_template" "test" {
   device_type = netbox_device_type.test.model
   type        = "8p8c"
   positions   = 1
+
+  # Partial custom fields management
+  # Only specified custom fields are managed, others preserved
+  custom_fields = [
+    {
+      name  = "panel_position"
+      value = "rear"
+    },
+    {
+      name  = "port_group"
+      value = "row-a"
+    }
+  ]
+}
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_rear_port_template.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "panel_position:text",
+      "port_group:text",
+    ]
+  }
 }
 ```
 

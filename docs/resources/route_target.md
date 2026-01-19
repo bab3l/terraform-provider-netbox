@@ -30,6 +30,18 @@ resource "netbox_route_target" "example" {
   ]
 }
 
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_route_target.example
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "rt_type:text",
+    ]
+  }
+}
+
 # Example: Route target with description
 resource "netbox_route_target" "export" {
   name        = "65000:200"
@@ -54,6 +66,19 @@ resource "netbox_route_target" "export" {
   ]
 }
 
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_route_target.export
+  id = "124"
+
+  identity = {
+    custom_fields = [
+      "rt_type:text",
+      "customer_id:text",
+    ]
+  }
+}
+
 # Example: Route target with tenant association
 resource "netbox_route_target" "tenant_rt" {
   name        = "65001:100"
@@ -76,6 +101,19 @@ resource "netbox_route_target" "tenant_rt" {
     "tenant",
     "isolated"
   ]
+}
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_route_target.tenant_rt
+  id = "125"
+
+  identity = {
+    custom_fields = [
+      "rt_type:text",
+      "isolation_level:text",
+    ]
+  }
 }
 ```
 

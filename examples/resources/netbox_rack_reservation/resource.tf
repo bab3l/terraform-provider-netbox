@@ -43,3 +43,17 @@ resource "netbox_rack_reservation" "test" {
     "temporary"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_rack_reservation.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "project_name:text",
+      "reservation_duration_days:integer",
+      "requestor_email:text",
+    ]
+  }
+}

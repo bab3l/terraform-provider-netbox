@@ -31,6 +31,7 @@ var (
 	_ resource.ResourceWithConfigure = &ServiceTemplateResource{}
 
 	_ resource.ResourceWithImportState = &ServiceTemplateResource{}
+	_ resource.ResourceWithIdentity    = &ServiceTemplateResource{}
 )
 
 // NewServiceTemplateResource returns a new resource implementing the service template resource.
@@ -122,6 +123,10 @@ func (r *ServiceTemplateResource) Schema(ctx context.Context, req resource.Schem
 	// Add metadata attributes (slug list tags, custom_fields)
 	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
+}
+
+func (r *ServiceTemplateResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -259,6 +264,11 @@ func (r *ServiceTemplateResource) Create(ctx context.Context, req resource.Creat
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, serviceTemplate.GetCustomFields(), &resp.Diagnostics)
 
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	tflog.Debug(ctx, "Created service template", map[string]interface{}{
 		"id": serviceTemplate.GetId(),
 	})
@@ -347,6 +357,11 @@ func (r *ServiceTemplateResource) Read(ctx context.Context, req resource.ReadReq
 		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, serviceTemplate.GetCustomFields(), &resp.Diagnostics)
+
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -488,6 +503,11 @@ func (r *ServiceTemplateResource) Update(ctx context.Context, req resource.Updat
 	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, serviceTemplate.GetCustomFields(), &resp.Diagnostics)
 
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	tflog.Debug(ctx, "Updated service template", map[string]interface{}{
 		"id": serviceTemplate.GetId(),
 	})
@@ -552,6 +572,82 @@ func (r *ServiceTemplateResource) Delete(ctx context.Context, req resource.Delet
 // ImportState imports an existing service template.
 
 func (r *ServiceTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		id, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Could not parse service template ID: %s", err))
+			return
+		}
+
+		serviceTemplate, httpResp, err := r.client.IpamAPI.IpamServiceTemplatesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError("Error importing service template", utils.FormatAPIError("read service template", err, httpResp))
+			return
+		}
+
+		var data ServiceTemplateResourceModel
+		if serviceTemplate.HasTags() {
+			tagSlugs := make([]string, 0, len(serviceTemplate.GetTags()))
+			for _, tag := range serviceTemplate.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetNull(types.StringType)
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapResponseToState(ctx, serviceTemplate, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, serviceTemplate.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

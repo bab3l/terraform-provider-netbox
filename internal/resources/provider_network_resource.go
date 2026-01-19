@@ -32,6 +32,7 @@ var (
 	_ resource.ResourceWithConfigure = &ProviderNetworkResource{}
 
 	_ resource.ResourceWithImportState = &ProviderNetworkResource{}
+	_ resource.ResourceWithIdentity    = &ProviderNetworkResource{}
 )
 
 // NewProviderNetworkResource returns a new ProviderNetwork resource.
@@ -135,6 +136,10 @@ func (r *ProviderNetworkResource) Schema(ctx context.Context, req resource.Schem
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
+func (r *ProviderNetworkResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
+}
+
 func (r *ProviderNetworkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
@@ -214,6 +219,11 @@ func (r *ProviderNetworkResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -278,6 +288,11 @@ func (r *ProviderNetworkResource) Read(ctx context.Context, req resource.ReadReq
 
 	r.mapResponseToModel(ctx, pn, &data, &resp.Diagnostics)
 
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -359,6 +374,11 @@ func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -425,6 +445,85 @@ func (r *ProviderNetworkResource) Delete(ctx context.Context, req resource.Delet
 // ImportState imports the resource state.
 
 func (r *ProviderNetworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		pnID, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid Provider Network ID", fmt.Sprintf("Provider network ID must be a number, got: %s", parsed.ID))
+			return
+		}
+		pn, httpResp, err := r.client.CircuitsAPI.CircuitsProviderNetworksRetrieve(ctx, pnID).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError("Error importing provider network", utils.FormatAPIError(fmt.Sprintf("read provider network ID %d", pnID), err, httpResp))
+			return
+		}
+
+		var data ProviderNetworkResourceModel
+		if pn.GetProvider().Id != 0 {
+			provider := pn.GetProvider()
+			data.CircuitProvider = types.StringValue(fmt.Sprintf("%d", provider.GetId()))
+		}
+		if pn.HasTags() {
+			tagSlugs := make([]string, 0, len(pn.GetTags()))
+			for _, tag := range pn.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetNull(types.StringType)
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapResponseToModel(ctx, pn, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, pn.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
