@@ -53,11 +53,11 @@ func TestAccASNRangeResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				Config:                  testAccASNRangeResourceImportConfig_full(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:            "netbox_asn_range.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"rir", "custom_fields", "tags", "tenant"},
+				Config:            testAccASNRangeResourceImportConfig_full(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:      "netbox_asn_range.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			}, {
 				Config:   testAccASNRangeResourceImportConfig_full(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
 				PlanOnly: true,

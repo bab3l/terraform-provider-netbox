@@ -181,10 +181,15 @@ func TestAccClusterGroupResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_cluster_group.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields"}, // Custom fields have import limitations
+				ResourceName:      "netbox_cluster_group.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			// Enhancement 1: Verify no changes after import
+			{
+				Config:   testAccClusterGroupResourceImportConfig_full(clusterGroupName, clusterGroupSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
 			},
 		},
 	})

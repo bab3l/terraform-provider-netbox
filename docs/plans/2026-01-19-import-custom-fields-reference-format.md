@@ -165,7 +165,10 @@ This plan changes reference formatting to default to ID when state is unknown an
   - `interface`
   - `wireless_link`
 - ✅ Acceptance tests run for all updated batches; latest scan shows no missing import `PlanOnly` checks.
-- ⏳ Import-time custom fields seeding still pending (identity-based import design not yet implemented).
+- 🔧 Import-time custom fields seeding in progress:
+  - Identity schema + import handling implemented for device role, device, device type, aggregate, ASN, ASN range, cable, circuit, circuit termination, circuit type, circuit group, contact role, contact group, contact assignment, cluster, cluster type, cluster group, console server port, console port, device bay, event rule, FHRP group, front port, module bay, interface, inventory item, IP address, and IP range resources.
+  - Examples/docs updates for import identity usage are deferred to a follow-on phase after the rollout is complete.
+  - Identity handling adjusted to avoid null conversion during command-based imports.
 
 ## Acceptance Test Rollout (Post-Import Plan Checks)
 Completed batches:

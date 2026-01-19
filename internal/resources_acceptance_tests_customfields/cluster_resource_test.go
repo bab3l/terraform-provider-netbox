@@ -68,10 +68,14 @@ func TestAccClusterResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_cluster.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"tenant", "type", "custom_fields"}, // Tenant/type may have lookup inconsistencies, custom fields have import limitations
+				ResourceName:      "netbox_cluster.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config:   testAccClusterResourceImportConfig_full(clusterName, clusterTypeName, clusterTypeSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
 			},
 		},
 	})

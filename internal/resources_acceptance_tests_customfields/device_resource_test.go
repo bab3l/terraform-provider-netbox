@@ -76,6 +76,7 @@ func TestAccDeviceResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_device.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportBlockWithResourceIdentity,
 				ImportStateVerify:       false,                     // Can't verify - config has no custom_fields
 				ImportStateVerifyIgnore: []string{"custom_fields"}, // Different because filter-to-owned
 			},
@@ -507,6 +508,7 @@ func TestAccDeviceResource_importWithCustomFieldsAndTags(t *testing.T) {
 				// With filter-to-owned, import returns null custom_fields (no prior config to filter against)
 				ResourceName:            "netbox_device.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportBlockWithResourceIdentity,
 				ImportStateVerify:       false,                                                    // Can't verify - import returns null custom_fields
 				ImportStateVerifyIgnore: []string{"device_type", "role", "site", "custom_fields"}, // IDs vs slugs, custom_fields filtered
 			},

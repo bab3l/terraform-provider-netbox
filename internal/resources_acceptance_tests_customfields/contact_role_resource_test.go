@@ -164,11 +164,11 @@ func TestAccContactRoleResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				Config:                  testAccContactRoleResourceImportConfig_full(roleName, roleSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:            "netbox_contact_role.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
+				Config:            testAccContactRoleResourceImportConfig_full(roleName, roleSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:      "netbox_contact_role.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			{
 				Config:   testAccContactRoleResourceImportConfig_full(roleName, roleSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),

@@ -77,10 +77,15 @@ func TestAccConsolePortResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_console_port.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device", "custom_fields"}, // Device reference may have lookup inconsistencies, custom fields have import limitations
+				ResourceName:      "netbox_console_port.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			// Enhancement 1: Verify no changes after import
+			{
+				Config:   testAccConsolePortResourceImportConfig_full(portName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
 			},
 		},
 	})

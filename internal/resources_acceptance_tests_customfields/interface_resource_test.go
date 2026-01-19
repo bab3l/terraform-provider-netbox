@@ -73,15 +73,20 @@ func TestAccInterfaceResource_importWithCustomFieldsAndTags(t *testing.T) {
 			},
 			{
 				// Import the interface and verify all fields are preserved
-				ResourceName:            "netbox_interface.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device", "custom_fields", "tags"}, // Device reference field, CF/Tags import needs work
-				// The import should preserve basic fields
-				Check: resource.ComposeTestCheckFunc(
-					// Verify basic fields
-					resource.TestCheckResourceAttr("netbox_interface.test", "name", interfaceName),
+				ResourceName:      "netbox_interface.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config: testAccInterfaceResourceImportConfig_full(
+					interfaceName, deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug,
+					deviceRoleName, deviceRoleSlug, siteName, siteSlug,
+					tag1Name, tag1Slug, tag1Color, tag2Name, tag2Slug, tag2Color,
+					cfText, cfTextValue, cfLongtext, cfLongtextValue, cfIntegerName, cfIntegerValue,
+					cfBoolean, cfBooleanValue, cfDate, cfDateValue, cfURL, cfURLValue, cfJSON, cfJSONValue,
 				),
+				PlanOnly: true,
 			},
 		},
 	})

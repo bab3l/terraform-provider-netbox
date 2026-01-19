@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -29,6 +28,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &DeviceResource{}
 var _ resource.ResourceWithImportState = &DeviceResource{}
+var _ resource.ResourceWithIdentity = &DeviceResource{}
 
 func NewDeviceResource() resource.Resource {
 	return &DeviceResource{}
@@ -152,6 +152,10 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 	// Add tags and custom fields
 	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
+}
+
+func (r *DeviceResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 func (r *DeviceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -362,6 +366,7 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -441,6 +446,7 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 		})
 		data.CustomFields = originalCustomFields
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -661,6 +667,7 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -710,7 +717,106 @@ func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 func (r *DeviceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		deviceIDInt, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid Device ID",
+				fmt.Sprintf("Device ID must be a number, got: %s", parsed.ID),
+			)
+			return
+		}
+
+		device, httpResp, err := r.client.DcimAPI.DcimDevicesRetrieve(ctx, deviceIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error importing device",
+				utils.FormatAPIError("read device", err, httpResp),
+			)
+			return
+		}
+
+		var data DeviceResourceModel
+		data.DeviceType = types.StringValue(fmt.Sprintf("%d", device.DeviceType.GetId()))
+		data.Role = types.StringValue(fmt.Sprintf("%d", device.Role.GetId()))
+		data.Site = types.StringValue(fmt.Sprintf("%d", device.Site.GetId()))
+		if device.HasTenant() && device.Tenant.Get() != nil {
+			data.Tenant = types.StringValue(fmt.Sprintf("%d", device.Tenant.Get().GetId()))
+		}
+		if device.HasPlatform() && device.Platform.Get() != nil {
+			data.Platform = types.StringValue(fmt.Sprintf("%d", device.Platform.Get().GetId()))
+		}
+		if device.HasLocation() && device.Location.Get() != nil {
+			data.Location = types.StringValue(fmt.Sprintf("%d", device.Location.Get().GetId()))
+		}
+		if device.HasRack() && device.Rack.Get() != nil {
+			data.Rack = types.StringValue(fmt.Sprintf("%d", device.Rack.Get().GetId()))
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapDeviceToState(ctx, device, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if device.HasTags() && len(device.GetTags()) > 0 {
+			tagSlugs := make([]string, 0, len(device.GetTags()))
+			for _, tag := range device.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetNull(types.StringType)
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, device.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
+	var data DeviceResourceModel
+	data.ID = types.StringValue(req.ID)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // mapDeviceToState maps a Device from the API to the Terraform state model.

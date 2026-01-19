@@ -20,6 +20,7 @@ import (
 
 var _ resource.Resource = &ClusterGroupResource{}
 var _ resource.ResourceWithImportState = &ClusterGroupResource{}
+var _ resource.ResourceWithIdentity = &ClusterGroupResource{}
 
 func NewClusterGroupResource() resource.Resource {
 	return &ClusterGroupResource{}
@@ -63,6 +64,10 @@ func (r *ClusterGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 	// Add metadata attributes (slug list tags, custom_fields)
 	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
+}
+
+func (r *ClusterGroupResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 func (r *ClusterGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -159,6 +164,7 @@ func (r *ClusterGroupResource) Create(ctx context.Context, req resource.CreateRe
 		data.Tags = types.SetNull(types.StringType)
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
 	tflog.Trace(ctx, "created a cluster group resource")
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -212,6 +218,7 @@ func (r *ClusterGroupResource) Read(ctx context.Context, req resource.ReadReques
 		data.Tags = types.SetNull(types.StringType)
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -281,6 +288,7 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 		plan.Tags = types.SetNull(types.StringType)
 	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -315,6 +323,98 @@ func (r *ClusterGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 }
 
 func (r *ClusterGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		clusterGroupIDInt := utils.ParseInt32FromString(parsed.ID)
+		if clusterGroupIDInt == 0 {
+			resp.Diagnostics.AddError("Invalid Cluster Group ID", fmt.Sprintf("Cluster Group ID must be a number, got: %s", parsed.ID))
+			return
+		}
+
+		clusterGroup, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterGroupsRetrieve(ctx, clusterGroupIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError("Error importing cluster group", utils.FormatAPIError(fmt.Sprintf("read cluster group ID %s", parsed.ID), err, httpResp))
+			return
+		}
+		if httpResp.StatusCode != http.StatusOK {
+			resp.Diagnostics.AddError("Error importing cluster group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+			return
+		}
+
+		var data ClusterGroupResourceModel
+		if clusterGroup.HasTags() {
+			var tagSlugs []string
+			for _, tag := range clusterGroup.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapClusterGroupToState(ctx, clusterGroup, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+		switch {
+		case clusterGroup.HasTags() && len(clusterGroup.GetTags()) > 0:
+			tagSlugs := make([]string, 0, len(clusterGroup.GetTags()))
+			for _, tag := range clusterGroup.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		case wasExplicitlyEmpty:
+			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		default:
+			data.Tags = types.SetNull(types.StringType)
+		}
+
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

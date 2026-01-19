@@ -46,10 +46,15 @@ func TestAccIPRangeResource_CustomFieldsPreservation(t *testing.T) {
 			},
 			{
 				// Step 3: Import to verify custom fields still exist in NetBox
-				ResourceName:            "netbox_ip_range.test",
-				ImportState:             true,
-				ImportStateVerify:       false,
-				ImportStateVerifyIgnore: []string{"custom_fields"},
+				ResourceName:      "netbox_ip_range.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportCommandWithID,
+				ImportStateVerify: false,
+			},
+			{
+				// Step 3a: Verify no drift after import
+				Config:   testAccIPRangeConfig_preservation_step2(cfEnvironment, cfPurpose),
+				PlanOnly: true,
 			},
 			{
 				// Step 4: Add custom_fields back to verify they were preserved
@@ -414,11 +419,15 @@ func TestAccIPRangeResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				Config:                  testAccIPRangeResourceImportConfig_full(startAddress, endAddress, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:            "netbox_ip_range.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields", "tags", "tenant", "start_address", "end_address"},
+				Config:            testAccIPRangeResourceImportConfig_full(startAddress, endAddress, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:      "netbox_ip_range.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config:   testAccIPRangeResourceImportConfig_full(startAddress, endAddress, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
 			},
 		},
 	})

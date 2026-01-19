@@ -56,11 +56,11 @@ func TestAccAggregateResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				Config:                  testAccAggregateResourceImportConfig_full(prefix, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:            "netbox_aggregate.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"rir", "custom_fields", "tags", "tenant"},
+				Config:            testAccAggregateResourceImportConfig_full(prefix, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:      "netbox_aggregate.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			// Enhancement 1: Verify no changes after import
 			{
@@ -112,10 +112,10 @@ func TestAccAggregateResource_CustomFieldsPreservation(t *testing.T) {
 			},
 			{
 				// Step 3: Import to verify custom fields still exist in NetBox
-				ResourceName:            "netbox_aggregate.test",
-				ImportState:             true,
-				ImportStateVerify:       false,
-				ImportStateVerifyIgnore: []string{"rir", "custom_fields"},
+				ResourceName:      "netbox_aggregate.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportCommandWithID,
+				ImportStateVerify: false,
 			},
 			{
 				// Step 4: Add custom_fields back to verify they were preserved

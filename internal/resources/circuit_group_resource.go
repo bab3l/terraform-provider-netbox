@@ -26,6 +26,7 @@ var (
 	_ resource.Resource                = &CircuitGroupResource{}
 	_ resource.ResourceWithConfigure   = &CircuitGroupResource{}
 	_ resource.ResourceWithImportState = &CircuitGroupResource{}
+	_ resource.ResourceWithIdentity    = &CircuitGroupResource{}
 )
 
 // NewCircuitGroupResource returns a new circuit group resource.
@@ -77,6 +78,10 @@ func (r *CircuitGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 	// Add metadata attributes (slug list tags, custom_fields)
 	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
+}
+
+func (r *CircuitGroupResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -150,6 +155,7 @@ func (r *CircuitGroupResource) Create(ctx context.Context, req resource.CreateRe
 	tflog.Trace(ctx, "Created circuit group resource", map[string]interface{}{
 		"id": data.ID.ValueString(),
 	})
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -191,6 +197,7 @@ func (r *CircuitGroupResource) Read(ctx context.Context, req resource.ReadReques
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -273,6 +280,7 @@ func (r *CircuitGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -315,6 +323,90 @@ func (r *CircuitGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 
 // ImportState imports the resource state from an existing Netbox object.
 func (r *CircuitGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		id, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid circuit group ID",
+				fmt.Sprintf("Circuit group ID must be a number, got: %s", parsed.ID),
+			)
+			return
+		}
+
+		group, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitGroupsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error importing circuit group",
+				utils.FormatAPIError("read circuit group", err, httpResp),
+			)
+			return
+		}
+
+		var data CircuitGroupResourceModel
+		if group.HasTags() {
+			var tagSlugs []string
+			for _, tag := range group.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		}
+		if group.HasTenant() && group.Tenant.IsSet() && group.Tenant.Get() != nil {
+			tenant := group.Tenant.Get()
+			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapResponseToState(ctx, group, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, group.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

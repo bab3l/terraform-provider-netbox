@@ -20,6 +20,7 @@ import (
 
 var _ resource.Resource = &ContactRoleResource{}
 var _ resource.ResourceWithImportState = &ContactRoleResource{}
+var _ resource.ResourceWithIdentity = &ContactRoleResource{}
 
 func NewContactRoleResource() resource.Resource {
 	return &ContactRoleResource{}
@@ -64,6 +65,10 @@ func (r *ContactRoleResource) Schema(ctx context.Context, req resource.SchemaReq
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("contact role"))
 
 	// Tags and custom fields are defined directly in the schema above.
+}
+
+func (r *ContactRoleResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 func (r *ContactRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -158,6 +163,7 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 		data.Tags = types.SetNull(types.StringType)
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, contactRole.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
 	tflog.Trace(ctx, "created a contact role resource")
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -211,6 +217,7 @@ func (r *ContactRoleResource) Read(ctx context.Context, req resource.ReadRequest
 		data.Tags = types.SetNull(types.StringType)
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, contactRole.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -278,6 +285,7 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 		plan.Tags = types.SetNull(types.StringType)
 	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, contactRole.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -311,6 +319,91 @@ func (r *ContactRoleResource) Delete(ctx context.Context, req resource.DeleteReq
 }
 
 func (r *ContactRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		contactRoleIDInt := utils.ParseInt32FromString(parsed.ID)
+		if contactRoleIDInt == 0 {
+			resp.Diagnostics.AddError("Invalid Contact Role ID", fmt.Sprintf("Contact Role ID must be a number, got: %s", parsed.ID))
+			return
+		}
+
+		contactRole, httpResp, err := r.client.TenancyAPI.TenancyContactRolesRetrieve(ctx, contactRoleIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError("Error importing contact role", utils.FormatAPIError(fmt.Sprintf("read contact role ID %s", parsed.ID), err, httpResp))
+			return
+		}
+		if httpResp.StatusCode != http.StatusOK {
+			resp.Diagnostics.AddError("Error importing contact role", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+			return
+		}
+
+		var data ContactRoleResourceModel
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapContactRoleToState(ctx, contactRole, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+		switch {
+		case contactRole.HasTags() && len(contactRole.GetTags()) > 0:
+			tagSlugs := make([]string, 0, len(contactRole.GetTags()))
+			for _, tag := range contactRole.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		case wasExplicitlyEmpty:
+			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		default:
+			data.Tags = types.SetNull(types.StringType)
+		}
+
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, contactRole.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

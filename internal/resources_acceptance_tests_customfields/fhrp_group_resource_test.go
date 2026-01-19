@@ -55,10 +55,15 @@ func TestAccFHRPGroupResource_CustomFieldsPreservation(t *testing.T) {
 			},
 			{
 				// Step 3: Import to verify custom fields still exist in NetBox
-				ResourceName:            "netbox_fhrp_group.test",
-				ImportState:             true,
-				ImportStateVerify:       false,
-				ImportStateVerifyIgnore: []string{"custom_fields"},
+				ResourceName:      "netbox_fhrp_group.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportCommandWithID,
+				ImportStateVerify: false,
+			},
+			{
+				// Step 3a: Verify no changes after import
+				Config:   testAccFHRPGroupConfig_preservation_step2(groupName, cfText, cfInteger),
+				PlanOnly: true,
 			},
 			{
 				// Step 4: Add custom_fields back to config to verify they were preserved

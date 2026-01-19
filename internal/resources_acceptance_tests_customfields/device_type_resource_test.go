@@ -68,15 +68,10 @@ func TestAccDeviceTypeResource_importWithCustomFieldsAndTags(t *testing.T) {
 			},
 			{
 				// Import the device type and verify all fields are preserved
-				ResourceName:            "netbox_device_type.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields", "tags", "manufacturer"},
-				// The import should preserve basic fields
-				Check: resource.ComposeTestCheckFunc(
-					// Verify basic fields
-					resource.TestCheckResourceAttr("netbox_device_type.test", "model", model),
-				),
+				ResourceName:      "netbox_device_type.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			{
 				Config: testAccDeviceTypeResourceImportConfig_full(

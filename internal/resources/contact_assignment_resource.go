@@ -26,6 +26,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &ContactAssignmentResource{}
 var _ resource.ResourceWithImportState = &ContactAssignmentResource{}
+var _ resource.ResourceWithIdentity = &ContactAssignmentResource{}
 
 func NewContactAssignmentResource() resource.Resource {
 	return &ContactAssignmentResource{}
@@ -96,6 +97,10 @@ func (r *ContactAssignmentResource) Schema(ctx context.Context, req resource.Sch
 			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
+}
+
+func (r *ContactAssignmentResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 func (r *ContactAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -220,6 +225,7 @@ func (r *ContactAssignmentResource) Create(ctx context.Context, req resource.Cre
 		data.Tags = types.SetNull(types.StringType)
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Created contact assignment", map[string]interface{}{
 		"id": assignment.GetId(),
@@ -288,6 +294,7 @@ func (r *ContactAssignmentResource) Read(ctx context.Context, req resource.ReadR
 		data.Tags = types.SetNull(types.StringType)
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -406,6 +413,7 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 		plan.Tags = types.SetNull(types.StringType)
 	}
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Updated contact assignment", map[string]interface{}{
 		"id": assignment.GetId(),
@@ -454,6 +462,93 @@ func (r *ContactAssignmentResource) Delete(ctx context.Context, req resource.Del
 }
 
 func (r *ContactAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		id, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid contact assignment ID",
+				fmt.Sprintf("Contact assignment ID must be a number, got: %s", parsed.ID),
+			)
+			return
+		}
+
+		assignment, httpResp, err := r.client.TenancyAPI.TenancyContactAssignmentsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error importing contact assignment",
+				utils.FormatAPIError("read contact assignment", err, httpResp),
+			)
+			return
+		}
+
+		var data ContactAssignmentResourceModel
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
+		switch {
+		case assignment.HasTags() && len(assignment.GetTags()) > 0:
+			tagSlugs := make([]string, 0, len(assignment.GetTags()))
+			for _, tag := range assignment.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		case wasExplicitlyEmpty:
+			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+		default:
+			data.Tags = types.SetNull(types.StringType)
+		}
+
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

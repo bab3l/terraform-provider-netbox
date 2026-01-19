@@ -28,6 +28,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &CableResource{}
 var _ resource.ResourceWithImportState = &CableResource{}
+var _ resource.ResourceWithIdentity = &CableResource{}
 
 func NewCableResource() resource.Resource {
 	return &CableResource{}
@@ -148,6 +149,10 @@ func (r *CableResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
+func (r *CableResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
+}
+
 func (r *CableResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
@@ -259,6 +264,7 @@ func (r *CableResource) Create(ctx context.Context, req resource.CreateRequest, 
 		return
 	}
 	tflog.Trace(ctx, "Created cable resource", map[string]interface{}{"id": data.ID.ValueString()})
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -294,6 +300,7 @@ func (r *CableResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -423,6 +430,7 @@ func (r *CableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		return
 	}
 	tflog.Trace(ctx, "Updated cable resource", map[string]interface{}{"id": data.ID.ValueString()})
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -455,6 +463,86 @@ func (r *CableResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 }
 
 func (r *CableResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		id, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid cable ID",
+				fmt.Sprintf("Cable ID must be a number, got: %s", parsed.ID),
+			)
+			return
+		}
+
+		cable, httpResp, err := r.client.DcimAPI.DcimCablesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error importing cable",
+				utils.FormatAPIError("read cable", err, httpResp),
+			)
+			return
+		}
+
+		var data CableResourceModel
+		if cable.HasTags() {
+			var tagSlugs []string
+			for _, tag := range cable.GetTags() {
+				tagSlugs = append(tagSlugs, tag.GetSlug())
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		resp.Diagnostics.Append(r.mapResponseToState(ctx, cable, &data)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, cable.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
