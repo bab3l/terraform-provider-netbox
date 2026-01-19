@@ -36,6 +36,11 @@ func TestAccPowerPanelResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"site"},
 			},
+			{
+				Config:             testAccPowerPanelResourceConfig_basic(siteName, siteSlug, panelName),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

@@ -2334,17 +2334,25 @@ func TestPreserveReferenceFormat(t *testing.T) {
 		expectedNull  bool
 	}{
 		{
-			name:          "Null state returns name",
+			name:          "Null state returns ID",
 			stateValue:    types.StringNull(),
 			apiID:         123,
 			apiName:       "Test Name",
 			apiSlug:       "test-slug",
-			expectedValue: "Test Name",
+			expectedValue: "123",
 		},
 		{
-			name:          "Unknown state returns name",
+			name:          "Unknown state returns ID",
 			stateValue:    types.StringUnknown(),
 			apiID:         123,
+			apiName:       "Test Name",
+			apiSlug:       "test-slug",
+			expectedValue: "123",
+		},
+		{
+			name:          "Null state with zero ID falls back to name",
+			stateValue:    types.StringNull(),
+			apiID:         0,
 			apiName:       "Test Name",
 			apiSlug:       "test-slug",
 			expectedValue: "Test Name",
@@ -2550,13 +2558,13 @@ func TestPreserveOptionalReferenceWithID(t *testing.T) {
 			expectedID:        "123",
 		},
 		{
-			name:              "Null state with value - defaults to name",
+			name:              "Null state with value - defaults to ID",
 			stateValue:        types.StringNull(),
 			hasValue:          true,
 			apiID:             123,
 			apiName:           "Test Name",
 			apiSlug:           "test-slug",
-			expectedReference: "Test Name",
+			expectedReference: "123",
 			expectedID:        "123",
 		},
 		{

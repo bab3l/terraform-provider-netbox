@@ -77,6 +77,10 @@ func TestAccContactGroupResource_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
+				Config:   testAccContactGroupResourceConfig(name, slug),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccContactGroupResourceConfig(name+"-updated", slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_contact_group.test", "name", name+"-updated"),

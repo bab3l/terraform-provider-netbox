@@ -35,6 +35,10 @@ func TestAccProviderAccountResource_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccProviderAccountResourceConfig_basic(providerName, providerSlug, accountID),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -220,6 +224,11 @@ func TestAccProviderAccountResource_import(t *testing.T) {
 				ResourceName:      "netbox_provider_account.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config:             testAccProviderAccountResourceConfig_basic(providerName, providerSlug, accountID),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})

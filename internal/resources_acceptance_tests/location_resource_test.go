@@ -105,6 +105,10 @@ func TestAccLocationResource_import(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"site"},
 			},
+			{
+				Config:   testAccLocationResourceConfig_import(siteName, siteSlug, name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

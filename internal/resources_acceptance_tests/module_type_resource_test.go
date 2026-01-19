@@ -36,6 +36,11 @@ func TestAccModuleTypeResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"manufacturer"},
 			},
+			{
+				Config:             testAccModuleTypeResourceConfig_basic(mfgName, mfgSlug, model),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

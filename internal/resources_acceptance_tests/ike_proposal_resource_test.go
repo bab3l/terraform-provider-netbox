@@ -123,6 +123,10 @@ func TestAccIKEProposalResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccIKEProposalResourceConfig_basic(name),
+				PlanOnly: true,
+			},
 		},
 	})
 }

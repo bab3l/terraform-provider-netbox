@@ -47,6 +47,10 @@ func TestAccConsoleServerPortResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device"},
 			},
+			{
+				Config:   testAccConsoleServerPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, consoleServerPortName),
+				PlanOnly: true,
+			},
 		},
 	})
 }

@@ -99,17 +99,19 @@ func TestAccInventoryItemTemplateResource_import(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-template")
+	manufacturerSlug := testutil.RandomSlug("mfr")
+	deviceTypeSlug := testutil.RandomSlug("device")
 
 	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
-	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInventoryItemTemplateResourceConfig_basic(name),
+				Config: testAccInventoryItemTemplateResourceConfig_basicWithSlugs(name, manufacturerSlug, deviceTypeSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_inventory_item_template.test", "id"),
 				),
@@ -119,6 +121,10 @@ func TestAccInventoryItemTemplateResource_import(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device_type"},
+			},
+			{
+				Config:   testAccInventoryItemTemplateResourceConfig_basicWithSlugs(name, manufacturerSlug, deviceTypeSlug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -133,6 +139,17 @@ resource "netbox_inventory_item_template" "test" {
   name        = %q
 }
 `, testAccInventoryItemTemplateResourcePrereqs(name), name)
+}
+
+func testAccInventoryItemTemplateResourceConfig_basicWithSlugs(name, manufacturerSlug, deviceTypeSlug string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "netbox_inventory_item_template" "test" {
+	device_type = netbox_device_type.test.id
+	name        = %q
+}
+`, testAccInventoryItemTemplateResourcePrereqsWithSlugs(name, manufacturerSlug, deviceTypeSlug), name)
 }
 
 func testAccInventoryItemTemplateResourceConfig_full(name string) string {
@@ -162,6 +179,21 @@ resource "netbox_device_type" "test" {
   slug         = %q
 }
 `, name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"))
+}
+
+func testAccInventoryItemTemplateResourcePrereqsWithSlugs(name, manufacturerSlug, deviceTypeSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_manufacturer" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %q
+	slug         = %q
+}
+`, name+"-mfr", manufacturerSlug, name+"-model", deviceTypeSlug)
 }
 
 func TestAccConsistency_InventoryItemTemplate_LiteralNames(t *testing.T) {

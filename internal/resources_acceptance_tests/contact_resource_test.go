@@ -37,6 +37,10 @@ func TestAccContactResource_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
+				Config:   testAccContactResource(randomName, "john.doe@example.com", "+1-555-0100"),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccContactResource(randomName, "jane.doe@example.com", "+1-555-0200"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_contact.test", "name", randomName),

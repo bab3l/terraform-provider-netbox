@@ -119,6 +119,10 @@ func TestAccIPSECProfileResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccIPSECProfileResourceConfig_basic(name),
+				PlanOnly: true,
+			},
 		},
 	})
 }

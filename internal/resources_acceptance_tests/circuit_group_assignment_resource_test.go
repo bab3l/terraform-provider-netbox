@@ -189,6 +189,10 @@ func TestAccCircuitGroupAssignmentResource_import(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"group_id", "circuit_id"},
 			},
+			{
+				Config:   testAccCircuitGroupAssignmentResourceConfig_basic(groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
+				PlanOnly: true,
+			},
 		},
 	})
 }

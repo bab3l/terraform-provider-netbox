@@ -165,6 +165,10 @@ func TestAccPlatformResource_import(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"manufacturer", "display_name"},
 			},
+			{
+				Config:   testAccPlatformResourceConfig_import(platformName, platformSlug, manufacturerName, manufacturerSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

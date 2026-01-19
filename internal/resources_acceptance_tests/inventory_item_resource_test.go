@@ -107,12 +107,16 @@ func TestAccInventoryItemResource_import(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-inv-item")
+	siteSlug := testutil.RandomSlug("site")
+	manufacturerSlug := testutil.RandomSlug("mfr")
+	deviceTypeSlug := testutil.RandomSlug("device")
+	deviceRoleSlug := testutil.RandomSlug("role")
 
 	cleanup := testutil.NewCleanupResource(t)
-	cleanup.RegisterSiteCleanup(testutil.RandomSlug("site"))
-	cleanup.RegisterManufacturerCleanup(testutil.RandomSlug("mfr"))
-	cleanup.RegisterDeviceTypeCleanup(testutil.RandomSlug("device"))
-	cleanup.RegisterDeviceRoleCleanup(testutil.RandomSlug("role"))
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
 	cleanup.RegisterDeviceCleanup(name + "-device")
 
 	resource.Test(t, resource.TestCase{
@@ -120,7 +124,7 @@ func TestAccInventoryItemResource_import(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInventoryItemResourceConfig_basic(name),
+				Config: testAccInventoryItemResourceConfig_basicWithSlugs(name, siteSlug, manufacturerSlug, deviceTypeSlug, deviceRoleSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_inventory_item.test", "id"),
 				),
@@ -130,6 +134,10 @@ func TestAccInventoryItemResource_import(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device"},
+			},
+			{
+				Config:   testAccInventoryItemResourceConfig_basicWithSlugs(name, siteSlug, manufacturerSlug, deviceTypeSlug, deviceRoleSlug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -261,6 +269,17 @@ resource "netbox_inventory_item" "test" {
 `, testAccInventoryItemResourcePrereqs(name), name)
 }
 
+func testAccInventoryItemResourceConfig_basicWithSlugs(name, siteSlug, manufacturerSlug, deviceTypeSlug, deviceRoleSlug string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "netbox_inventory_item" "test" {
+	device = netbox_device.test.id
+	name   = %q
+}
+`, testAccInventoryItemResourcePrereqsWithSlugs(name, siteSlug, manufacturerSlug, deviceTypeSlug, deviceRoleSlug), name)
+}
+
 func testAccInventoryItemResourceConfig_full(name string) string {
 	return fmt.Sprintf(`
 
@@ -308,6 +327,39 @@ resource "netbox_device" "test" {
   status      = "offline"
 }
 `, name+"-site", testutil.RandomSlug("site"), name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"), name+"-role", testutil.RandomSlug("role"), name+"-device")
+}
+
+func testAccInventoryItemResourcePrereqsWithSlugs(name, siteSlug, manufacturerSlug, deviceTypeSlug, deviceRoleSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %q
+	slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_device" "test" {
+	site        = netbox_site.test.id
+	name        = %q
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	status      = "offline"
+}
+`, name+"-site", siteSlug, name+"-mfr", manufacturerSlug, name+"-model", deviceTypeSlug, name+"-role", deviceRoleSlug, name+"-device")
 }
 
 func testAccInventoryItemResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, itemName, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {

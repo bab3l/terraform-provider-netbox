@@ -38,6 +38,10 @@ func TestAccASNResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"rir"},
 			},
+			{
+				Config:   testAccASNResourceConfig_basic(rirName, rirSlug, asn),
+				PlanOnly: true,
+			},
 		},
 	})
 }

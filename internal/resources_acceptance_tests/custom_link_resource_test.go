@@ -41,6 +41,10 @@ func TestAccCustomLinkResource_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccCustomLinkResourceConfig_basic(name),
+				PlanOnly: true,
+			},
 		},
 	})
 }

@@ -52,6 +52,11 @@ func TestAccFHRPGroupAssignmentResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"group_id", "interface_id", "display_name"},
 			},
+			{
+				Config:             testAccFHRPGroupAssignmentResourceConfig_updated(name, interfaceName, groupID),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

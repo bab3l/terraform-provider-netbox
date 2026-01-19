@@ -41,6 +41,10 @@ func TestAccDeviceBayTemplateResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device_type"},
 			},
+			{
+				Config:   testAccDeviceBayTemplateResourceConfig_basic(name, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

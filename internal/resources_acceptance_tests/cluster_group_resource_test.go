@@ -71,6 +71,10 @@ func TestAccClusterGroupResource_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccClusterGroupResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

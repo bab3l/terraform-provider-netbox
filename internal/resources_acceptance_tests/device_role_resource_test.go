@@ -36,6 +36,10 @@ func TestAccDeviceRoleResource_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccDeviceRoleResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

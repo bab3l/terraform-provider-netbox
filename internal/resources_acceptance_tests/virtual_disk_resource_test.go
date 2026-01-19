@@ -174,6 +174,10 @@ func TestAccVirtualDiskResource_import(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"virtual_machine"},
 			},
+			{
+				Config:   testAccVirtualDiskResourceConfig_basic(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

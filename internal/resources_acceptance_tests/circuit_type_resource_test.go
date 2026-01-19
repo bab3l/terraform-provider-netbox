@@ -122,6 +122,10 @@ func TestAccCircuitTypeResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccCircuitTypeResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

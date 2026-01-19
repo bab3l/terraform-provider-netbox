@@ -144,10 +144,13 @@ func TestAccClusterResource_import(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_cluster.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"type"},
+				ResourceName:      "netbox_cluster.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config:   testAccClusterResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName),
+				PlanOnly: true,
 			},
 		},
 	})

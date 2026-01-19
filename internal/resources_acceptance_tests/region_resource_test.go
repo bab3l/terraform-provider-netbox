@@ -153,6 +153,10 @@ func TestAccRegionResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccRegionResourceConfig_import(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

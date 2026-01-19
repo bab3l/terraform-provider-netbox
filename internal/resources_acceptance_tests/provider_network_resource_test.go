@@ -35,6 +35,10 @@ func TestAccProviderNetworkResource_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -220,6 +224,11 @@ func TestAccProviderNetworkResource_import(t *testing.T) {
 				ResourceName:      "netbox_provider_network.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config:             testAccProviderNetworkResourceConfig_basic(providerName, providerSlug, networkName),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})

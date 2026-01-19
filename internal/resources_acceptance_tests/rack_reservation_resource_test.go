@@ -40,6 +40,11 @@ func TestAccRackReservationResource_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:             testAccRackReservationResourceConfig_basic(siteName, siteSlug, rackName, description),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

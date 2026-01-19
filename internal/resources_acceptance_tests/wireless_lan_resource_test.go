@@ -31,6 +31,11 @@ func TestAccWirelessLANResource_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:             testAccWirelessLANResourceConfig_basic(ssid),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

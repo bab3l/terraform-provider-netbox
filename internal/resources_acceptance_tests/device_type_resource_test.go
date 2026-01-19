@@ -42,6 +42,10 @@ func TestAccDeviceTypeResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"manufacturer"},
 			},
+			{
+				Config:   testAccDeviceTypeResourceConfig_basic(model, slug, manufacturerName, manufacturerSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

@@ -80,6 +80,10 @@ func TestAccContactAssignmentResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"contact_id", "role_id"},
 			},
+			{
+				Config:   testAccContactAssignmentResourceBasicWithEmail(randomName, randomSlug, contactEmail),
+				PlanOnly: true,
+			},
 		},
 	})
 }

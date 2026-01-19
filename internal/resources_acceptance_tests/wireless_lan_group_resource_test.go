@@ -32,6 +32,11 @@ func TestAccWirelessLANGroupResource_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:             testAccWirelessLANGroupResourceConfig_basic(name, slug),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

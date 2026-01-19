@@ -30,7 +30,7 @@ func TestAccInterfaceResource_basic(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInterfaceResourceConfig_basic(name),
+				Config: testAccInterfaceResourceConfig_basicWithSlugs(name, siteSlug, mfrSlug, deviceSlug, roleSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_interface.test", "name", name),
@@ -43,6 +43,11 @@ func TestAccInterfaceResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device"},
+			},
+			{
+				Config:             testAccInterfaceResourceConfig_basicWithSlugs(name, siteSlug, mfrSlug, deviceSlug, roleSlug),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})
@@ -410,6 +415,18 @@ resource "netbox_interface" "test" {
 
 }
 
+func testAccInterfaceResourceConfig_basicWithSlugs(name, siteSlug, manufacturerSlug, deviceTypeSlug, roleSlug string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "netbox_interface" "test" {
+	device = netbox_device.test.id
+	name   = %q
+	type   = "1000base-t"
+}
+`, testAccInterfaceResourcePrereqsWithSlugs(name, siteSlug, manufacturerSlug, deviceTypeSlug, roleSlug), name)
+}
+
 func testAccInterfaceResourceConfig_forUpdate(name, description string) string {
 	// Toggle between different types and settings based on description
 	interfaceType := testutil.InterfaceType1000BaseT
@@ -623,6 +640,39 @@ resource "netbox_device" "test" {
   status      = "offline"
 }
 `, name+"-site", testutil.RandomSlug("site"), name+"-mfr", testutil.RandomSlug("mfr"), name+"-model", testutil.RandomSlug("device"), name+"-role", testutil.RandomSlug("role"), name+"-device")
+}
+
+func testAccInterfaceResourcePrereqsWithSlugs(name, siteSlug, manufacturerSlug, deviceTypeSlug, roleSlug string) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %q
+	slug         = %q
+}
+
+resource "netbox_device_role" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_device" "test" {
+	site        = netbox_site.test.id
+	name        = %q
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	status      = "offline"
+}
+`, name+"-site", siteSlug, name+"-mfr", manufacturerSlug, name+"-model", deviceTypeSlug, name+"-role", roleSlug, name+"-device")
 }
 
 func TestAccInterfaceResource_externalDeletion(t *testing.T) {
