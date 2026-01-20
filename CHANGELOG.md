@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+No changes yet.
+
 ## v0.0.17 (2026-01-20)
 
 ### ✨ Enhancements
