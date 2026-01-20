@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## v0.0.17 (2026-01-20)
+
+### ✨ Enhancements
+- Added import identity support for custom field hints across resource examples, enabling explicit import seeding of custom fields.
+
+### 🐛 Fixes
+- Stabilized import identity handling for custom fields to avoid unintended plan changes when custom fields are omitted.
+- Adjusted device custom fields preservation import test to use ID-based import for non-owned fields.
+
+### 🧪 Testing
+- Refined custom fields acceptance tests to validate import identity behavior and preservation semantics.
+
+### 📚 Docs
+- Refreshed examples and generated docs to include custom field import identity blocks.
+
 ### 🐛 Fixes
 - Hardened datasource lookup handling to ignore unknown values across multiple datasources.
 

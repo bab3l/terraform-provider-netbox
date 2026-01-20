@@ -76,7 +76,7 @@ func TestAccDeviceResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_device.test",
 				ImportState:             true,
-				ImportStateKind:         resource.ImportBlockWithResourceIdentity,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,                     // Can't verify - config has no custom_fields
 				ImportStateVerifyIgnore: []string{"custom_fields"}, // Different because filter-to-owned
 			},

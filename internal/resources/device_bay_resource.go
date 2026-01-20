@@ -296,6 +296,7 @@ func (r *DeviceBayResource) ImportState(ctx context.Context, req resource.Import
 		}
 
 		var data DeviceBayResourceModel
+		data.Tags = types.SetNull(types.StringType)
 		if db.Device.GetId() != 0 {
 			data.Device = types.StringValue(db.Device.GetName())
 		}
@@ -349,6 +350,8 @@ func (r *DeviceBayResource) ImportState(ctx context.Context, req resource.Import
 
 	var data DeviceBayResourceModel
 	data.ID = types.StringValue(req.ID)
+	data.Tags = types.SetNull(types.StringType)
+	data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

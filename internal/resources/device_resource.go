@@ -746,6 +746,7 @@ func (r *DeviceResource) ImportState(ctx context.Context, req resource.ImportSta
 		}
 
 		var data DeviceResourceModel
+		data.Tags = types.SetNull(types.StringType)
 		data.DeviceType = types.StringValue(fmt.Sprintf("%d", device.DeviceType.GetId()))
 		data.Role = types.StringValue(fmt.Sprintf("%d", device.Role.GetId()))
 		data.Site = types.StringValue(fmt.Sprintf("%d", device.Site.GetId()))
@@ -816,6 +817,8 @@ func (r *DeviceResource) ImportState(ctx context.Context, req resource.ImportSta
 
 	var data DeviceResourceModel
 	data.ID = types.StringValue(req.ID)
+	data.Tags = types.SetNull(types.StringType)
+	data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

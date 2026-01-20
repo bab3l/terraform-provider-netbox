@@ -101,6 +101,10 @@ func ParseImportIdentityCustomFields(ctx context.Context, identity *tfsdk.Resour
 
 	parsed.CustomFieldItems = entries
 
+	if len(entries) == 0 {
+		return parsed, true
+	}
+
 	parsed.CustomFields = ParseCustomFieldIdentityEntries(entries, diags)
 
 	return parsed, true
@@ -241,60 +245,25 @@ func SetIdentityCustomFields(ctx context.Context, identity *tfsdk.ResourceIdenti
 	listValue := types.ListNull(types.StringType)
 
 	if identity.Raw.IsNull() {
-
 		if IsSet(customFields) {
-
 			entries := CustomFieldIdentityEntriesFromSet(ctx, customFields, diags)
-
 			listValueNew, listDiags := types.ListValueFrom(ctx, types.StringType, entries)
-
 			diags.Append(listDiags...)
-
 			if diags.HasError() {
-
 				return
-
 			}
-
 			listValue = listValueNew
-
 		}
-
 	} else {
-
 		existing := ImportIdentityCustomFieldsModel{
-
-			ID: types.StringNull(),
-
+			ID:           types.StringNull(),
 			CustomFields: types.ListNull(types.StringType),
 		}
-
 		if getDiags := identity.Get(ctx, &existing); getDiags.HasError() {
-
 			diags.Append(getDiags...)
-
 			return
-
 		}
-
 		listValue = existing.CustomFields
-
-	}
-
-	if listValue.IsNull() || listValue.IsUnknown() {
-
-		emptyList, listDiags := types.ListValueFrom(ctx, types.StringType, []string{})
-
-		diags.Append(listDiags...)
-
-		if diags.HasError() {
-
-			return
-
-		}
-
-		listValue = emptyList
-
 	}
 
 	setDiags := identity.Set(ctx, &ImportIdentityCustomFieldsModel{

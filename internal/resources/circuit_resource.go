@@ -251,6 +251,7 @@ func (r *CircuitResource) Read(ctx context.Context, req resource.ReadRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -374,6 +375,7 @@ func (r *CircuitResource) ImportState(ctx context.Context, req resource.ImportSt
 		}
 
 		var data CircuitResourceModel
+		data.Tags = types.SetNull(types.StringType)
 		if circuit.HasTags() {
 			var tagSlugs []string
 			for _, tag := range circuit.GetTags() {

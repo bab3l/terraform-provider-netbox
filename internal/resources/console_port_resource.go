@@ -397,6 +397,7 @@ func (r *ConsolePortResource) ImportState(ctx context.Context, req resource.Impo
 		}
 
 		var data ConsolePortResourceModel
+		data.Tags = types.SetNull(types.StringType)
 		if device := response.GetDevice(); device.Id != 0 {
 			data.Device = types.StringValue(device.GetName())
 		}
@@ -446,6 +447,8 @@ func (r *ConsolePortResource) ImportState(ctx context.Context, req resource.Impo
 
 	var data ConsolePortResourceModel
 	data.ID = types.StringValue(req.ID)
+	data.Tags = types.SetNull(types.StringType)
+	data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
