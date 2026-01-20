@@ -39,6 +39,11 @@ func TestAccRackTypeResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"manufacturer"},
 			},
+			{
+				Config:             testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

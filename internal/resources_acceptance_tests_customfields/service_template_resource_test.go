@@ -49,8 +49,9 @@ func TestAccServiceTemplateResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_service_template.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,
-				ImportStateVerifyIgnore: []string{"custom_fields"},
+				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
 			},
 			{
 				// Step 4: Add custom_fields back to verify they were preserved

@@ -13,3 +13,16 @@ resource "netbox_journal_entry" "maintenance_notice" {
   kind                 = "warning"
   comments             = "Scheduled maintenance window: 2024-01-15 02:00-04:00 UTC"
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_journal_entry.site_update
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "ticket_id:text",
+      "change_window:text",
+    ]
+  }
+}

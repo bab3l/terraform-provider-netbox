@@ -37,3 +37,17 @@ resource "netbox_tunnel" "test" {
     }
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_tunnel.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "tunnel_id:text",
+      "encryption_algorithm:text",
+      "preshared_key_rotation_days:integer",
+    ]
+  }
+}

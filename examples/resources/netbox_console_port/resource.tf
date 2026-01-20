@@ -58,3 +58,17 @@ resource "netbox_console_port" "test" {
     "management"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_console_port.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "console_server:text",
+      "port_number:integer",
+      "baud_rate:integer",
+    ]
+  }
+}

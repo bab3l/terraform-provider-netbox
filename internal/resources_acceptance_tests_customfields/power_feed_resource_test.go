@@ -68,10 +68,19 @@ func TestAccPowerFeedResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_power_feed.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"power_panel", "tenant", "custom_fields", "tags"},
+				ResourceName:      "netbox_power_feed.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config: testAccPowerFeedResourceImportConfig_full(
+					siteName, siteSlug, panelName, feedName, tenantName, tenantSlug,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue,
+					tag1, tag1Slug, tag2, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+				),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -167,7 +176,7 @@ resource "netbox_power_feed" "test" {
   name        = %q
   power_panel = netbox_power_panel.test.id
   status      = "active"
-  tenant      = netbox_tenant.test.id
+  tenant      = netbox_tenant.test.name
 
   tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 

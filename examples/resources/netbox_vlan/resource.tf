@@ -42,3 +42,17 @@ resource "netbox_vlan" "test" {
     "servers"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_vlan.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "vlan_purpose:text",
+      "subnet:text",
+      "security_zone:text",
+    ]
+  }
+}

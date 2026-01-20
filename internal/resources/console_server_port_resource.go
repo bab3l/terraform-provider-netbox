@@ -31,6 +31,7 @@ var (
 	_ resource.ResourceWithConfigure = &ConsoleServerPortResource{}
 
 	_ resource.ResourceWithImportState = &ConsoleServerPortResource{}
+	_ resource.ResourceWithIdentity    = &ConsoleServerPortResource{}
 )
 
 // NewConsoleServerPortResource returns a new resource implementing the console server port resource.
@@ -112,6 +113,10 @@ func (r *ConsoleServerPortResource) Schema(ctx context.Context, req resource.Sch
 	// Tags and custom fields are defined directly in the schema above.
 }
 
+func (r *ConsoleServerPortResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
+}
+
 // Configure adds the provider configured client to the resource.
 func (r *ConsoleServerPortResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
@@ -191,6 +196,7 @@ func (r *ConsoleServerPortResource) Create(ctx context.Context, req resource.Cre
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	tflog.Trace(ctx, "Created console server port", map[string]interface{}{
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
@@ -245,6 +251,7 @@ func (r *ConsoleServerPortResource) Read(ctx context.Context, req resource.ReadR
 	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
 		data.CustomFields = originalCustomFields
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -341,6 +348,7 @@ func (r *ConsoleServerPortResource) Update(ctx context.Context, req resource.Upd
 
 	// Apply filter-to-owned pattern for custom fields
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -381,30 +389,87 @@ func (r *ConsoleServerPortResource) Delete(ctx context.Context, req resource.Del
 
 // ImportState imports an existing resource.
 func (r *ConsoleServerPortResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	portID, err := utils.ParseID(req.ID)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Invalid Import ID",
-			fmt.Sprintf("Console Server Port ID must be a number, got: %s", req.ID),
-		)
-		return
-	}
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
 
-	response, httpResp, err := r.client.DcimAPI.DcimConsoleServerPortsRetrieve(ctx, portID).Execute()
-	defer utils.CloseResponseBody(httpResp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error importing console server port",
-			utils.FormatAPIError(fmt.Sprintf("import console server port ID %d", portID), err, httpResp),
-		)
+		portID, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid Import ID",
+				fmt.Sprintf("Console Server Port ID must be a number, got: %s", parsed.ID),
+			)
+			return
+		}
+
+		response, httpResp, err := r.client.DcimAPI.DcimConsoleServerPortsRetrieve(ctx, portID).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error importing console server port",
+				utils.FormatAPIError(fmt.Sprintf("import console server port ID %d", portID), err, httpResp),
+			)
+			return
+		}
+
+		var data ConsoleServerPortResourceModel
+		data.Tags = types.SetNull(types.StringType)
+		if device := response.GetDevice(); device.Id != 0 {
+			data.Device = types.StringValue(device.GetName())
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, response.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 		return
 	}
 
 	var data ConsoleServerPortResourceModel
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	data.ID = types.StringValue(req.ID)
+	data.Tags = types.SetNull(types.StringType)
+	data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

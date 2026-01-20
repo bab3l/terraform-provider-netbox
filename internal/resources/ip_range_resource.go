@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"strings"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -31,6 +32,7 @@ var (
 	_ resource.Resource                = &IPRangeResource{}
 	_ resource.ResourceWithConfigure   = &IPRangeResource{}
 	_ resource.ResourceWithImportState = &IPRangeResource{}
+	_ resource.ResourceWithIdentity    = &IPRangeResource{}
 )
 
 // NewIPRangeResource returns a new IP Range resource.
@@ -124,6 +126,10 @@ func (r *IPRangeResource) Schema(ctx context.Context, req resource.SchemaRequest
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
+func (r *IPRangeResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
+}
+
 func (r *IPRangeResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
@@ -184,6 +190,7 @@ func (r *IPRangeResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 	data.StartAddress = startAddressBeforeMapping
 	data.EndAddress = endAddressBeforeMapping
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	tflog.Debug(ctx, "Created IP range", map[string]interface{}{
 		"id":            data.ID.ValueString(),
 		"start_address": data.StartAddress.ValueString(),
@@ -260,6 +267,7 @@ func (r *IPRangeResource) Read(ctx context.Context, req resource.ReadRequest, re
 	if !endAddressBeforeMapping.IsNull() && !endAddressBeforeMapping.IsUnknown() {
 		data.EndAddress = endAddressBeforeMapping
 	}
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	tflog.Debug(ctx, "Read IP range", map[string]interface{}{
 		"id":            data.ID.ValueString(),
 		"start_address": data.StartAddress.ValueString(),
@@ -333,6 +341,7 @@ func (r *IPRangeResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 	data.StartAddress = startAddressBeforeUpdate
 	data.EndAddress = endAddressBeforeUpdate
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	tflog.Debug(ctx, "Updated IP range", map[string]interface{}{
 		"id":            data.ID.ValueString(),
 		"start_address": data.StartAddress.ValueString(),
@@ -386,6 +395,116 @@ func (r *IPRangeResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 func (r *IPRangeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		id, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid ID",
+				fmt.Sprintf("Unable to parse ID %q: %s", parsed.ID, err.Error()),
+			)
+			return
+		}
+
+		ipRange, httpResp, err := r.client.IpamAPI.IpamIpRangesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error importing IP range",
+				utils.FormatAPIError(fmt.Sprintf("read IP range ID %d", id), err, httpResp),
+			)
+			return
+		}
+
+		var data IPRangeResourceModel
+		if ipRange.Vrf.IsSet() && ipRange.Vrf.Get() != nil {
+			vrf := ipRange.Vrf.Get()
+			data.VRF = types.StringValue(fmt.Sprintf("%d", vrf.GetId()))
+		}
+		if ipRange.Tenant.IsSet() && ipRange.Tenant.Get() != nil {
+			tenant := ipRange.Tenant.Get()
+			if tenant.GetSlug() != "" {
+				data.Tenant = types.StringValue(tenant.GetSlug())
+			} else {
+				data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+			}
+		}
+		if ipRange.Role.IsSet() && ipRange.Role.Get() != nil {
+			role := ipRange.Role.Get()
+			if role.GetSlug() != "" {
+				data.Role = types.StringValue(role.GetSlug())
+			} else {
+				data.Role = types.StringValue(fmt.Sprintf("%d", role.GetId()))
+			}
+		}
+		if len(ipRange.Tags) > 0 {
+			tagSlugs := make([]string, 0, len(ipRange.Tags))
+			for _, tag := range ipRange.Tags {
+				tagSlugs = append(tagSlugs, tag.Slug)
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetNull(types.StringType)
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapIPRangeToState(ctx, ipRange, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		startAddress := data.StartAddress.ValueString()
+		if strings.HasSuffix(startAddress, "/32") || strings.HasSuffix(startAddress, "/128") {
+			data.StartAddress = types.StringValue(strings.Split(startAddress, "/")[0])
+		}
+		endAddress := data.EndAddress.ValueString()
+		if strings.HasSuffix(endAddress, "/32") || strings.HasSuffix(endAddress, "/128") {
+			data.EndAddress = types.StringValue(strings.Split(endAddress, "/")[0])
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, ipRange.CustomFields, &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

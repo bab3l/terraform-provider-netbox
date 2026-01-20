@@ -68,3 +68,17 @@ resource "netbox_contact_assignment" "test" {
     "primary"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_contact_assignment.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "notification_method:text",
+      "availability_hours:text",
+      "escalation_level:integer",
+    ]
+  }
+}

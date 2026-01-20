@@ -135,10 +135,22 @@ func TestAccCableResource_ImportWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_cable.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
+				ResourceName:      "netbox_cable.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			// Enhancement 1: Verify no changes after import
+			{
+				Config: testAccCableResourceImportConfig_full(
+					siteName, siteSlug, deviceNameA, deviceNameB, mfgName, mfgSlug,
+					deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug,
+					interfaceNameA, interfaceNameB, tenantName, tenantSlug,
+					textValue, longtextValue, intValue, boolValue, dateValue, urlValue, jsonValue,
+					tag1, tag1Slug, tag2, tag2Slug,
+					cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfURL, cfJSON,
+				),
+				PlanOnly: true,
 			},
 		},
 	})

@@ -59,6 +59,10 @@ func TestAccCableResource_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccCableResourceConfig(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -189,6 +193,11 @@ func TestAccCableResource_import(t *testing.T) {
 				ResourceName:      "netbox_cable.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config:             testAccCableResourceConfig(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})

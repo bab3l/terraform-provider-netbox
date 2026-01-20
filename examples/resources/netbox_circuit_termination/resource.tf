@@ -46,3 +46,16 @@ resource "netbox_circuit_termination" "test_a" {
     "primary"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_circuit_termination.test_a
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "demarcation_point:text",
+      "cross_connect_id:text",
+    ]
+  }
+}

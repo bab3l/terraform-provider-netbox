@@ -25,3 +25,17 @@ resource "netbox_site_group" "example" {
     "north-america"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_site_group.example
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "business_region:text",
+      "regional_manager:text",
+      "cost_center:text",
+    ]
+  }
+}

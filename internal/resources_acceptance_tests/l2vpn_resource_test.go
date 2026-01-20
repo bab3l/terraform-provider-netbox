@@ -45,6 +45,11 @@ func TestAccL2VPNResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"display_name"}, // display_name is computed and may differ after name changes
 			},
+			{
+				Config:             testAccL2VPNResourceConfig_updated(name),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

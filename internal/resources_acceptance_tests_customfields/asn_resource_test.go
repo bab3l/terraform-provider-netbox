@@ -18,6 +18,7 @@ import (
 // Filter-to-owned pattern:
 // - Custom fields declared in config are managed by Terraform
 // - Custom fields NOT in config are preserved in NetBox but invisible to Terraform
+
 func TestAccASNResource_CustomFieldsPreservation(t *testing.T) {
 	asn := int64(acctest.RandIntRange(64512, 65534))
 
@@ -48,10 +49,10 @@ func TestAccASNResource_CustomFieldsPreservation(t *testing.T) {
 			},
 			{
 				// Step 3: Import to verify custom fields still exist in NetBox
-				ResourceName:            "netbox_asn.test",
-				ImportState:             true,
-				ImportStateVerify:       false,
-				ImportStateVerifyIgnore: []string{"custom_fields"},
+				ResourceName:      "netbox_asn.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportCommandWithID,
+				ImportStateVerify: false,
 			},
 			{
 				// Step 4: Add custom_fields back to verify they were preserved
@@ -454,11 +455,11 @@ func TestAccASNResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				Config:                  testAccASNResourceImportConfig_full(asn, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:            "netbox_asn.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"rir", "custom_fields", "tags", "tenant"},
+				Config:            testAccASNResourceImportConfig_full(asn, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:      "netbox_asn.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			{
 				Config:   testAccASNResourceImportConfig_full(asn, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),

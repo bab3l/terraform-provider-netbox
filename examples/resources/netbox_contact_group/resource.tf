@@ -27,6 +27,20 @@ resource "netbox_contact_group" "basic" {
   ]
 }
 
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_contact_group.basic
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "department_code:text",
+      "team_size:integer",
+      "escalation_email:text",
+    ]
+  }
+}
+
 # Example: Contact group with description
 resource "netbox_contact_group" "with_description" {
   name        = "Network Operations"

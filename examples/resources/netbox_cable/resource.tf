@@ -101,6 +101,34 @@ resource "netbox_cable" "fiber" {
   ]
 }
 
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_cable.example
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "cable_vendor:text",
+      "installation_date:date",
+      "certification_status:text",
+    ]
+  }
+}
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_cable.fiber
+  id = "124"
+
+  identity = {
+    custom_fields = [
+      "cable_vendor:text",
+      "fiber_strand_count:integer",
+      "attenuation_db:number",
+    ]
+  }
+}
+
 # Example: Planned cable (not yet installed)
 resource "netbox_cable" "planned" {
   a_terminations = [{

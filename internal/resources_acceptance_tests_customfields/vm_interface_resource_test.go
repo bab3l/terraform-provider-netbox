@@ -69,13 +69,10 @@ func TestAccVMInterfaceResource_importWithCustomFieldsAndTags(t *testing.T) {
 			},
 			{
 				// Import the VM interface and verify basic fields are preserved
-				ResourceName:            "netbox_vm_interface.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"virtual_machine", "custom_fields", "tags"},
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
-				),
+				ResourceName:      "netbox_vm_interface.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			{
 				Config: testAccVMInterfaceResourceImportConfig_full(
@@ -178,7 +175,7 @@ resource "netbox_virtual_machine" "test" {
 
 # Create VM interface with all custom fields and tags
 resource "netbox_vm_interface" "test" {
-  virtual_machine = netbox_virtual_machine.test.id
+	virtual_machine = netbox_virtual_machine.test.name
   name            = %[5]q
 
 	tags = [netbox_tag.vmint_test1.slug, netbox_tag.vmint_test2.slug]

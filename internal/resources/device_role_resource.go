@@ -23,6 +23,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &DeviceRoleResource{}
 var _ resource.ResourceWithImportState = &DeviceRoleResource{}
+var _ resource.ResourceWithIdentity = &DeviceRoleResource{}
 
 func NewDeviceRoleResource() resource.Resource {
 	return &DeviceRoleResource{}
@@ -67,6 +68,10 @@ func (r *DeviceRoleResource) Schema(ctx context.Context, req resource.SchemaRequ
 	maps.Copy(resp.Schema.Attributes, nbschema.DescriptionOnlyAttributes("device role"))
 
 	// Tags and custom fields are defined directly in the schema above.
+}
+
+func (r *DeviceRoleResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 func (r *DeviceRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -199,6 +204,7 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 		data.Tags = types.SetNull(types.StringType)
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, deviceRole.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -273,6 +279,8 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
 		data.CustomFields = originalCustomFields
 	}
+
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -379,6 +387,7 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 		data.Tags = types.SetNull(types.StringType)
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, deviceRole.GetCustomFields(), &resp.Diagnostics)
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -427,5 +436,71 @@ func (r *DeviceRoleResource) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 func (r *DeviceRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		deviceRoleIDInt, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid Device Role ID",
+				fmt.Sprintf("Device Role ID must be a number, got: %s", parsed.ID),
+			)
+			return
+		}
+
+		deviceRole, httpResp, err := r.client.DcimAPI.DcimDeviceRolesRetrieve(ctx, deviceRoleIDInt).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error importing device role",
+				utils.FormatAPIError(fmt.Sprintf("read device role ID %s", parsed.ID), err, httpResp),
+			)
+			return
+		}
+
+		var data DeviceRoleResourceModel
+		r.mapDeviceRoleToState(ctx, deviceRole, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		data.Tags = types.SetNull(types.StringType)
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, ownedSet, deviceRole.GetCustomFields(), &resp.Diagnostics)
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

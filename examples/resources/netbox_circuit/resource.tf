@@ -38,3 +38,17 @@ resource "netbox_circuit" "test" {
     "primary-circuit"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_circuit.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "circuit_vendor_id:text",
+      "monthly_cost:integer",
+      "contract_end_date:date",
+    ]
+  }
+}

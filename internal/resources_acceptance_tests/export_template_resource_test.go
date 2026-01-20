@@ -50,6 +50,11 @@ func TestAccExportTemplateResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"display_name"},
 			},
+			{
+				Config:             testAccExportTemplateResourceConfig_updated(name),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

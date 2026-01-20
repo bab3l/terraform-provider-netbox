@@ -66,10 +66,10 @@ func TestAccDeviceRoleResource_importWithCustomFieldsAndTags(t *testing.T) {
 			},
 			{
 				// Import the device role and verify all fields are preserved
-				ResourceName:            "netbox_device_role.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
+				ResourceName:      "netbox_device_role.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 				// The import should preserve basic fields
 				Check: resource.ComposeTestCheckFunc(
 					// Verify basic fields

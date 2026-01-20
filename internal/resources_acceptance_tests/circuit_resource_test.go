@@ -150,6 +150,10 @@ func TestAccCircuitResource_import(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"circuit_provider", "type"},
 			},
+			{
+				Config:   testAccCircuitResourceConfig_basic(cid, providerName, providerSlug, typeName, typeSlug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

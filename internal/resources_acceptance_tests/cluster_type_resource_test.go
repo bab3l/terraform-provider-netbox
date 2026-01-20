@@ -124,6 +124,10 @@ func TestAccClusterTypeResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccClusterTypeResourceConfig_basic(name, slug),
+				PlanOnly: true,
+			},
 		},
 	})
 }

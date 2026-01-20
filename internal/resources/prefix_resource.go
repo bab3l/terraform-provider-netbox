@@ -32,6 +32,7 @@ var (
 	_ resource.ResourceWithConfigure = &PrefixResource{}
 
 	_ resource.ResourceWithImportState = &PrefixResource{}
+	_ resource.ResourceWithIdentity    = &PrefixResource{}
 )
 
 // NewPrefixResource returns a new Prefix resource.
@@ -161,6 +162,10 @@ func (r *PrefixResource) Schema(ctx context.Context, req resource.SchemaRequest,
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
 }
 
+func (r *PrefixResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
+}
+
 // Configure adds the provider configured client to the resource.
 
 func (r *PrefixResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -245,7 +250,10 @@ func (r *PrefixResource) Create(ctx context.Context, req resource.CreateRequest,
 	})
 
 	// Save data into Terraform state
-
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -324,7 +332,10 @@ func (r *PrefixResource) Read(ctx context.Context, req resource.ReadRequest, res
 	})
 
 	// Save updated data into Terraform state
-
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -410,7 +421,10 @@ func (r *PrefixResource) Update(ctx context.Context, req resource.UpdateRequest,
 	})
 
 	// Save updated data into Terraform state
-
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -474,6 +488,102 @@ func (r *PrefixResource) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 func (r *PrefixResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		id, err := utils.ParseID(parsed.ID)
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Unable to parse ID %q: %s", parsed.ID, err.Error()))
+			return
+		}
+
+		prefix, httpResp, err := r.client.IpamAPI.IpamPrefixesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError("Error importing prefix", utils.FormatAPIError(fmt.Sprintf("read prefix ID %d", id), err, httpResp))
+			return
+		}
+
+		var data PrefixResourceModel
+		if prefix.Site.IsSet() && prefix.Site.Get() != nil && prefix.Site.Get().Id != 0 {
+			site := prefix.Site.Get()
+			data.Site = types.StringValue(fmt.Sprintf("%d", site.GetId()))
+		}
+		if prefix.Vrf.IsSet() && prefix.Vrf.Get() != nil && prefix.Vrf.Get().Id != 0 {
+			vrf := prefix.Vrf.Get()
+			data.VRF = types.StringValue(fmt.Sprintf("%d", vrf.GetId()))
+		}
+		if prefix.Tenant.IsSet() && prefix.Tenant.Get() != nil && prefix.Tenant.Get().Id != 0 {
+			tenant := prefix.Tenant.Get()
+			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		}
+		if prefix.Vlan.IsSet() && prefix.Vlan.Get() != nil && prefix.Vlan.Get().Id != 0 {
+			vlan := prefix.Vlan.Get()
+			data.VLAN = types.StringValue(fmt.Sprintf("%d", vlan.GetId()))
+		}
+		if prefix.Role.IsSet() && prefix.Role.Get() != nil && prefix.Role.Get().Id != 0 {
+			role := prefix.Role.Get()
+			data.Role = types.StringValue(fmt.Sprintf("%d", role.GetId()))
+		}
+		if len(prefix.Tags) > 0 {
+			tagSlugs := make([]string, 0, len(prefix.Tags))
+			for _, tag := range prefix.Tags {
+				tagSlugs = append(tagSlugs, tag.Slug)
+			}
+			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		} else {
+			data.Tags = types.SetNull(types.StringType)
+		}
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapPrefixToState(ctx, prefix, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, prefix.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

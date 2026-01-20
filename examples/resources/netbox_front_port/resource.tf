@@ -63,3 +63,16 @@ resource "netbox_front_port" "test" {
     "front-port"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_front_port.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "patch_label:text",
+      "port_assignment:text",
+    ]
+  }
+}

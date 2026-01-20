@@ -115,6 +115,10 @@ func TestAccIPAddressResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccIPAddressResourceConfig_basic(ip),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -154,6 +158,11 @@ func TestAccIPAddressResource_importWithTags(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"tenant", "tags"}, // Tags have import limitations
+			},
+			{
+				Config:             testAccIPAddressResourceImportConfig_full(ip, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})

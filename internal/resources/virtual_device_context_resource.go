@@ -32,6 +32,8 @@ var (
 	_ resource.ResourceWithConfigure = &VirtualDeviceContextResource{}
 
 	_ resource.ResourceWithImportState = &VirtualDeviceContextResource{}
+
+	_ resource.ResourceWithIdentity = &VirtualDeviceContextResource{}
 )
 
 // NewVirtualDeviceContextResource returns a new resource implementing the virtual device context resource.
@@ -151,6 +153,10 @@ func (r *VirtualDeviceContextResource) Schema(ctx context.Context, req resource.
 	// Add common metadata attributes (tags, custom_fields)
 	resp.Schema.Attributes["tags"] = nbschema.TagsSlugAttribute()
 	resp.Schema.Attributes["custom_fields"] = nbschema.CustomFieldsAttribute()
+}
+
+func (r *VirtualDeviceContextResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = nbschema.ImportIdentityWithCustomFieldsSchema()
 }
 
 // Configure adds the provider configured client to the resource.
@@ -295,6 +301,11 @@ func (r *VirtualDeviceContextResource) Create(ctx context.Context, req resource.
 		return
 	}
 
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -369,6 +380,11 @@ func (r *VirtualDeviceContextResource) Read(ctx context.Context, req resource.Re
 			"was_empty": !originalCustomFields.IsNull() && len(originalCustomFields.Elements()) == 0,
 		})
 		data.CustomFields = originalCustomFields
+	}
+
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -530,6 +546,14 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 
 	// Filter custom_fields to only those owned by this resource
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -589,6 +613,74 @@ func (r *VirtualDeviceContextResource) Delete(ctx context.Context, req resource.
 // ImportState imports the resource state.
 
 func (r *VirtualDeviceContextResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	if parsed, ok := utils.ParseImportIdentityCustomFields(ctx, req.Identity, &resp.Diagnostics); ok {
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if parsed.ID == "" {
+			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
+			return
+		}
+
+		var id int32
+		if _, err := fmt.Sscanf(parsed.ID, "%d", &id); err != nil {
+			resp.Diagnostics.AddError("Error parsing virtual device context ID", fmt.Sprintf("Could not parse ID '%s': %s", parsed.ID, err.Error()))
+			return
+		}
+
+		result, httpResp, err := r.client.DcimAPI.DcimVirtualDeviceContextsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError("Error importing virtual device context", utils.FormatAPIError(fmt.Sprintf("read virtual device context ID %d", id), err, httpResp))
+			return
+		}
+
+		var data VirtualDeviceContextResourceModel
+		if parsed.HasCustomFields {
+			if len(parsed.CustomFields) == 0 {
+				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
+			} else {
+				ownedSet, setDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, parsed.CustomFields)
+				resp.Diagnostics.Append(setDiags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				data.CustomFields = ownedSet
+			}
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+
+		r.mapToState(ctx, result, &data, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if parsed.HasCustomFields {
+			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, result.GetCustomFields(), &resp.Diagnostics)
+		} else {
+			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if resp.Identity != nil {
+			listValue, listDiags := types.ListValueFrom(ctx, types.StringType, parsed.CustomFieldItems)
+			resp.Diagnostics.Append(listDiags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &utils.ImportIdentityCustomFieldsModel{
+				ID:           types.StringValue(parsed.ID),
+				CustomFields: listValue,
+			})...)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 

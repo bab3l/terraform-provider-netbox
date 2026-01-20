@@ -123,6 +123,10 @@ func TestAccIKEPolicyResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccIKEPolicyResourceConfig_basic(name),
+				PlanOnly: true,
+			},
 		},
 	})
 }

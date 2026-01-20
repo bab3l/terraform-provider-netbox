@@ -74,3 +74,42 @@ resource "netbox_ip_address" "test_vrf" {
     "vrf-test"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_ip_address.test_v4
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "owner_team:text",
+      "purpose:text",
+      "monitoring_enabled:boolean",
+    ]
+  }
+}
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_ip_address.test_v6
+  id = "124"
+
+  identity = {
+    custom_fields = [
+      "ipv6_deployment_phase:text",
+    ]
+  }
+}
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_ip_address.test_vrf
+  id = "125"
+
+  identity = {
+    custom_fields = [
+      "gateway_role:text",
+      "vrf_priority:text",
+    ]
+  }
+}

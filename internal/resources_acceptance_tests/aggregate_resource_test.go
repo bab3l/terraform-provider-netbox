@@ -37,6 +37,11 @@ func TestAccAggregateResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"rir"},
 			},
+			{
+				Config:             testAccAggregateResourceConfig_basic(rirName, rirSlug, prefix),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

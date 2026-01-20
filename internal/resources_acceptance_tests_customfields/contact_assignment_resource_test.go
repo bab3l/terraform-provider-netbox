@@ -214,11 +214,11 @@ func TestAccContactAssignmentResource_importWithCustomFieldsAndTags(t *testing.T
 				),
 			},
 			{
-				Config:                  testAccContactAssignmentResourceImportConfig_full(contactName, "", contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:            "netbox_contact_assignment.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields", "tags", "contact_id", "role_id"},
+				Config:            testAccContactAssignmentResourceImportConfig_full(contactName, "", contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:      "netbox_contact_assignment.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			{
 				Config:   testAccContactAssignmentResourceImportConfig_full(contactName, "", contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),

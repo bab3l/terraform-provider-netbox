@@ -58,6 +58,20 @@ resource "netbox_tenant_group" "corporate" {
   ]
 }
 
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_tenant_group.corporate
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "cost_allocation_code:text",
+      "primary_contact:text",
+      "business_unit:text",
+    ]
+  }
+}
+
 # Create a child tenant group
 resource "netbox_tenant_group" "subsidiaries" {
   name        = "Subsidiary Companies"

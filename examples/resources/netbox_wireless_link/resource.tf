@@ -64,3 +64,18 @@ resource "netbox_wireless_link" "complete" {
     "production"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_wireless_link.complete
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "frequency_band:text",
+      "link_capacity:text",
+      "signal_strength:text",
+      "redundancy_enabled:boolean",
+    ]
+  }
+}

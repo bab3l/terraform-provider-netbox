@@ -34,3 +34,18 @@ resource "netbox_power_panel" "test" {
     "datacenter-power"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_power_panel.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "panel_voltage:integer",
+      "panel_amperage:integer",
+      "panel_type:text",
+      "breaker_count:integer",
+    ]
+  }
+}

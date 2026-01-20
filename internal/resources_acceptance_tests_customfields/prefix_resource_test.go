@@ -83,7 +83,8 @@ func TestAccPrefixResource_CustomFieldsPreservation(t *testing.T) {
 
 				ResourceName: "netbox_prefix.test",
 
-				ImportState: true,
+				ImportState:     true,
+				ImportStateKind: resource.ImportCommandWithID,
 
 				ImportStateVerify: false,
 
@@ -246,13 +247,14 @@ func TestAccPrefixResource_ImportWithCustomFields(t *testing.T) {
 
 				// Step 2: Import the prefix
 
+				Config: testAccPrefixConfig_import(prefix, vrfName, vrfRD, cfText, cfInteger),
+
 				ResourceName: "netbox_prefix.test",
 
-				ImportState: true,
+				ImportState:     true,
+				ImportStateKind: resource.ImportBlockWithResourceIdentity,
 
 				ImportStateVerify: false,
-
-				ImportStateVerifyIgnore: []string{"vrf", "custom_fields"},
 			},
 
 			{

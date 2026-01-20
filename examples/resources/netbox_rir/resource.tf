@@ -25,3 +25,17 @@ resource "netbox_rir" "test" {
     "test-registry"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_rir.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "registry_region:text",
+      "contact_email:text",
+      "whois_server:text",
+    ]
+  }
+}

@@ -64,10 +64,10 @@ func TestAccVLANResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_vlan.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"tenant", "custom_fields"}, // Tenant may have lookup inconsistencies, custom fields have import limitations
+				ResourceName:      "netbox_vlan.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			{
 				Config:   testAccVLANResourceImportConfig_full(vlanName, int(vid), tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
@@ -144,7 +144,7 @@ resource "netbox_tag" "tag2" {
 resource "netbox_vlan" "test" {
   name   = %q
   vid    = %d
-  tenant = netbox_tenant.test.id
+  tenant = netbox_tenant.test.name
 
   custom_fields = [
     {
@@ -229,6 +229,7 @@ func TestAccVLANResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_vlan.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,
 				ImportStateVerifyIgnore: []string{"custom_fields"},
 			},

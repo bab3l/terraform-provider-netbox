@@ -77,9 +77,11 @@ func TestAccRouteTargetResource_CustomFieldsPreservation(t *testing.T) {
 
 				ImportState: true,
 
+				ImportStateKind: resource.ImportCommandWithID,
+
 				ImportStateVerify: false,
 
-				ImportStateVerifyIgnore: []string{"custom_fields"},
+				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
 			},
 
 			{
@@ -222,18 +224,13 @@ func TestAccRouteTargetResource_importWithCustomFields(t *testing.T) {
 
 				Config: testAccRouteTargetConfig_importTest(cfField),
 
-				PlanOnly: true,
-			},
-
-			{
-
 				ResourceName: "netbox_route_target.test",
 
 				ImportState: true,
 
-				ImportStateVerify: false,
+				ImportStateKind: resource.ImportBlockWithResourceIdentity,
 
-				ImportStateVerifyIgnore: []string{"custom_fields"},
+				ImportStateVerify: false,
 			},
 
 			{

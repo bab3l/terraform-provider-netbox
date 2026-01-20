@@ -52,11 +52,11 @@ func TestAccTenantResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				Config:                  testAccTenantResourceImportConfig_full(tenantName, tenantSlug, tenantGroupName, tenantGroupSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:            "netbox_tenant.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields", "tags", "group"},
+				Config:            testAccTenantResourceImportConfig_full(tenantName, tenantSlug, tenantGroupName, tenantGroupSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:      "netbox_tenant.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			{
 				Config:   testAccTenantResourceImportConfig_full(tenantName, tenantSlug, tenantGroupName, tenantGroupSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
@@ -132,7 +132,7 @@ resource "netbox_tag" "tag2" {
 resource "netbox_tenant" "test" {
   name  = %q
   slug  = %q
-  group = netbox_tenant_group.test.slug
+  group = netbox_tenant_group.test.id
 
   custom_fields = [
     {

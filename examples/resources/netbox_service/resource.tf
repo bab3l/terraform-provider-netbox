@@ -63,3 +63,18 @@ resource "netbox_service" "test" {
     "management"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_service.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "service_owner:text",
+      "monitoring_enabled:boolean",
+      "access_level:text",
+      "backup_service:boolean",
+    ]
+  }
+}

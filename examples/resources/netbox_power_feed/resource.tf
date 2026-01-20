@@ -51,3 +51,17 @@ resource "netbox_power_feed" "test" {
     "primary"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_power_feed.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "circuit_id:text",
+      "upstream_breaker:text",
+      "redundant_feed:text",
+    ]
+  }
+}

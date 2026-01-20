@@ -406,6 +406,10 @@ func TestAccPrefixResource_import(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccPrefixResourceConfig_basic(prefix),
+				PlanOnly: true,
+			},
 		},
 	})
 }
@@ -573,6 +577,11 @@ func TestAccPrefixResource_importWithTags(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"tenant"}, // Tenant may have lookup inconsistencies
+			},
+			{
+				Config:             testAccPrefixResourceImportConfig_full(prefix, tenantName, tenantSlug, tag1Name, tag1Slug, tag2Name, tag2Slug),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})

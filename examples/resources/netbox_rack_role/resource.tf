@@ -26,3 +26,17 @@ resource "netbox_rack_role" "test" {
     "server-equipment"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_rack_role.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "role_type:text",
+      "equipment_category:text",
+      "redundancy_level:text",
+    ]
+  }
+}

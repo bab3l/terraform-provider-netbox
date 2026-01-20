@@ -27,3 +27,17 @@ resource "netbox_service_template" "test" {
     "ssh"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_service_template.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "default_monitoring:boolean",
+      "standard_port:integer",
+      "security_category:text",
+    ]
+  }
+}

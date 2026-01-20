@@ -41,6 +41,11 @@ func TestAccL2VPNTerminationResource_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:             testAccL2VPNTerminationResourceConfig_basic(l2vpnName, vlanVID),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

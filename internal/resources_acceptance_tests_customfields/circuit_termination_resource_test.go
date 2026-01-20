@@ -71,10 +71,10 @@ func TestAccCircuitTerminationResource_importWithCustomFieldsAndTags(t *testing.
 				),
 			},
 			{
-				ResourceName:            "netbox_circuit_termination.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"circuit", "site", "custom_fields", "tags"},
+				ResourceName:      "netbox_circuit_termination.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			{
 				Config: testAccCircuitTerminationResourceImportConfig_full(

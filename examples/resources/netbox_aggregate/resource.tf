@@ -31,3 +31,17 @@ resource "netbox_aggregate" "test" {
     "rfc1918"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_aggregate.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "allocation_type:text",
+      "allocation_date:date",
+      "utilization_threshold:integer",
+    ]
+  }
+}

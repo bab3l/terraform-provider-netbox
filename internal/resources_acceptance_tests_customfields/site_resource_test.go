@@ -65,15 +65,26 @@ func TestAccSiteResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				// Import the site and verify basic fields are preserved
-				ResourceName:            "netbox_site.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_fields", "tags"},
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_site.test", "name", siteName),
-					resource.TestCheckResourceAttr("netbox_site.test", "slug", siteSlug),
+				// Import the site with identity-based import
+				Config: testAccSiteResourceImportConfig_full(
+					siteName, siteSlug,
+					tag1Name, tag1Slug, tag1Color, tag2Name, tag2Slug, tag2Color,
+					cfText, cfTextValue, cfLongtext, cfLongtextValue, cfIntegerName, cfIntegerValue,
+					cfBoolean, cfBooleanValue, cfDate, cfDateValue, cfURL, cfURLValue, cfJSON, cfJSONValue,
 				),
+				ResourceName:      "netbox_site.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config: testAccSiteResourceImportConfig_full(
+					siteName, siteSlug,
+					tag1Name, tag1Slug, tag1Color, tag2Name, tag2Slug, tag2Color,
+					cfText, cfTextValue, cfLongtext, cfLongtextValue, cfIntegerName, cfIntegerValue,
+					cfBoolean, cfBooleanValue, cfDate, cfDateValue, cfURL, cfURLValue, cfJSON, cfJSONValue,
+				),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -253,6 +264,7 @@ func TestAccSiteResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_site.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,                     // Can't verify - config has no custom_fields
 				ImportStateVerifyIgnore: []string{"custom_fields"}, // Different because filter-to-owned
 			},

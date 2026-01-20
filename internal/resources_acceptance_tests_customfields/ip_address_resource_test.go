@@ -113,12 +113,26 @@ func TestAccIPAddressResource_CustomFieldsPreservation(t *testing.T) {
 
 				ResourceName: "netbox_ip_address.test",
 
-				ImportState: true,
-
+				ImportState:       true,
+				ImportStateKind:   resource.ImportCommandWithID,
 				ImportStateVerify: false, // Can't verify - config has no custom_fields
 
-				ImportStateVerifyIgnore: []string{"vrf", "custom_fields"}, // VRF ID vs name, custom_fields filtered
+			},
 
+			{
+
+				// Step 3a: Verify no drift after import
+
+				Config: testAccIPAddressConfig_withoutCustomFields(
+
+					ipAddress, vrfName, vrfRD,
+
+					cfEnvironment, cfOwner,
+
+					"Updated description",
+				),
+
+				PlanOnly: true,
 			},
 
 			{
@@ -336,12 +350,9 @@ func TestAccIPAddressResource_ImportWithCustomFields(t *testing.T) {
 
 				ResourceName: "netbox_ip_address.test",
 
-				ImportState: true,
-
-				ImportStateVerify: false, // Can't verify - import returns null custom_fields
-
-				ImportStateVerifyIgnore: []string{"vrf", "custom_fields"}, // VRF ID vs name, custom_fields filtered
-
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 
 			{

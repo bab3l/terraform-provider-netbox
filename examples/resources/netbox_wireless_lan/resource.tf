@@ -28,3 +28,18 @@ resource "netbox_wireless_lan" "test" {
     "guest-network"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_wireless_lan.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "vlan_id:text",
+      "bandwidth_limit:text",
+      "auth_type:text",
+      "guest_network:boolean",
+    ]
+  }
+}

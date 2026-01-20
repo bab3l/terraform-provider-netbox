@@ -40,6 +40,11 @@ func TestAccPowerFeedResource_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"power_panel"},
 			},
+			{
+				Config:             testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedName),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }

@@ -60,10 +60,15 @@ func TestAccEventRuleResource_CustomFieldsPreservation(t *testing.T) {
 			},
 			{
 				// Step 3: Import to verify custom fields still exist in NetBox
-				ResourceName:            "netbox_event_rule.test",
-				ImportState:             true,
-				ImportStateVerify:       false,                     // Can't verify - config has no custom_fields
-				ImportStateVerifyIgnore: []string{"custom_fields"}, // Different because filter-to-owned
+				ResourceName:      "netbox_event_rule.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportCommandWithID,
+				ImportStateVerify: false, // Can't verify - config has no custom_fields
+			},
+			{
+				// Step 3a: Verify no changes after import
+				Config:   testAccEventRuleConfig_preservation_step2(ruleName, cfText, cfInteger),
+				PlanOnly: true,
 			},
 			{
 				// Step 4: Add custom_fields back to config to verify they were preserved

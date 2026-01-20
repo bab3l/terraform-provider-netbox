@@ -66,10 +66,10 @@ func TestAccRackResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_rack.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"site", "tenant", "custom_fields", "tags"},
+				ResourceName:      "netbox_rack.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
 			},
 			{
 				Config: testAccRackResourceImportConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug,

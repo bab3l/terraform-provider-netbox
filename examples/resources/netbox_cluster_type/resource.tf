@@ -25,3 +25,17 @@ resource "netbox_cluster_type" "test" {
     "vmware"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_cluster_type.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "platform_vendor:text",
+      "platform_type:text",
+      "default_overcommit_ratio:number",
+    ]
+  }
+}

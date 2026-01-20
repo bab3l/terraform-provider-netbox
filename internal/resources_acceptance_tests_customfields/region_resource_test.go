@@ -65,10 +65,15 @@ func TestAccRegionResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_region.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"parent", "custom_fields", "tags"}, // Parent reference may have lookup inconsistencies, custom fields have import limitations
+				Config:            testAccRegionResourceImportConfig_full(parentRegionName, parentRegionSlug, regionName, regionSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:      "netbox_region.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config:   testAccRegionResourceImportConfig_full(parentRegionName, parentRegionSlug, regionName, regionSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -133,6 +138,7 @@ func TestAccRegionResource_CustomFieldsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields still exist in NetBox
 				ResourceName:            "netbox_region.test",
 				ImportState:             true,
+				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,                             // Can't verify - config has no custom_fields
 				ImportStateVerifyIgnore: []string{"custom_fields", "tags"}, // Different because filter-to-owned
 			},
@@ -215,7 +221,7 @@ resource "netbox_custom_field" "json" {
 resource "netbox_region" "test" {
   name   = %q
   slug   = %q
-  parent = netbox_region.parent.slug
+	parent = netbox_region.parent.id
 
 	tags = [netbox_tag.test1.slug, netbox_tag.test2.slug]
 

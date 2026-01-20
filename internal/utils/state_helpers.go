@@ -357,8 +357,11 @@ func EnumFromAPIWithDefault[T ~string](hasValue bool, getValue func() T, current
 func PreserveReferenceFormat(stateValue types.String, apiID int32, apiName, apiSlug string) types.String {
 	apiIDStr := fmt.Sprintf("%d", apiID)
 
-	// If state is null or unknown, return the name (default for new/imported resources)
+	// If state is null or unknown, prefer ID (default for new/imported resources)
 	if stateValue.IsNull() || stateValue.IsUnknown() {
+		if apiIDStr != "0" {
+			return types.StringValue(apiIDStr)
+		}
 		return types.StringValue(apiName)
 	}
 

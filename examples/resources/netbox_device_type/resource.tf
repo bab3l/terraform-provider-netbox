@@ -38,3 +38,18 @@ resource "netbox_device_type" "test" {
     "1u"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_device_type.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "power_supply_type:text",
+      "max_power_draw_watts:integer",
+      "port_count:integer",
+      "end_of_life_date:date",
+    ]
+  }
+}

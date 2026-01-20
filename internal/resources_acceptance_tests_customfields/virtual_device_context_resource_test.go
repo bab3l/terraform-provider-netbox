@@ -79,10 +79,14 @@ func TestAccVirtualDeviceContextResource_importWithCustomFieldsAndTags(t *testin
 				),
 			},
 			{
-				ResourceName:            "netbox_virtual_device_context.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device", "custom_fields"}, // Device reference may have lookup inconsistencies, custom fields have import limitations
+				ResourceName:      "netbox_virtual_device_context.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify: false,
+			},
+			{
+				Config:   testAccVirtualDeviceContextResourceImportConfig_full(vdcName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -182,7 +186,7 @@ resource "netbox_tag" "tag2" {
 # Virtual Device Context with comprehensive custom fields and tags
 resource "netbox_virtual_device_context" "test" {
   name   = %q
-  device = netbox_device.test.id
+  device = netbox_device.test.name
   status = "active"
 
   custom_fields = [

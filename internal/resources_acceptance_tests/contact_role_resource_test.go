@@ -37,6 +37,10 @@ func TestAccContactRoleResource_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
+				Config:   testAccContactRoleResourceConfig(name, slug),
+				PlanOnly: true,
+			},
+			{
 				Config: testAccContactRoleResourceConfig(name+"-updated", slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_contact_role.test", "name", name+"-updated"),

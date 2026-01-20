@@ -30,3 +30,18 @@ resource "netbox_vrf" "test" {
     "production"
   ]
 }
+
+# Optional: seed owned custom fields during import
+import {
+  to = netbox_vrf.test
+  id = "123"
+
+  identity = {
+    custom_fields = [
+      "customer_name:text",
+      "vrf_type:text",
+      "import_policy:text",
+      "export_policy:text",
+    ]
+  }
+}
