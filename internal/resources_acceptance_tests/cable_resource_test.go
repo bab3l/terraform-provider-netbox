@@ -58,6 +58,9 @@ func TestAccCableResource_basic(t *testing.T) {
 				ResourceName:      "netbox_cable.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_cable.test", "tenant"),
+				),
 			},
 			{
 				Config:   testAccCableResourceConfig(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB),
@@ -193,6 +196,9 @@ func TestAccCableResource_import(t *testing.T) {
 				ResourceName:      "netbox_cable.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_cable.test", "tenant"),
+				),
 			},
 			{
 				Config:             testAccCableResourceConfig(siteName, siteSlug, deviceName, mfgName, mfgSlug, deviceRoleName, deviceRoleSlug, deviceTypeModel, deviceTypeSlug, interfaceNameA, interfaceNameB),

@@ -250,6 +250,9 @@ func TestAccRouteTargetResource_import(t *testing.T) {
 				ResourceName:      "netbox_route_target.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_route_target.test", "tenant"),
+				),
 			},
 			{
 				Config:   testAccRouteTargetResourceConfig_basic(name),

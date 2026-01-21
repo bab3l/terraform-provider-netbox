@@ -35,6 +35,9 @@ func TestAccContactResource_basic(t *testing.T) {
 				ResourceName:      "netbox_contact.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_contact.test", "group"),
+				),
 			},
 			{
 				Config:   testAccContactResource(randomName, "john.doe@example.com", "+1-555-0100"),

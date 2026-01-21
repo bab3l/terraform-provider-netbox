@@ -51,6 +51,10 @@ func TestAccServiceResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_service.test", "device"),
+					testutil.ReferenceFieldCheck("netbox_service.test", "virtual_machine"),
+				),
 			},
 			{
 				Config:   testAccServiceResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName),

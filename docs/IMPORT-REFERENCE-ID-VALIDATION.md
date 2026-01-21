@@ -143,6 +143,8 @@ type ImportTestConfig struct {
 - ✅ Phase 4 tests run (subset): circuit/vpn/asn import tests passed
 - ✅ Phase 5 completed: `power_panel`, `power_feed`, `rack_reservation`, `rack_type`, `platform` updated
 - ✅ Phase 5 tests run (subset): power/rack/platform import tests passed
+- ✅ Phase 6 completed: `cable`, `contact`, `route_target`, `service`, `virtual_device_context`, `virtual_disk`, `wireless_lan` updated
+- ✅ Phase 6 tests run (subset): remaining import tests passed
 - ✅ Phase 5 tests run (subset): power/rack/platform import tests passed
 
 ### Phase 0: Foundation (Current Session)
@@ -241,13 +243,18 @@ go test ./internal/resources_acceptance_tests -run "TestAcc(PowerPanelResource_b
 **Gate**: Phase 5 complete, Phase 6 tests pass
 
 Resources (7):
-1. `cable` - 1 ref
-2. `contact` - 1 ref
-3. `route_target` - 1 ref
-4. `service` - 2 refs
-5. `virtual_device_context` - 2 refs
-6. `virtual_disk` - 1 ref
-7. `wireless_lan` - 2 refs
+1. [x] `cable` - 1 ref
+2. [x] `contact` - 1 ref
+3. [x] `route_target` - 1 ref
+4. [x] `service` - 2 refs
+5. [x] `virtual_device_context` - 2 refs
+6. [x] `virtual_disk` - 1 ref
+7. [x] `wireless_lan` - 2 refs
+
+**Validation**:
+```powershell
+go test ./internal/resources_acceptance_tests -run "TestAcc(CableResource_import|ContactResource_import|RouteTargetResource_import|ServiceResource_import|VirtualDeviceContextResource_import|VirtualDiskResource_import|WirelessLANResource_import)$" -v -timeout 60m
+```
 
 ## Gating Criteria
 
@@ -290,7 +297,7 @@ For each resource with reference fields, the `_import` test should include:
 - [x] Phase 3 complete
 - [x] Phase 4 complete
 - [x] Phase 5 complete
-- [ ] Phase 6 complete
+- [x] Phase 6 complete
 - [ ] Full acceptance test suite passes
 - [ ] PR created and reviewed
 - [ ] Merged to main

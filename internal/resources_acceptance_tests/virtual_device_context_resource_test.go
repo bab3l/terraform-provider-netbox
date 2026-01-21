@@ -50,6 +50,10 @@ func TestAccVirtualDeviceContextResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_virtual_device_context.test", "device"),
+					testutil.ReferenceFieldCheck("netbox_virtual_device_context.test", "tenant"),
+				),
 			},
 			{
 				Config:             testAccVirtualDeviceContextResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName),
