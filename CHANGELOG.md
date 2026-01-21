@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.0.18 (2026-01-21)
+
 ### 🐛 Fixes
 - Ensure imported reference attributes store numeric IDs when state is unknown, preventing spurious diffs after import.
 
