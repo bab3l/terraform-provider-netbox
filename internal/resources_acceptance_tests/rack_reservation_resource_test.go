@@ -36,7 +36,10 @@ func TestAccRackReservationResource_basic(t *testing.T) {
 			},
 			// ImportState test
 			{
-				ResourceName:      "netbox_rack_reservation.test",
+				ResourceName: "netbox_rack_reservation.test",
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_rack_reservation.test", "rack"),
+				),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},

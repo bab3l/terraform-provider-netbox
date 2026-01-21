@@ -141,6 +141,9 @@ type ImportTestConfig struct {
 - ✅ Phase 3 tests run (subset): module/inventory import tests passed
 - ✅ Phase 4 completed: `circuit_termination`, `circuit_group_assignment`, `circuit_group`, `l2vpn`, `asn`, `asn_range` updated
 - ✅ Phase 4 tests run (subset): circuit/vpn/asn import tests passed
+- ✅ Phase 5 completed: `power_panel`, `power_feed`, `rack_reservation`, `rack_type`, `platform` updated
+- ✅ Phase 5 tests run (subset): power/rack/platform import tests passed
+- ✅ Phase 5 tests run (subset): power/rack/platform import tests passed
 
 ### Phase 0: Foundation (Current Session)
 - [x] Fix `UpdateReferenceAttribute` to prefer ID for import
@@ -223,11 +226,16 @@ go test ./internal/resources_acceptance_tests -run "TestAcc(CircuitTerminationRe
 **Gate**: Phase 4 complete, Phase 5 tests pass
 
 Resources (5):
-1. `power_panel` - 2 refs
-2. `power_feed` - 2 refs
-3. `rack_reservation` - 2 refs
-4. `rack_type` - 1 ref
-5. `platform` - 3 refs
+1. [x] `power_panel` - 2 refs
+2. [x] `power_feed` - 2 refs
+3. [x] `rack_reservation` - 2 refs
+4. [x] `rack_type` - 1 ref
+5. [x] `platform` - 3 refs
+
+**Validation**:
+```powershell
+go test ./internal/resources_acceptance_tests -run "TestAcc(PowerPanelResource_basic|PowerFeedResource_basic|RackReservationResource_basic|RackTypeResource_basic|PlatformResource_import)$" -v -timeout 60m
+```
 
 ### Phase 6: Remaining Resources
 **Gate**: Phase 5 complete, Phase 6 tests pass
@@ -281,7 +289,7 @@ For each resource with reference fields, the `_import` test should include:
 - [x] Phase 2 complete
 - [x] Phase 3 complete
 - [x] Phase 4 complete
-- [ ] Phase 5 complete
+- [x] Phase 5 complete
 - [ ] Phase 6 complete
 - [ ] Full acceptance test suite passes
 - [ ] PR created and reviewed

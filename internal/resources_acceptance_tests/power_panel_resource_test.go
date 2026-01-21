@@ -35,6 +35,10 @@ func TestAccPowerPanelResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"site"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_power_panel.test", "site"),
+					testutil.ReferenceFieldCheck("netbox_power_panel.test", "location"),
+				),
 			},
 			{
 				Config:             testAccPowerPanelResourceConfig_basic(siteName, siteSlug, panelName),
