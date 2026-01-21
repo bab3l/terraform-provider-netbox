@@ -44,6 +44,9 @@ func TestAccL2VPNResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"display_name"}, // display_name is computed and may differ after name changes
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_l2vpn.test", "tenant"),
+				),
 			},
 			{
 				Config:             testAccL2VPNResourceConfig_updated(name),

@@ -139,6 +139,8 @@ type ImportTestConfig struct {
 - ✅ Phase 2 tests run (subset): DCIM port/template import tests passed
 - ✅ Phase 3 completed: `module`, `module_bay`, `module_bay_template`, `module_type`, `inventory_item`, `device_bay_template` updated
 - ✅ Phase 3 tests run (subset): module/inventory import tests passed
+- ✅ Phase 4 completed: `circuit_termination`, `circuit_group_assignment`, `circuit_group`, `l2vpn`, `asn`, `asn_range` updated
+- ✅ Phase 4 tests run (subset): circuit/vpn/asn import tests passed
 
 ### Phase 0: Foundation (Current Session)
 - [x] Fix `UpdateReferenceAttribute` to prefer ID for import
@@ -205,12 +207,17 @@ go test ./internal/resources_acceptance_tests -run "TestAcc(ModuleResource_impor
 **Gate**: Phase 3 complete, Phase 4 tests pass
 
 Resources (6):
-1. `circuit_termination` - 3 refs
-2. `circuit_group_assignment` - 2 refs
-3. `circuit_group` - 1 ref
-4. `l2vpn` - 1 ref
-5. `asn` - 2 refs
-6. `asn_range` - 2 refs
+1. [x] `circuit_termination` - 3 refs
+2. [x] `circuit_group_assignment` - 2 refs
+3. [x] `circuit_group` - 1 ref
+4. [x] `l2vpn` - 1 ref
+5. [x] `asn` - 2 refs
+6. [x] `asn_range` - 2 refs
+
+**Validation**:
+```powershell
+go test ./internal/resources_acceptance_tests -run "TestAcc(CircuitTerminationResource_import|CircuitGroupAssignmentResource_import|CircuitGroupResource_import|L2VPNResource_import|ASNResource_import|ASNRangeResource_import)$" -v -timeout 60m
+```
 
 ### Phase 5: Power & Rack Resources
 **Gate**: Phase 4 complete, Phase 5 tests pass
@@ -273,7 +280,7 @@ For each resource with reference fields, the `_import` test should include:
 - [ ] Phase 1 complete
 - [x] Phase 2 complete
 - [x] Phase 3 complete
-- [ ] Phase 4 complete
+- [x] Phase 4 complete
 - [ ] Phase 5 complete
 - [ ] Phase 6 complete
 - [ ] Full acceptance test suite passes

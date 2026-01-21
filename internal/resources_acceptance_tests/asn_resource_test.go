@@ -37,6 +37,10 @@ func TestAccASNResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"rir"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_asn.test", "rir"),
+					testutil.ReferenceFieldCheck("netbox_asn.test", "tenant"),
+				),
 			},
 			{
 				Config:   testAccASNResourceConfig_basic(rirName, rirSlug, asn),

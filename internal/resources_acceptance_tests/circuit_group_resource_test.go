@@ -115,6 +115,9 @@ func TestAccCircuitGroupResource_import(t *testing.T) {
 				ResourceName:      "netbox_circuit_group.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_circuit_group.test", "tenant"),
+				),
 			},
 			{
 				Config:   testAccCircuitGroupResourceConfig_basic(name, slug),
