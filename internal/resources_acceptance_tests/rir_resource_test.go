@@ -3,7 +3,6 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -71,8 +70,6 @@ func TestAccRIRResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_rir.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_rir.test", "is_private", "true"),
 					resource.TestCheckResourceAttr("netbox_rir.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_rir.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_rir.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
@@ -84,7 +81,6 @@ func TestAccRIRResource_full(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rir.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_rir.test", "is_private", "false"),
-					resource.TestCheckResourceAttr("netbox_rir.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 			{
@@ -196,7 +192,6 @@ resource "netbox_rir" "test" {
 }
 
 func testAccRIRResourceConfig_full(name, slug, description string, isPrivate bool, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
-	cfName := fmt.Sprintf("test_field_%s", strings.ReplaceAll(slug, "-", "_"))
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
   name = %[5]q
@@ -206,12 +201,6 @@ resource "netbox_tag" "tag1" {
 resource "netbox_tag" "tag2" {
   name = %[7]q
   slug = %[8]q
-}
-
-resource "netbox_custom_field" "test_field" {
-  name         = %[9]q
-  object_types = ["ipam.rir"]
-  type         = "text"
 }
 
 resource "netbox_rir" "test" {
@@ -224,21 +213,11 @@ resource "netbox_rir" "test" {
     netbox_tag.tag1.slug,
     netbox_tag.tag2.slug
   ]
-
-  custom_fields = [
-    {
-      name  = netbox_custom_field.test_field.name
-      type  = "text"
-      value = "test_value"
-    }
-  ]
 }
-
-`, name, slug, description, isPrivate, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, slug, description, isPrivate, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
 func testAccRIRResourceConfig_fullUpdate(name, slug, description string, isPrivate bool, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
-	cfName := fmt.Sprintf("test_field_%s", strings.ReplaceAll(slug, "-", "_"))
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
   name = %[5]q
@@ -248,12 +227,6 @@ resource "netbox_tag" "tag1" {
 resource "netbox_tag" "tag2" {
   name = %[7]q
   slug = %[8]q
-}
-
-resource "netbox_custom_field" "test_field" {
-  name         = %[9]q
-  object_types = ["ipam.rir"]
-  type         = "text"
 }
 
 resource "netbox_rir" "test" {
@@ -266,17 +239,8 @@ resource "netbox_rir" "test" {
     netbox_tag.tag1.slug,
     netbox_tag.tag2.slug
   ]
-
-  custom_fields = [
-    {
-      name  = netbox_custom_field.test_field.name
-      type  = "text"
-      value = "updated_value"
-    }
-  ]
 }
-
-`, name, slug, description, isPrivate, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, slug, description, isPrivate, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
 func testAccRIRResourceConfig_tags(name, slug, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {

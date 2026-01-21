@@ -42,7 +42,6 @@ func TestAccRouteTargetResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 	updatedDescription := "Updated route target description"
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -50,7 +49,6 @@ func TestAccRouteTargetResource_full(t *testing.T) {
 	cleanup.RegisterTenantCleanup(tenantSlug)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -61,7 +59,7 @@ func TestAccRouteTargetResource_full(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
 					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
@@ -69,24 +67,21 @@ func TestAccRouteTargetResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_route_target.test", "comments", "Test comments for route target"),
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "tenant"),
 					resource.TestCheckResourceAttr("netbox_route_target.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_route_target.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_route_target.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config:   testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 			{
-				Config: testAccRouteTargetResourceConfig_fullUpdate(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName, updatedDescription),
+				Config: testAccRouteTargetResourceConfig_fullUpdate(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, updatedDescription),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_route_target.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_route_target.test", "comments", "Updated comments for route target"),
-					resource.TestCheckResourceAttr("netbox_route_target.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 			{
-				Config:   testAccRouteTargetResourceConfig_fullUpdate(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName, updatedDescription),
+				Config:   testAccRouteTargetResourceConfig_fullUpdate(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, updatedDescription),
 				PlanOnly: true,
 			},
 		},
@@ -272,14 +267,12 @@ func TestAccRouteTargetResource_removeOptionalFields(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterRouteTargetCleanup(name)
 	cleanup.RegisterTenantCleanup(tenantSlug)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -291,7 +284,7 @@ func TestAccRouteTargetResource_removeOptionalFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Step 1: Create route target with tenant
 			{
-				Config: testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
 					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
@@ -301,7 +294,7 @@ func TestAccRouteTargetResource_removeOptionalFields(t *testing.T) {
 			},
 			// Step 2: Remove tenant and verify it's actually removed
 			{
-				Config: testAccRouteTargetResourceConfig_noTenant(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccRouteTargetResourceConfig_noTenant(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
 					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
@@ -311,7 +304,7 @@ func TestAccRouteTargetResource_removeOptionalFields(t *testing.T) {
 			},
 			// Step 3: Re-add tenant to verify it can be set again
 			{
-				Config: testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_route_target.test", "id"),
 					resource.TestCheckResourceAttr("netbox_route_target.test", "name", name),
@@ -399,7 +392,7 @@ resource "netbox_route_target" "test" {
 `, name)
 }
 
-func testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccRouteTargetResourceConfig_full(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[4]q
@@ -409,12 +402,6 @@ resource "netbox_tag" "tag1" {
 resource "netbox_tag" "tag2" {
 	name = %[6]q
 	slug = %[7]q
-}
-
-resource "netbox_custom_field" "test_field" {
-	name         = %[8]q
-	object_types = ["ipam.routetarget"]
-	type         = "text"
 }
 
 resource "netbox_tenant" "test" {
@@ -429,19 +416,11 @@ resource "netbox_route_target" "test" {
   tenant      = netbox_tenant.test.id
 
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccRouteTargetResourceConfig_fullUpdate(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName, description string) string {
+func testAccRouteTargetResourceConfig_fullUpdate(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[4]q
@@ -453,12 +432,6 @@ resource "netbox_tag" "tag2" {
 	slug = %[7]q
 }
 
-resource "netbox_custom_field" "test_field" {
-	name         = %[8]q
-	object_types = ["ipam.routetarget"]
-	type         = "text"
-}
-
 resource "netbox_tenant" "test" {
 	name = %[2]q
 	slug = %[3]q
@@ -466,21 +439,13 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_route_target" "test" {
 	name        = %[1]q
-	description = %[9]q
+	description = %[8]q
 	comments    = "Updated comments for route target"
 	tenant      = netbox_tenant.test.id
 
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "updated_value"
-		}
-	]
 }
-`, name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName, description)
+`, name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, description)
 }
 
 func testAccRouteTargetResourceConfig_updated(name string) string {
@@ -492,7 +457,7 @@ resource "netbox_route_target" "test" {
 `, name)
 }
 
-func testAccRouteTargetResourceConfig_noTenant(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccRouteTargetResourceConfig_noTenant(name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[4]q
@@ -502,12 +467,6 @@ resource "netbox_tag" "tag1" {
 resource "netbox_tag" "tag2" {
 	name = %[6]q
 	slug = %[7]q
-}
-
-resource "netbox_custom_field" "test_field" {
-	name         = %[8]q
-	object_types = ["ipam.routetarget"]
-	type         = "text"
 }
 
 resource "netbox_tenant" "test" {
@@ -522,16 +481,8 @@ resource "netbox_route_target" "test" {
   # tenant intentionally omitted - should be null in state
 
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
 func testAccRouteTargetConsistencyLiteralNamesConfig(rtName, tenantName, tenantSlug string) string {

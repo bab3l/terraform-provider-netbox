@@ -490,7 +490,7 @@ resource "netbox_asn" "test" {
 func TestAccASNResource_tagOrderInvariance(t *testing.T) {
 	t.Parallel()
 
-	asn := int64(acctest.RandIntRange(64912, 65111))
+	asn := int64(4200000000 + acctest.RandIntRange(0, 9_999_999))
 	rirName := testutil.RandomName("rir-tag-order")
 	rirSlug := testutil.RandomSlug("rir-tag-order")
 	tag1Name := testutil.RandomName("tag1")

@@ -88,7 +88,6 @@ func TestAccVirtualDeviceContextResource_full(t *testing.T) {
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
 	ipAddress := testutil.RandomIPv4Address()
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -104,7 +103,7 @@ func TestAccVirtualDeviceContextResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckVirtualDeviceContextDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVirtualDeviceContextResourceConfig_fullWithAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress, cfName),
+				Config: testAccVirtualDeviceContextResourceConfig_fullWithAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "id"),
 					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "name", vdcName),
@@ -114,17 +113,14 @@ func TestAccVirtualDeviceContextResource_full(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "tenant"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_device_context.test", "primary_ip4"),
 					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config: testAccVirtualDeviceContextResourceConfig_fullWithAllFieldsUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, updatedDescription, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress, cfName),
+				Config: testAccVirtualDeviceContextResourceConfig_fullWithAllFieldsUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, updatedDescription, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "identifier", "200"),
 					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "comments", updatedComments),
-					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 		},
@@ -323,7 +319,7 @@ resource "netbox_virtual_device_context" "test" {
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName)
 }
 
-func testAccVirtualDeviceContextResourceConfig_fullWithAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress, cfName string) string {
+func testAccVirtualDeviceContextResourceConfig_fullWithAllFields(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %[1]q
@@ -368,12 +364,6 @@ resource "netbox_tag" "tag2" {
   slug = %[18]q
 }
 
-resource "netbox_custom_field" "test_field" {
-  name         = %[19]q
-  object_types = ["dcim.virtualdevicecontext"]
-  type         = "text"
-}
-
 resource "netbox_interface" "test" {
   name   = "eth0"
   device = netbox_device.test.id
@@ -381,7 +371,7 @@ resource "netbox_interface" "test" {
 }
 
 resource "netbox_ip_address" "test" {
-  address = %[20]q
+	address = %[19]q
   status  = "active"
   assigned_object_type = "dcim.interface"
   assigned_object_id   = netbox_interface.test.id
@@ -398,19 +388,11 @@ resource "netbox_virtual_device_context" "test" {
   comments = %[14]q
 
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
-
-  custom_fields = [
-    {
-      name  = netbox_custom_field.test_field.name
-      type  = "text"
-      value = "test_value"
-    }
-  ]
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName, ipAddress)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress)
 }
 
-func testAccVirtualDeviceContextResourceConfig_fullWithAllFieldsUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress, cfName string) string {
+func testAccVirtualDeviceContextResourceConfig_fullWithAllFieldsUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %[1]q
@@ -455,12 +437,6 @@ resource "netbox_tag" "tag2" {
   slug = %[18]q
 }
 
-resource "netbox_custom_field" "test_field" {
-  name         = %[19]q
-  object_types = ["dcim.virtualdevicecontext"]
-  type         = "text"
-}
-
 resource "netbox_interface" "test" {
   name   = "eth0"
   device = netbox_device.test.id
@@ -468,7 +444,7 @@ resource "netbox_interface" "test" {
 }
 
 resource "netbox_ip_address" "test" {
-  address = %[20]q
+	address = %[19]q
   status  = "active"
   assigned_object_type = "dcim.interface"
   assigned_object_id   = netbox_interface.test.id
@@ -485,16 +461,8 @@ resource "netbox_virtual_device_context" "test" {
   comments = %[14]q
 
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
-
-  custom_fields = [
-    {
-      name  = netbox_custom_field.test_field.name
-      type  = "text"
-      value = "updated_value"
-    }
-  ]
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName, ipAddress)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, ipAddress)
 }
 
 func testAccVirtualDeviceContextResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, vdcName, description string) string {

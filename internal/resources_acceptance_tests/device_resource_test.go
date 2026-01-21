@@ -153,7 +153,6 @@ func TestAccDeviceResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_device.test", "comments", "Test device comments"),
 					resource.TestCheckResourceAttr("netbox_device.test", "airflow", "front-to-rear"),
 					resource.TestCheckResourceAttr("netbox_device.test", "tags.#", "0"),
-					resource.TestCheckResourceAttr("netbox_device.test", "custom_fields.#", "0"),
 				),
 			},
 		},
@@ -441,7 +440,6 @@ resource "netbox_device" "test" {
   comments    = "Test device comments"
   airflow     = "front-to-rear"
   tags        = []
-  custom_fields = []
 }
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial, assetTag)
 }

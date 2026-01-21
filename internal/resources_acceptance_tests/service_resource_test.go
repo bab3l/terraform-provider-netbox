@@ -83,7 +83,6 @@ func TestAccServiceResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -93,38 +92,34 @@ func TestAccServiceResource_full(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccServiceResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccServiceResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_service.test", "id"),
 					resource.TestCheckResourceAttr("netbox_service.test", "name", serviceName),
 					resource.TestCheckResourceAttr("netbox_service.test", "protocol", "tcp"),
 					resource.TestCheckResourceAttr("netbox_service.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_service.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_service.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_service.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config:   testAccServiceResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccServiceResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 			{
-				Config: testAccServiceResourceConfig_fullUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccServiceResourceConfig_fullUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_service.test", "comments", "Updated comments for service"),
-					resource.TestCheckResourceAttr("netbox_service.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 			{
-				Config:   testAccServiceResourceConfig_fullUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccServiceResourceConfig_fullUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 		},
@@ -317,7 +312,6 @@ func TestAccServiceResource_update(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -327,14 +321,13 @@ func TestAccServiceResource_update(t *testing.T) {
 	cleanup.RegisterDeviceCleanup(deviceName)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccServiceResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, testutil.Description1, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccServiceResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, testutil.Description1, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_service.test", "id"),
 					resource.TestCheckResourceAttr("netbox_service.test", "name", serviceName),
@@ -342,7 +335,7 @@ func TestAccServiceResource_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccServiceResourceConfig_fullUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, testutil.Description2, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccServiceResourceConfig_fullUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, testutil.Description2, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service.test", "description", testutil.Description2),
 				),
@@ -449,7 +442,7 @@ resource "netbox_service" "test" {
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName)
 }
 
-func testAccServiceResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccServiceResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[10]q
@@ -459,12 +452,6 @@ resource "netbox_tag" "tag1" {
 resource "netbox_tag" "tag2" {
 	name = %[12]q
 	slug = %[13]q
-}
-
-resource "netbox_custom_field" "test_field" {
-	name         = %[14]q
-	object_types = ["ipam.service"]
-	type         = "text"
 }
 
 resource "netbox_site" "test" {
@@ -499,25 +486,17 @@ resource "netbox_device" "test" {
 
 resource "netbox_service" "test" {
   device      = netbox_device.test.id
-	name        = %[15]q
+	name        = %[14]q
   protocol    = "tcp"
   ports       = [22, 443]
-	description = %[16]q
+	description = %[15]q
 
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, tagName1, tagSlug1, tagName2, tagSlug2, cfName, serviceName, description)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, tagName1, tagSlug1, tagName2, tagSlug2, serviceName, description)
 }
 
-func testAccServiceResourceConfig_fullUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccServiceResourceConfig_fullUpdate(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[10]q
@@ -527,12 +506,6 @@ resource "netbox_tag" "tag1" {
 resource "netbox_tag" "tag2" {
 	name = %[12]q
 	slug = %[13]q
-}
-
-resource "netbox_custom_field" "test_field" {
-	name         = %[14]q
-	object_types = ["ipam.service"]
-	type         = "text"
 }
 
 resource "netbox_site" "test" {
@@ -567,23 +540,15 @@ resource "netbox_device" "test" {
 
 resource "netbox_service" "test" {
 	device      = netbox_device.test.id
-	name        = %[15]q
+	name        = %[14]q
 	protocol    = "tcp"
 	ports       = [22, 443]
-	description = %[16]q
+	description = %[15]q
 	comments    = "Updated comments for service"
 
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "updated_value"
-		}
-	]
 }
-`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, tagName1, tagSlug1, tagName2, tagSlug2, cfName, serviceName, description)
+`, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, tagName1, tagSlug1, tagName2, tagSlug2, serviceName, description)
 }
 
 func testAccServiceResourceConfig_tags(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, serviceName, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {

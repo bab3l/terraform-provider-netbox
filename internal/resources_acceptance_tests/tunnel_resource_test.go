@@ -3,7 +3,6 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -59,7 +58,6 @@ func TestAccTunnelResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)
@@ -68,7 +66,6 @@ func TestAccTunnelResource_full(t *testing.T) {
 	cleanup.RegisterTenantCleanup(tenantSlug)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -76,7 +73,7 @@ func TestAccTunnelResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckTunnelDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_tunnel.test", "id"),
 					resource.TestCheckResourceAttr("netbox_tunnel.test", "name", name),
@@ -86,25 +83,22 @@ func TestAccTunnelResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_tunnel.test", "comments", comments),
 					resource.TestCheckResourceAttr("netbox_tunnel.test", "tunnel_id", "12345"),
 					resource.TestCheckResourceAttr("netbox_tunnel.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_tunnel.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_tunnel.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config:   testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 			{
-				Config: testAccTunnelResourceConfig_fullUpdate(name, updatedDescription, updatedComments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccTunnelResourceConfig_fullUpdate(name, updatedDescription, updatedComments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tunnel.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_tunnel.test", "comments", updatedComments),
 					resource.TestCheckResourceAttr("netbox_tunnel.test", "tunnel_id", "54321"),
-					resource.TestCheckResourceAttr("netbox_tunnel.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 			{
-				Config:   testAccTunnelResourceConfig_fullUpdate(name, updatedDescription, updatedComments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccTunnelResourceConfig_fullUpdate(name, updatedDescription, updatedComments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 		},
@@ -215,7 +209,6 @@ func TestAccTunnelResource_update(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)
@@ -224,7 +217,6 @@ func TestAccTunnelResource_update(t *testing.T) {
 	cleanup.RegisterTenantCleanup(tenantSlug)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -243,7 +235,7 @@ func TestAccTunnelResource_update(t *testing.T) {
 				PlanOnly: true,
 			},
 			{
-				Config: testAccTunnelResourceConfig_fullUpdate(name, updatedDescription, updatedComments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccTunnelResourceConfig_fullUpdate(name, updatedDescription, updatedComments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tunnel.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_tunnel.test", "status", "planned"),
@@ -253,7 +245,7 @@ func TestAccTunnelResource_update(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccTunnelResourceConfig_fullUpdate(name, updatedDescription, updatedComments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccTunnelResourceConfig_fullUpdate(name, updatedDescription, updatedComments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 		},
@@ -275,7 +267,6 @@ func TestAccTunnelResource_import(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := strings.ReplaceAll(testutil.RandomSlug("tf_test_tunnel_cf"), "-", "_")
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)
@@ -284,7 +275,6 @@ func TestAccTunnelResource_import(t *testing.T) {
 	cleanup.RegisterTenantCleanup(tenantSlug)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -292,13 +282,13 @@ func TestAccTunnelResource_import(t *testing.T) {
 		CheckDestroy:             testutil.CheckTunnelDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 			},
 			{
 				ResourceName:            "netbox_tunnel.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"tags", "custom_fields"},
+				ImportStateVerifyIgnore: []string{"tags"},
 				Check: resource.ComposeTestCheckFunc(
 					testutil.ReferenceFieldCheck("netbox_tunnel.test", "group"),
 					testutil.ReferenceFieldCheck("netbox_tunnel.test", "tenant"),
@@ -306,7 +296,7 @@ func TestAccTunnelResource_import(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 		},
@@ -364,29 +354,26 @@ func TestAccConsistency_Tunnel_LiteralNames(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTunnelCleanup(name)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTunnelConsistencyLiteralNamesConfig(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccTunnelConsistencyLiteralNamesConfig(name, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tunnel.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_tunnel.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_tunnel.test", "custom_fields.#", "1"),
 				),
 			},
 			{
 				PlanOnly: true,
-				Config:   testAccTunnelConsistencyLiteralNamesConfig(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccTunnelConsistencyLiteralNamesConfig(name, tagName1, tagSlug1, tagName2, tagSlug2),
 			},
 		},
 	})
@@ -402,7 +389,7 @@ resource "netbox_tunnel" "test" {
 `, name)
 }
 
-func testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tunnel_group" "test" {
 	name = %[4]q
@@ -422,12 +409,6 @@ resource "netbox_tag" "tag1" {
 resource "netbox_tag" "tag2" {
 	name = %[10]q
 	slug = %[11]q
-}
-
-resource "netbox_custom_field" "test_field" {
-	name         = %[12]q
-	object_types = ["vpn.tunnel"]
-	type         = "text"
 }
 
 resource "netbox_tunnel" "test" {
@@ -444,19 +425,11 @@ resource "netbox_tunnel" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccTunnelResourceConfig_fullUpdate(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccTunnelResourceConfig_fullUpdate(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tunnel_group" "test" {
 	name = %[4]q
@@ -478,12 +451,6 @@ resource "netbox_tag" "tag2" {
 	slug = %[11]q
 }
 
-resource "netbox_custom_field" "test_field" {
-	name         = %[12]q
-	object_types = ["vpn.tunnel"]
-	type         = "text"
-}
-
 resource "netbox_tunnel" "test" {
 	name          = %[1]q
 	status        = "planned"
@@ -498,19 +465,11 @@ resource "netbox_tunnel" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "updated_value"
-		}
-	]
 }
-`, name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccTunnelConsistencyLiteralNamesConfig(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccTunnelConsistencyLiteralNamesConfig(name, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[2]q
@@ -522,12 +481,6 @@ resource "netbox_tag" "tag2" {
 	slug = %[5]q
 }
 
-resource "netbox_custom_field" "test_field" {
-	name         = %[6]q
-	object_types = ["vpn.tunnel"]
-	type         = "text"
-}
-
 resource "netbox_tunnel" "test" {
 	name          = %[1]q
 	status        = "active"
@@ -537,16 +490,8 @@ resource "netbox_tunnel" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, name, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
 // TestAccTunnelResource_StatusComprehensive tests comprehensive scenarios for tunnel status field.

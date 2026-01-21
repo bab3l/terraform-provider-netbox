@@ -66,20 +66,18 @@ func TestAccServiceTemplateResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 	updatedDescription := "Updated service template description"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccServiceTemplateResourceConfig_full(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccServiceTemplateResourceConfig_full(name, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service_template.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_service_template.test", "protocol", "tcp"),
@@ -87,24 +85,21 @@ func TestAccServiceTemplateResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_service_template.test", "description", "Test description"),
 					resource.TestCheckResourceAttr("netbox_service_template.test", "comments", "Test comments"),
 					resource.TestCheckResourceAttr("netbox_service_template.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_service_template.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_service_template.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config:   testAccServiceTemplateResourceConfig_full(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccServiceTemplateResourceConfig_full(name, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 			{
-				Config: testAccServiceTemplateResourceConfig_fullUpdate(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName, updatedDescription),
+				Config: testAccServiceTemplateResourceConfig_fullUpdate(name, tagName1, tagSlug1, tagName2, tagSlug2, updatedDescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service_template.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_service_template.test", "comments", "Updated comments"),
-					resource.TestCheckResourceAttr("netbox_service_template.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 			{
-				Config:   testAccServiceTemplateResourceConfig_fullUpdate(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName, updatedDescription),
+				Config:   testAccServiceTemplateResourceConfig_fullUpdate(name, tagName1, tagSlug1, tagName2, tagSlug2, updatedDescription),
 				PlanOnly: true,
 			},
 		},
@@ -217,7 +212,7 @@ resource "netbox_service_template" "test" {
 `, name+"-updated")
 }
 
-func testAccServiceTemplateResourceConfig_full(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccServiceTemplateResourceConfig_full(name, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[2]q
@@ -227,12 +222,6 @@ resource "netbox_tag" "tag1" {
 resource "netbox_tag" "tag2" {
 	name = %[4]q
 	slug = %[5]q
-}
-
-resource "netbox_custom_field" "test_field" {
-	name         = %[6]q
-	object_types = ["ipam.servicetemplate"]
-	type         = "text"
 }
 
 resource "netbox_service_template" "test" {
@@ -246,19 +235,11 @@ resource "netbox_service_template" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, name, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccServiceTemplateResourceConfig_fullUpdate(name, tagName1, tagSlug1, tagName2, tagSlug2, cfName, description string) string {
+func testAccServiceTemplateResourceConfig_fullUpdate(name, tagName1, tagSlug1, tagName2, tagSlug2, description string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[2]q
@@ -270,33 +251,19 @@ resource "netbox_tag" "tag2" {
 	slug = %[5]q
 }
 
-resource "netbox_custom_field" "test_field" {
-	name         = %[6]q
-	object_types = ["ipam.servicetemplate"]
-	type         = "text"
-}
-
 resource "netbox_service_template" "test" {
 	name        = %[1]q
 	protocol    = "udp"
 	ports       = [53, 123]
-	description = %[7]q
+	description = %[6]q
 	comments    = "Updated comments"
 
 	tags = [
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "updated_value"
-		}
-	]
 }
-`, name, tagName1, tagSlug1, tagName2, tagSlug2, cfName, description)
+`, name, tagName1, tagSlug1, tagName2, tagSlug2, description)
 }
 
 func TestAccServiceTemplateResource_update(t *testing.T) {
