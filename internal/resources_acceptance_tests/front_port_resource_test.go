@@ -48,6 +48,10 @@ func TestAccFrontPortResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device", "rear_port"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_front_port.test", "device"),
+					testutil.ReferenceFieldCheck("netbox_front_port.test", "rear_port"),
+				),
 			},
 			{
 				Config:             testAccFrontPortResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName),
@@ -102,6 +106,10 @@ func TestAccFrontPortResource_full(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device", "rear_port"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_front_port.test", "device"),
+					testutil.ReferenceFieldCheck("netbox_front_port.test", "rear_port"),
+				),
 			},
 			{
 				Config:             testAccFrontPortResourceConfig_full(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, rearPortName, frontPortName),

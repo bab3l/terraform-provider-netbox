@@ -719,6 +719,9 @@ func TestAccPowerPortResource_importWithCustomFieldsAndTags(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device", "custom_fields", "tags"}, // Device reference may have lookup inconsistencies
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_power_port.test", "device"),
+				),
 			},
 			{
 				Config:             testAccPowerPortResourceImportConfig_full(powerPortName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),

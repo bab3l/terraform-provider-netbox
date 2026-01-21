@@ -38,6 +38,10 @@ func TestAccConsoleServerPortTemplateResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device_type"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_console_server_port_template.test", "device_type"),
+					testutil.ReferenceFieldCheck("netbox_console_server_port_template.test", "module_type"),
+				),
 			},
 			{
 				Config:             testAccConsoleServerPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name),

@@ -135,6 +135,8 @@ type ImportTestConfig struct {
 - ✅ Phase 1 tests run (subset): `VirtualMachine`, `Prefix`, `VLAN`, `IPAddress` import tests passed
 - ✅ Phase 1 completed: `location`, `device_type`, `aggregate`, `vm_interface`, `tunnel` updated
 - ✅ Phase 1 tests run (subset): `Location`, `DeviceType`, `Aggregate`, `VMInterface`, `Tunnel` import tests passed
+- ✅ Phase 2 completed: `console_port`, `console_port_template`, `console_server_port`, `console_server_port_template`, `front_port`, `front_port_template`, `rear_port`, `rear_port_template`, `power_port`, `power_port_template`, `power_outlet`, `power_outlet_template`, `interface_template`, `device_bay` updated
+- ✅ Phase 2 tests run (subset): DCIM port/template import tests passed
 
 ### Phase 0: Foundation (Current Session)
 - [x] Fix `UpdateReferenceAttribute` to prefer ID for import
@@ -166,20 +168,20 @@ go test ./internal/resources_acceptance_tests -run "TestAcc(VirtualMachine|Prefi
 **Gate**: Phase 1 complete, Phase 2 tests pass
 
 Resources (14):
-1. `console_port` - 1 ref
-2. `console_port_template` - 2 refs
-3. `console_server_port` - 1 ref
-4. `console_server_port_template` - 2 refs
-5. `front_port` - 2 refs
-6. `front_port_template` - 2 refs
-7. `rear_port` - 1 ref
-8. `rear_port_template` - 2 refs
-9. `power_port` - 1 ref
-10. `power_port_template` - 2 refs
-11. `power_outlet` - 1 ref
-12. `power_outlet_template` - 2 refs
-13. `interface_template` - 2 refs
-14. `device_bay` - 2 refs
+1. [x] `console_port` - 1 ref
+2. [x] `console_port_template` - 2 refs
+3. [x] `console_server_port` - 1 ref
+4. [x] `console_server_port_template` - 2 refs
+5. [x] `front_port` - 2 refs
+6. [x] `front_port_template` - 2 refs
+7. [x] `rear_port` - 1 ref
+8. [x] `rear_port_template` - 2 refs
+9. [x] `power_port` - 1 ref
+10. [x] `power_port_template` - 2 refs
+11. [x] `power_outlet` - 1 ref
+12. [x] `power_outlet_template` - 2 refs
+13. [x] `interface_template` - 2 refs
+14. [x] `device_bay` - 2 refs
 
 ### Phase 3: Module & Inventory Resources
 **Gate**: Phase 2 complete, Phase 3 tests pass
@@ -262,7 +264,7 @@ For each resource with reference fields, the `_import` test should include:
 - [ ] Helper functions added to `import_tests.go`
 - [ ] `REQUIRED_TESTS.md` updated
 - [ ] Phase 1 complete
-- [ ] Phase 2 complete
+- [x] Phase 2 complete
 - [ ] Phase 3 complete
 - [ ] Phase 4 complete
 - [ ] Phase 5 complete
