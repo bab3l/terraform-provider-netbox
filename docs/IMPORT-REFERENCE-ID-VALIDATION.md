@@ -20,7 +20,7 @@ Resources with reference fields (using `UpdateReferenceAttribute`):
 |----------|-----------|-----------------|
 | virtual_machine | 5 | site, cluster, role, tenant, platform |
 | tunnel | 9 | group, ipsec_profile, tenant (×3 operations) |
-| prefix | 4 | site, vrf, tenant, vlan |
+| prefix | 5 | site, vrf, tenant, vlan, role |
 | vlan | 4 | site, group, tenant, role |
 | vm_interface | 3 | virtual_machine, untagged_vlan, vrf |
 | location | 3 | site, parent, tenant |
@@ -79,7 +79,7 @@ Rather than creating new tests, we'll extend the existing `_import` tests to val
 
 ### New Helper Function
 
-Add a helper in `internal/testutil/import_tests.go`:
+Helper functions are implemented in `internal/testutil/import_tests.go`:
 
 ```go
 // ReferenceFieldCheck creates a check function that validates a reference field
@@ -127,26 +127,33 @@ type ImportTestConfig struct {
 
 ## Batched Implementation Plan
 
+## Progress (as of 2026-01-21)
+
+- ✅ Helper functions added: `ReferenceFieldCheck`, `ValidateReferenceIDs`
+- ✅ `REQUIRED_TESTS.md` updated to require numeric ID validation
+- ✅ Phase 1 started: `virtual_machine`, `prefix`, `vlan`, `ip_address` updated
+- ✅ Phase 1 tests run (subset): `VirtualMachine`, `Prefix`, `VLAN`, `IPAddress` import tests passed
+
 ### Phase 0: Foundation (Current Session)
 - [x] Fix `UpdateReferenceAttribute` to prefer ID for import
 - [x] Add `TestAccVirtualMachineResource_ImportCommandRequiresApply` with assertions
 - [x] Create feature branch
-- [ ] Add helper functions to `import_tests.go`
-- [ ] Update `REQUIRED_TESTS.md`
+- [x] Add helper functions to `import_tests.go`
+- [x] Update `REQUIRED_TESTS.md`
 
 ### Phase 1: Core/High-Impact Resources
 **Gate**: All Phase 1 tests must pass before proceeding
 
 Resources (9):
-1. `virtual_machine` - 5 refs (already done)
-2. `prefix` - 4 refs
-3. `vlan` - 4 refs
-4. `ip_address` - 2 refs
-5. `location` - 3 refs
-6. `device_type` - 2 refs
-7. `aggregate` - 2 refs (already has import test)
-8. `vm_interface` - 3 refs
-9. `tunnel` - 9 refs
+1. [x] `virtual_machine` - 5 refs
+2. [x] `prefix` - 5 refs
+3. [x] `vlan` - 4 refs
+4. [x] `ip_address` - 2 refs
+5. [ ] `location` - 3 refs
+6. [ ] `device_type` - 2 refs
+7. [ ] `aggregate` - 2 refs
+8. [ ] `vm_interface` - 3 refs
+9. [ ] `tunnel` - 9 refs
 
 **Validation**:
 ```powershell

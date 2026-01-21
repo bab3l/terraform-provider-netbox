@@ -96,16 +96,22 @@ func TestAccIPAddressResource_import(t *testing.T) {
 	t.Parallel()
 
 	ip := fmt.Sprintf("203.0.113.%d/32", acctest.RandIntRange(1, 254))
+	tenantName := testutil.RandomName("tf-test-tenant-ip")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant-ip")
+	vrfName := testutil.RandomName("tf-test-vrf")
+	vrfRD := testutil.RandomSlug("tf-test-vrf")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterIPAddressCleanup(ip)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterVRFCleanup(vrfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPAddressResourceConfig_basic(ip),
+				Config: testAccIPAddressReferenceConfig_tenantVRF(tenantName, tenantSlug, vrfName, vrfRD, ip),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
 				),
@@ -114,9 +120,17 @@ func TestAccIPAddressResource_import(t *testing.T) {
 				ResourceName:      "netbox_ip_address.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"tenant",
+					"vrf",
+				},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_ip_address.test", "tenant"),
+					testutil.ReferenceFieldCheck("netbox_ip_address.test", "vrf"),
+				),
 			},
 			{
-				Config:   testAccIPAddressResourceConfig_basic(ip),
+				Config:   testAccIPAddressReferenceConfig_tenantVRF(tenantName, tenantSlug, vrfName, vrfRD, ip),
 				PlanOnly: true,
 			},
 		},

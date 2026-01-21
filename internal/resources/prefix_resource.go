@@ -799,18 +799,12 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 		data.Status = types.StringNull()
 	}
 
-	// Role - preserve user input if it matches
+	// Role
 
 	if prefix.Role.IsSet() && prefix.Role.Get() != nil {
 		roleObj := prefix.Role.Get()
 
-		userRole := data.Role.ValueString()
-
-		if userRole == roleObj.Name || userRole == roleObj.Slug || userRole == fmt.Sprintf("%d", roleObj.Id) {
-			// Keep user's original value
-		} else {
-			data.Role = types.StringValue(roleObj.Name)
-		}
+		data.Role = utils.UpdateReferenceAttribute(data.Role, roleObj.Name, roleObj.Slug, roleObj.Id)
 	} else {
 		data.Role = types.StringNull()
 	}
