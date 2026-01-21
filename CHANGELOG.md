@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-No changes yet.
+### 🐛 Fixes
+- Ensure imported reference attributes store numeric IDs when state is unknown, preventing spurious diffs after import.
+
+### 🧪 Testing
+- Added import reference ID validation across acceptance tests for all resources.
 
 ## v0.0.17 (2026-01-20)
 
