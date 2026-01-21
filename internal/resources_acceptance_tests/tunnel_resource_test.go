@@ -3,6 +3,7 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -264,10 +265,26 @@ func TestAccTunnelResource_import(t *testing.T) {
 
 	// Generate unique names
 	name := testutil.RandomName("tf-test-tunnel-imp")
+	description := testutil.RandomName("tf-test-tunnel-desc")
+	comments := testutil.RandomName("tf-test-tunnel-comments")
+	groupName := testutil.RandomName("tf-test-tunnel-group")
+	groupSlug := testutil.RandomSlug("tf-test-tunnel-group")
+	tenantName := testutil.RandomName("tf-test-tenant")
+	tenantSlug := testutil.RandomSlug("tf-test-tenant")
+	tagName1 := testutil.RandomName("tag1")
+	tagSlug1 := testutil.RandomSlug("tag1")
+	tagName2 := testutil.RandomName("tag2")
+	tagSlug2 := testutil.RandomSlug("tag2")
+	cfName := strings.ReplaceAll(testutil.RandomSlug("tf_test_tunnel_cf"), "-", "_")
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTunnelCleanup(name)
+	cleanup.RegisterTunnelGroupCleanup(groupName)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterTagCleanup(tagSlug1)
+	cleanup.RegisterTagCleanup(tagSlug2)
+	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -275,15 +292,21 @@ func TestAccTunnelResource_import(t *testing.T) {
 		CheckDestroy:             testutil.CheckTunnelDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTunnelResourceConfig_basic(name),
+				Config: testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 			},
 			{
-				ResourceName:      "netbox_tunnel.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "netbox_tunnel.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"tags", "custom_fields"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_tunnel.test", "group"),
+					testutil.ReferenceFieldCheck("netbox_tunnel.test", "tenant"),
+					testutil.ReferenceFieldCheck("netbox_tunnel.test", "ipsec_profile"),
+				),
 			},
 			{
-				Config:   testAccTunnelResourceConfig_basic(name),
+				Config:   testAccTunnelResourceConfig_full(name, description, comments, groupName, groupSlug, tenantName, tenantSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
 				PlanOnly: true,
 			},
 		},

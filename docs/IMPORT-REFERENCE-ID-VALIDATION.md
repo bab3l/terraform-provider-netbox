@@ -133,6 +133,8 @@ type ImportTestConfig struct {
 - ✅ `REQUIRED_TESTS.md` updated to require numeric ID validation
 - ✅ Phase 1 started: `virtual_machine`, `prefix`, `vlan`, `ip_address` updated
 - ✅ Phase 1 tests run (subset): `VirtualMachine`, `Prefix`, `VLAN`, `IPAddress` import tests passed
+- ✅ Phase 1 completed: `location`, `device_type`, `aggregate`, `vm_interface`, `tunnel` updated
+- ✅ Phase 1 tests run (subset): `Location`, `DeviceType`, `Aggregate`, `VMInterface`, `Tunnel` import tests passed
 
 ### Phase 0: Foundation (Current Session)
 - [x] Fix `UpdateReferenceAttribute` to prefer ID for import
@@ -149,11 +151,11 @@ Resources (9):
 2. [x] `prefix` - 5 refs
 3. [x] `vlan` - 4 refs
 4. [x] `ip_address` - 2 refs
-5. [ ] `location` - 3 refs
-6. [ ] `device_type` - 2 refs
-7. [ ] `aggregate` - 2 refs
-8. [ ] `vm_interface` - 3 refs
-9. [ ] `tunnel` - 9 refs
+5. [x] `location` - 3 refs
+6. [x] `device_type` - 2 refs
+7. [x] `aggregate` - 2 refs
+8. [x] `vm_interface` - 3 refs
+9. [x] `tunnel` - 9 refs
 
 **Validation**:
 ```powershell
