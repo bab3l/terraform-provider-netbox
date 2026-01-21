@@ -36,7 +36,10 @@ func TestAccDeviceBayTemplateResource_basic(t *testing.T) {
 			},
 			{
 				// Test import
-				ResourceName:            "netbox_device_bay_template.test",
+				ResourceName: "netbox_device_bay_template.test",
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_device_bay_template.test", "device_type"),
+				),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device_type"},

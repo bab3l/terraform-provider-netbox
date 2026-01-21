@@ -137,6 +137,8 @@ type ImportTestConfig struct {
 - ✅ Phase 1 tests run (subset): `Location`, `DeviceType`, `Aggregate`, `VMInterface`, `Tunnel` import tests passed
 - ✅ Phase 2 completed: `console_port`, `console_port_template`, `console_server_port`, `console_server_port_template`, `front_port`, `front_port_template`, `rear_port`, `rear_port_template`, `power_port`, `power_port_template`, `power_outlet`, `power_outlet_template`, `interface_template`, `device_bay` updated
 - ✅ Phase 2 tests run (subset): DCIM port/template import tests passed
+- ✅ Phase 3 completed: `module`, `module_bay`, `module_bay_template`, `module_type`, `inventory_item`, `device_bay_template` updated
+- ✅ Phase 3 tests run (subset): module/inventory import tests passed
 
 ### Phase 0: Foundation (Current Session)
 - [x] Fix `UpdateReferenceAttribute` to prefer ID for import
@@ -187,12 +189,17 @@ Resources (14):
 **Gate**: Phase 2 complete, Phase 3 tests pass
 
 Resources (6):
-1. `module` - 2 refs
-2. `module_bay` - 1 ref
-3. `module_bay_template` - 2 refs
-4. `module_type` - 1 ref
-5. `inventory_item` - 3 refs
-6. `device_bay_template` - 1 ref
+1. [x] `module` - 2 refs
+2. [x] `module_bay` - 1 ref
+3. [x] `module_bay_template` - 2 refs
+4. [x] `module_type` - 1 ref
+5. [x] `inventory_item` - 3 refs
+6. [x] `device_bay_template` - 1 ref
+
+**Validation**:
+```powershell
+go test ./internal/resources_acceptance_tests -run "TestAcc(ModuleResource_import|ModuleBayResource_import|ModuleBayTemplateResource_import|ModuleTypeResource_import|InventoryItemResource_import|DeviceBayTemplateResource_import)$" -v -timeout 60m
+```
 
 ### Phase 4: Circuit & VPN Resources
 **Gate**: Phase 3 complete, Phase 4 tests pass
@@ -265,7 +272,7 @@ For each resource with reference fields, the `_import` test should include:
 - [ ] `REQUIRED_TESTS.md` updated
 - [ ] Phase 1 complete
 - [x] Phase 2 complete
-- [ ] Phase 3 complete
+- [x] Phase 3 complete
 - [ ] Phase 4 complete
 - [ ] Phase 5 complete
 - [ ] Phase 6 complete
