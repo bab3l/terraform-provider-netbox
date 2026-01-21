@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -150,4 +151,63 @@ func RunSimpleImportTest(t *testing.T, config SimpleImportTestConfig) {
 	}
 
 	resource.Test(t, testCase)
+}
+
+// =============================================================================
+// REFERENCE FIELD VALIDATION HELPERS
+// =============================================================================
+
+// ReferenceFieldCheck creates a check function that validates a reference field
+// contains a numeric ID after import. Reference fields in NetBox are foreign key
+// relationships that should always store numeric IDs, not names or slugs.
+//
+// This helper is used to validate that UpdateReferenceAttribute correctly
+// returns numeric IDs during import scenarios.
+//
+// Usage:
+//
+//	{
+//	   Config: testAccResourceConfig(),
+//	   Check: resource.ComposeTestCheckFunc(
+//	       testutil.ReferenceFieldCheck("netbox_virtual_machine.test", "tenant"),
+//	       testutil.ReferenceFieldCheck("netbox_virtual_machine.test", "role"),
+//	   ),
+//	}
+func ReferenceFieldCheck(resourceRef, fieldName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs := s.RootModule().Resources[resourceRef]
+		if rs == nil {
+			return fmt.Errorf("resource %s not found in state", resourceRef)
+		}
+		value := rs.Primary.Attributes[fieldName]
+		if value == "" {
+			// Field not set - nothing to validate (field might be optional)
+			return nil
+		}
+		if _, err := strconv.Atoi(value); err != nil {
+			return fmt.Errorf("%s should contain numeric ID after import, got non-numeric value: %q", fieldName, value)
+		}
+		return nil
+	}
+}
+
+// ValidateReferenceIDs creates check functions for multiple reference fields.
+// This is a convenience wrapper around ReferenceFieldCheck for resources with
+// multiple reference fields.
+//
+// Usage:
+//
+//	{
+//	   Config: testAccResourceConfig(),
+//	   Check: resource.ComposeTestCheckFunc(
+//	       testutil.ValidateReferenceIDs("netbox_virtual_machine.test",
+//	           "cluster", "role", "tenant", "platform", "site")...,
+//	   ),
+//	}
+func ValidateReferenceIDs(resourceRef string, fields ...string) []resource.TestCheckFunc {
+	checks := make([]resource.TestCheckFunc, len(fields))
+	for i, field := range fields {
+		checks[i] = ReferenceFieldCheck(resourceRef, field)
+	}
+	return checks
 }

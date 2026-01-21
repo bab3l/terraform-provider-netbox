@@ -53,14 +53,12 @@ func TestAccTunnelGroupResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTunnelGroupCleanup(name)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -68,30 +66,27 @@ func TestAccTunnelGroupResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckTunnelGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTunnelGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccTunnelGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_tunnel_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config:   testAccTunnelGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccTunnelGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 			{
-				Config: testAccTunnelGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccTunnelGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "description", updatedDescription),
-					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 			{
-				Config:   testAccTunnelGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccTunnelGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 		},
@@ -200,14 +195,12 @@ func TestAccTunnelGroupResource_update(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTunnelGroupCleanup(name)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -225,14 +218,14 @@ func TestAccTunnelGroupResource_update(t *testing.T) {
 				PlanOnly: true,
 			},
 			{
-				Config: testAccTunnelGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccTunnelGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "description", updatedDescription),
 				),
 			},
 			{
-				Config:   testAccTunnelGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccTunnelGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 		},
@@ -324,29 +317,26 @@ func TestAccConsistency_TunnelGroup_LiteralNames(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTunnelGroupCleanup(name)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTunnelGroupConsistencyLiteralNamesConfig(name, slug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccTunnelGroupConsistencyLiteralNamesConfig(name, slug, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "custom_fields.#", "1"),
 				),
 			},
 			{
 				PlanOnly: true,
-				Config:   testAccTunnelGroupConsistencyLiteralNamesConfig(name, slug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccTunnelGroupConsistencyLiteralNamesConfig(name, slug, tagName1, tagSlug1, tagName2, tagSlug2),
 			},
 		},
 	})
@@ -361,7 +351,7 @@ resource "netbox_tunnel_group" "test" {
 `, name, slug)
 }
 
-func testAccTunnelGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccTunnelGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[4]q
@@ -373,12 +363,6 @@ resource "netbox_tag" "tag2" {
 	slug = %[7]q
 }
 
-resource "netbox_custom_field" "test_field" {
-	name         = %[8]q
-	object_types = ["vpn.tunnelgroup"]
-	type         = "text"
-}
-
 resource "netbox_tunnel_group" "test" {
 	name        = %[1]q
 	slug        = %[2]q
@@ -388,19 +372,11 @@ resource "netbox_tunnel_group" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccTunnelGroupResourceConfig_fullUpdate(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccTunnelGroupResourceConfig_fullUpdate(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[4]q
@@ -412,12 +388,6 @@ resource "netbox_tag" "tag2" {
 	slug = %[7]q
 }
 
-resource "netbox_custom_field" "test_field" {
-	name         = %[8]q
-	object_types = ["vpn.tunnelgroup"]
-	type         = "text"
-}
-
 resource "netbox_tunnel_group" "test" {
 	name        = %[1]q
 	slug        = %[2]q
@@ -427,19 +397,11 @@ resource "netbox_tunnel_group" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "updated_value"
-		}
-	]
 }
-`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccTunnelGroupResourceConfig_withoutDescription(name, slug, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccTunnelGroupResourceConfig_withoutDescription(name, slug, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[3]q
@@ -451,12 +413,6 @@ resource "netbox_tag" "tag2" {
 	slug = %[6]q
 }
 
-resource "netbox_custom_field" "test_field" {
-	name         = %[7]q
-	object_types = ["vpn.tunnelgroup"]
-	type         = "text"
-}
-
 resource "netbox_tunnel_group" "test" {
 	name = %[1]q
 	slug = %[2]q
@@ -465,19 +421,11 @@ resource "netbox_tunnel_group" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, name, slug, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, slug, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccTunnelGroupConsistencyLiteralNamesConfig(name, slug, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccTunnelGroupConsistencyLiteralNamesConfig(name, slug, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[3]q
@@ -489,12 +437,6 @@ resource "netbox_tag" "tag2" {
 	slug = %[6]q
 }
 
-resource "netbox_custom_field" "test_field" {
-	name         = %[7]q
-	object_types = ["vpn.tunnelgroup"]
-	type         = "text"
-}
-
 resource "netbox_tunnel_group" "test" {
 	name = %[1]q
 	slug = %[2]q
@@ -503,16 +445,8 @@ resource "netbox_tunnel_group" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, name, slug, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, slug, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
 func TestAccTunnelGroupResource_removeOptionalFields(t *testing.T) {
@@ -525,13 +459,11 @@ func TestAccTunnelGroupResource_removeOptionalFields(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterTunnelGroupCleanup(name)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -539,14 +471,14 @@ func TestAccTunnelGroupResource_removeOptionalFields(t *testing.T) {
 		CheckDestroy:             testutil.CheckTunnelGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTunnelGroupResourceConfig_full(name, slug, testDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccTunnelGroupResourceConfig_full(name, slug, testDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "description", testDescription),
 				),
 			},
 			{
-				Config: testAccTunnelGroupResourceConfig_withoutDescription(name, slug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccTunnelGroupResourceConfig_withoutDescription(name, slug, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tunnel_group.test", "name", name),
 					resource.TestCheckNoResourceAttr("netbox_tunnel_group.test", "description"),

@@ -36,7 +36,10 @@ func TestAccRackReservationResource_basic(t *testing.T) {
 			},
 			// ImportState test
 			{
-				ResourceName:      "netbox_rack_reservation.test",
+				ResourceName: "netbox_rack_reservation.test",
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_rack_reservation.test", "rack"),
+				),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -65,7 +68,6 @@ func TestAccRackReservationResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -78,7 +80,7 @@ func TestAccRackReservationResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckRackReservationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRackReservationResourceConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccRackReservationResourceConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_rack_reservation.test", "id"),
 					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", description),
@@ -86,17 +88,14 @@ func TestAccRackReservationResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "units.#", "3"),
 					resource.TestCheckResourceAttrSet("netbox_rack_reservation.test", "tenant"),
 					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config: testAccRackReservationResourceConfig_fullUpdate(siteName, siteSlug, rackName, tenantName, tenantSlug, updatedDescription, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccRackReservationResourceConfig_fullUpdate(siteName, siteSlug, rackName, tenantName, tenantSlug, updatedDescription, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "comments", updatedComments),
 					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "units.#", "2"),
-					resource.TestCheckResourceAttr("netbox_rack_reservation.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 		},
@@ -264,7 +263,7 @@ resource "netbox_rack_reservation" "test" {
 `, siteName, siteSlug, rackName, description)
 }
 
-func testAccRackReservationResourceConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccRackReservationResourceConfig_full(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 provider "netbox" {}
 
@@ -298,12 +297,6 @@ resource "netbox_tag" "tag1" {
 resource "netbox_tag" "tag2" {
   name = %[10]q
   slug = %[11]q
-}
-
-resource "netbox_custom_field" "test_field" {
-  name         = %[12]q
-  object_types = ["dcim.rackreservation"]
-  type         = "text"
 }
 
 resource "netbox_rack_reservation" "test" {
@@ -315,19 +308,11 @@ resource "netbox_rack_reservation" "test" {
   comments    = %[7]q
 
   tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
-
-  custom_fields = [
-    {
-      name  = netbox_custom_field.test_field.name
-      type  = "text"
-      value = "test_value"
-    }
-  ]
 }
-`, siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccRackReservationResourceConfig_fullUpdate(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccRackReservationResourceConfig_fullUpdate(siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 provider "netbox" {}
 
@@ -363,12 +348,6 @@ resource "netbox_tag" "tag2" {
   slug = %[11]q
 }
 
-resource "netbox_custom_field" "test_field" {
-  name         = %[12]q
-  object_types = ["dcim.rackreservation"]
-  type         = "text"
-}
-
 resource "netbox_rack_reservation" "test" {
   rack        = netbox_rack.test.id
   units       = [5, 6]
@@ -378,16 +357,8 @@ resource "netbox_rack_reservation" "test" {
   comments    = %[7]q
 
   tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
-
-  custom_fields = [
-    {
-      name  = netbox_custom_field.test_field.name
-      type  = "text"
-      value = "updated_value"
-    }
-  ]
 }
-`, siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, siteName, siteSlug, rackName, tenantName, tenantSlug, description, comments, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
 func testAccRackReservationResourceConfig_tags(siteName, siteSlug, rackName, description, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {

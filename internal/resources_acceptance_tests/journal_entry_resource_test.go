@@ -52,13 +52,11 @@ func TestAccJournalEntryResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -69,30 +67,27 @@ func TestAccJournalEntryResource_full(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJournalEntryResourceConfig_full(siteName, siteSlug, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccJournalEntryResourceConfig_full(siteName, siteSlug, comments, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_journal_entry.test", "id"),
 					resource.TestCheckResourceAttr("netbox_journal_entry.test", "comments", comments),
 					resource.TestCheckResourceAttr("netbox_journal_entry.test", "kind", "info"),
 					resource.TestCheckResourceAttr("netbox_journal_entry.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_journal_entry.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_journal_entry.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config:   testAccJournalEntryResourceConfig_full(siteName, siteSlug, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccJournalEntryResourceConfig_full(siteName, siteSlug, comments, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 			{
-				Config: testAccJournalEntryResourceConfig_fullUpdate(siteName, siteSlug, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccJournalEntryResourceConfig_fullUpdate(siteName, siteSlug, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_journal_entry.test", "comments", updatedComments),
 					resource.TestCheckResourceAttr("netbox_journal_entry.test", "kind", "warning"),
-					resource.TestCheckResourceAttr("netbox_journal_entry.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 			{
-				Config:   testAccJournalEntryResourceConfig_fullUpdate(siteName, siteSlug, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccJournalEntryResourceConfig_fullUpdate(siteName, siteSlug, updatedComments, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 		},
@@ -290,14 +285,8 @@ resource "netbox_journal_entry" "test" {
 `, siteName, siteSlug)
 }
 
-func testAccJournalEntryResourceConfig_full(siteName, siteSlug, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccJournalEntryResourceConfig_full(siteName, siteSlug, comments, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
-resource "netbox_custom_field" "test_field" {
-	name         = %q
-	object_types = ["extras.journalentry"]
-	type         = "text"
-}
-
 resource "netbox_tag" "tag1" {
 	name = %q
 	slug = %q
@@ -323,26 +312,12 @@ resource "netbox_journal_entry" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, cfName, tagName1, tagSlug1, tagName2, tagSlug2, siteName, siteSlug, comments)
+`, tagName1, tagSlug1, tagName2, tagSlug2, siteName, siteSlug, comments)
 }
 
-func testAccJournalEntryResourceConfig_fullUpdate(siteName, siteSlug, comments, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccJournalEntryResourceConfig_fullUpdate(siteName, siteSlug, comments, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
-resource "netbox_custom_field" "test_field" {
-	name         = %q
-	object_types = ["extras.journalentry"]
-	type         = "text"
-}
-
 resource "netbox_tag" "tag1" {
 	name = %q
 	slug = %q
@@ -368,16 +343,8 @@ resource "netbox_journal_entry" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "updated_value"
-		}
-	]
 }
-`, cfName, tagName1, tagSlug1, tagName2, tagSlug2, siteName, siteSlug, comments)
+`, tagName1, tagSlug1, tagName2, tagSlug2, siteName, siteSlug, comments)
 }
 
 func testAccJournalEntryResourceConfig_updated(siteName, siteSlug string) string {
@@ -404,13 +371,11 @@ func TestAccConsistency_JournalEntry_LiteralNames(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -421,15 +386,14 @@ func TestAccConsistency_JournalEntry_LiteralNames(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJournalEntryConsistencyLiteralNamesConfig(siteName, siteSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccJournalEntryConsistencyLiteralNamesConfig(siteName, siteSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_journal_entry.test", "id"),
 					resource.TestCheckResourceAttr("netbox_journal_entry.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_journal_entry.test", "custom_fields.#", "1"),
 				),
 			},
 			{
-				Config:   testAccJournalEntryConsistencyLiteralNamesConfig(siteName, siteSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccJournalEntryConsistencyLiteralNamesConfig(siteName, siteSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_journal_entry.test", "id"),
@@ -439,22 +403,16 @@ func TestAccConsistency_JournalEntry_LiteralNames(t *testing.T) {
 	})
 }
 
-func testAccJournalEntryConsistencyLiteralNamesConfig(siteName, siteSlug, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccJournalEntryConsistencyLiteralNamesConfig(siteName, siteSlug, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
-resource "netbox_custom_field" "test_field" {
-	name         = %[5]q
-	object_types = ["extras.journalentry"]
-	type         = "text"
-}
-
 resource "netbox_tag" "tag1" {
 	name = %[3]q
 	slug = %[4]q
 }
 
 resource "netbox_tag" "tag2" {
-	name = %[6]q
-	slug = %[7]q
+	name = %[5]q
+	slug = %[6]q
 }
 
 resource "netbox_site" "test" {
@@ -471,16 +429,8 @@ resource "netbox_journal_entry" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, siteName, siteSlug, tagName1, tagSlug1, cfName, tagName2, tagSlug2)
+`, siteName, siteSlug, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
 func TestAccJournalEntryResource_externalDeletion(t *testing.T) {

@@ -137,21 +137,48 @@ func TestAccVLANResource_import(t *testing.T) {
 
 	name := "test-vlan-" + testutil.GenerateSlug("vlan")
 	vid := int32(100)
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	groupName := testutil.RandomName("group")
+	groupSlug := testutil.RandomSlug("group")
+	tenantName := testutil.RandomName("tenant")
+	tenantSlug := testutil.RandomSlug("tenant")
+	roleName := testutil.RandomName("role")
+	roleSlug := testutil.RandomSlug("role")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVLANCleanup(vid)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterVLANGroupCleanup(groupSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterRoleCleanup(roleSlug)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVLANResourceConfig_basic(name, vid),
+				Config: testAccVLANConsistencyConfig(name, int(vid), siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug),
 			},
 			{
 				ResourceName:      "netbox_vlan.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"site",
+					"group",
+					"tenant",
+					"role",
+				},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_vlan.test", "site"),
+					testutil.ReferenceFieldCheck("netbox_vlan.test", "group"),
+					testutil.ReferenceFieldCheck("netbox_vlan.test", "tenant"),
+					testutil.ReferenceFieldCheck("netbox_vlan.test", "role"),
+				),
 			},
 			{
-				Config:   testAccVLANResourceConfig_basic(name, vid),
+				Config:   testAccVLANConsistencyConfig(name, int(vid), siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug),
 				PlanOnly: true,
 			},
 		},

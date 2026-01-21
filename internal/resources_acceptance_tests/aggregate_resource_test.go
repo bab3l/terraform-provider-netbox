@@ -434,6 +434,10 @@ func TestAccAggregateResource_importPreservesOptionalFields(t *testing.T) {
 				ImportStateVerify: true,
 				// Note: tenant format may change (ID->name/slug), rir is always lookup
 				ImportStateVerifyIgnore: []string{"rir", "tenant"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_aggregate.test", "rir"),
+					testutil.ReferenceFieldCheck("netbox_aggregate.test", "tenant"),
+				),
 			},
 			// Step 3: Verify no changes after import
 			{

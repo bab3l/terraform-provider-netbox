@@ -30,6 +30,10 @@ func TestAccWirelessLANResource_basic(t *testing.T) {
 				ResourceName:      "netbox_wireless_lan.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_wireless_lan.test", "vlan"),
+					testutil.ReferenceFieldCheck("netbox_wireless_lan.test", "tenant"),
+				),
 			},
 			{
 				Config:             testAccWirelessLANResourceConfig_basic(ssid),

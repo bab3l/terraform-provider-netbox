@@ -46,6 +46,10 @@ func TestAccDeviceBayResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_device_bay.test", "device"),
+					testutil.ReferenceFieldCheck("netbox_device_bay.test", "installed_device"),
+				),
 			},
 			{
 				Config:   testAccDeviceBayResourceConfig_basic(siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, bayName),

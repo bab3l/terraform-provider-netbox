@@ -35,6 +35,9 @@ func TestAccModuleTypeResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"manufacturer"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_module_type.test", "manufacturer"),
+				),
 			},
 			{
 				Config:             testAccModuleTypeResourceConfig_basic(mfgName, mfgSlug, model),

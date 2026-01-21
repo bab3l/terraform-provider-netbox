@@ -42,6 +42,11 @@ func TestAccCircuitTerminationResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"circuit", "site"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_circuit_termination.test", "circuit"),
+					testutil.ReferenceFieldCheck("netbox_circuit_termination.test", "site"),
+					testutil.ReferenceFieldCheck("netbox_circuit_termination.test", "provider_network"),
+				),
 			},
 			{
 				Config:             testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug),
@@ -252,6 +257,11 @@ func TestAccCircuitTerminationResource_import(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"circuit", "site"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_circuit_termination.test", "circuit"),
+					testutil.ReferenceFieldCheck("netbox_circuit_termination.test", "site"),
+					testutil.ReferenceFieldCheck("netbox_circuit_termination.test", "provider_network"),
+				),
 			},
 			{
 				Config:   testAccCircuitTerminationResourceConfig_basic(providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCID, siteName, siteSlug),

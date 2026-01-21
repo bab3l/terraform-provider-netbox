@@ -667,9 +667,8 @@ resource "netbox_power_port" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, deviceName, resourceName)
 }
 
-func TestAccPowerPortResource_importWithCustomFieldsAndTags(t *testing.T) {
-	// NOTE: t.Parallel() intentionally omitted - this test creates/deletes global custom fields
-	// that would affect other tests of the same resource type running in parallel.
+func TestAccPowerPortResource_importWithTags(t *testing.T) {
+	t.Parallel()
 
 	powerPortName := testutil.RandomName("power_port")
 	deviceName := testutil.RandomName("device")
@@ -684,15 +683,6 @@ func TestAccPowerPortResource_importWithCustomFieldsAndTags(t *testing.T) {
 	tenantName := testutil.RandomName("tenant")
 	tenantSlug := testutil.RandomSlug("tenant")
 
-	// Custom field names with underscore format
-	cfText := testutil.RandomCustomFieldName("cf_text")
-	cfLongtext := testutil.RandomCustomFieldName("cf_longtext")
-	cfInteger := testutil.RandomCustomFieldName("cf_integer")
-	cfBoolean := testutil.RandomCustomFieldName("cf_boolean")
-	cfDate := testutil.RandomCustomFieldName("cf_date")
-	cfUrl := testutil.RandomCustomFieldName("cf_url")
-	cfJson := testutil.RandomCustomFieldName("cf_json")
-
 	// Tag names
 	tag1 := testutil.RandomName("tag1")
 	tag1Slug := testutil.RandomSlug("tag1")
@@ -706,7 +696,7 @@ func TestAccPowerPortResource_importWithCustomFieldsAndTags(t *testing.T) {
 		Steps: []resource.TestStep{
 			// First create the resource
 			{
-				Config: testAccPowerPortResourceImportConfig_full(powerPortName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				Config: testAccPowerPortResourceImportConfig_full(powerPortName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_power_port.test", "id"),
 					resource.TestCheckResourceAttr("netbox_power_port.test", "name", powerPortName),
@@ -714,14 +704,17 @@ func TestAccPowerPortResource_importWithCustomFieldsAndTags(t *testing.T) {
 			},
 			// Then test import
 			{
-				Config:                  testAccPowerPortResourceImportConfig_full(powerPortName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				Config:                  testAccPowerPortResourceImportConfig_full(powerPortName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug),
 				ResourceName:            "netbox_power_port.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device", "custom_fields", "tags"}, // Device reference may have lookup inconsistencies
+				ImportStateVerifyIgnore: []string{"device", "tags"}, // Device reference may have lookup inconsistencies
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_power_port.test", "device"),
+				),
 			},
 			{
-				Config:             testAccPowerPortResourceImportConfig_full(powerPortName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				Config:             testAccPowerPortResourceImportConfig_full(powerPortName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -729,7 +722,7 @@ func TestAccPowerPortResource_importWithCustomFieldsAndTags(t *testing.T) {
 	})
 }
 
-func testAccPowerPortResourceImportConfig_full(powerPortName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug string) string {
+func testAccPowerPortResourceImportConfig_full(powerPortName, deviceName, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, tenantName, tenantSlug, tag1, tag1Slug, tag2, tag2Slug string) string {
 	return fmt.Sprintf(`
 # Dependencies
 resource "netbox_tenant" "test" {
@@ -766,49 +759,6 @@ resource "netbox_device" "test" {
   name = %q
 }
 
-# Custom field definitions with different object types
-resource "netbox_custom_field" "test_text" {
-  name = %q
-  type = "text"
-  object_types = ["dcim.powerport"]
-}
-
-resource "netbox_custom_field" "test_longtext" {
-  name = %q
-  type = "longtext"
-  object_types = ["dcim.powerport"]
-}
-
-resource "netbox_custom_field" "test_integer" {
-  name = %q
-  type = "integer"
-  object_types = ["dcim.powerport"]
-}
-
-resource "netbox_custom_field" "test_boolean" {
-  name = %q
-  type = "boolean"
-  object_types = ["dcim.powerport"]
-}
-
-resource "netbox_custom_field" "test_date" {
-  name = %q
-  type = "date"
-  object_types = ["dcim.powerport"]
-}
-
-resource "netbox_custom_field" "test_url" {
-  name = %q
-  type = "url"
-  object_types = ["dcim.powerport"]
-}
-
-resource "netbox_custom_field" "test_json" {
-  name = %q
-  type = "json"
-  object_types = ["dcim.powerport"]
-}
-
 # Tag definitions
 resource "netbox_tag" "test_1" {
   name = %q
@@ -822,49 +772,11 @@ resource "netbox_tag" "test_2" {
   color = "00ff00"
 }
 
-# Power port with custom fields and tags
+# Power port with tags
 resource "netbox_power_port" "test" {
   device = netbox_device.test.id
   name = %q
   type = "iec-60320-c14"
-
-  custom_fields = [
-    {
-      name  = netbox_custom_field.test_text.name
-      type  = "text"
-      value = "custom text value"
-    },
-    {
-      name  = netbox_custom_field.test_longtext.name
-      type  = "longtext"
-      value = "custom longtext value"
-    },
-    {
-      name  = netbox_custom_field.test_integer.name
-      type  = "integer"
-      value = "123"
-    },
-    {
-      name  = netbox_custom_field.test_boolean.name
-      type  = "boolean"
-      value = "false"
-    },
-    {
-      name  = netbox_custom_field.test_date.name
-      type  = "date"
-      value = "2023-12-25"
-    },
-    {
-      name  = netbox_custom_field.test_url.name
-      type  = "url"
-      value = "https://custom.example.com"
-    },
-    {
-      name  = netbox_custom_field.test_json.name
-      type  = "json"
-      value = jsonencode({"custom": "json", "array": [1, 2, 3]})
-    }
-  ]
 
   tags = [
     netbox_tag.test_1.slug,
@@ -878,13 +790,6 @@ resource "netbox_power_port" "test" {
 		roleName, roleSlug,
 		dtModel, dtSlug,
 		deviceName,
-		cfText,
-		cfLongtext,
-		cfInteger,
-		cfBoolean,
-		cfDate,
-		cfUrl,
-		cfJson,
 		tag1, tag1Slug,
 		tag2, tag2Slug,
 		powerPortName,

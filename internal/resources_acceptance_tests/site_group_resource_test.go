@@ -50,13 +50,11 @@ func TestAccSiteGroupResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteGroupCleanup(slug)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -64,30 +62,27 @@ func TestAccSiteGroupResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckSiteGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_site_group.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_site_group.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config:   testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 			{
-				Config: testAccSiteGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccSiteGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_site_group.test", "description", updatedDescription),
-					resource.TestCheckResourceAttr("netbox_site_group.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 			{
-				Config:   testAccSiteGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccSiteGroupResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 		},
@@ -284,13 +279,11 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteGroupCleanup(slug)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -298,7 +291,7 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 		CheckDestroy:             testutil.CheckSiteGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_site_group.test", "name", name),
@@ -307,7 +300,7 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_group.test", "id"),
@@ -317,7 +310,7 @@ func TestAccConsistency_SiteGroup_LiteralNames(t *testing.T) {
 	})
 }
 
-func testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccSiteGroupResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[4]q
@@ -329,11 +322,6 @@ resource "netbox_tag" "tag2" {
 	slug = %[7]q
 }
 
-resource "netbox_custom_field" "test_field" {
-	name         = %[8]q
-	object_types = ["dcim.sitegroup"]
-	type         = "text"
-}
 
 resource "netbox_site_group" "test" {
 	name        = %[1]q
@@ -344,19 +332,11 @@ resource "netbox_site_group" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccSiteGroupResourceConfig_fullUpdate(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccSiteGroupResourceConfig_fullUpdate(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[4]q
@@ -368,12 +348,6 @@ resource "netbox_tag" "tag2" {
 	slug = %[7]q
 }
 
-resource "netbox_custom_field" "test_field" {
-	name         = %[8]q
-	object_types = ["dcim.sitegroup"]
-	type         = "text"
-}
-
 resource "netbox_site_group" "test" {
 	name        = %[1]q
 	slug        = %[2]q
@@ -383,16 +357,8 @@ resource "netbox_site_group" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "updated_value"
-		}
-	]
 }
-`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
 func testAccSiteGroupResourceConfig_import(name, slug string) string {

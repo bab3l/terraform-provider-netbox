@@ -173,6 +173,9 @@ func TestAccVirtualDiskResource_import(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"virtual_machine"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_virtual_disk.test", "virtual_machine"),
+				),
 			},
 			{
 				Config:   testAccVirtualDiskResourceConfig_basic(diskName, vmName, clusterName, clusterTypeName, clusterTypeSlug),

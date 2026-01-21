@@ -287,6 +287,122 @@ func TestAccConsistency_VirtualMachine_PlatformNamePersistence(t *testing.T) {
 	})
 }
 
+func TestAccVirtualMachineResource_ImportCommandRequiresApply(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-import")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-import")
+	clusterName := testutil.RandomName("tf-test-cluster-import")
+	roleName := testutil.RandomName("tf-test-vm-role-import")
+	roleSlug := testutil.RandomSlug("tf-test-vm-role-import")
+	tenantName := testutil.RandomName("tf-test-vm-tenant-import")
+	tenantSlug := testutil.RandomSlug("tf-test-vm-tenant-import")
+	platformName := testutil.RandomName("tf-test-vm-platform-import")
+	platformSlug := testutil.RandomSlug("tf-test-vm-platform-import")
+	vmName := testutil.RandomName("tf-test-vm-import")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterPlatformCleanup(platformSlug)
+
+	// Variable to capture created resource IDs from first test case
+	var vmID, clusterID, roleID, tenantID, platformID string
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckTenantDestroy,
+			testutil.CheckPlatformDestroy,
+		),
+		Steps: []resource.TestStep{
+			// Step 1: Create resources using ID references and capture the IDs
+			{
+				Config: testAccVirtualMachineResourceConfig_importCommandIDRefs(clusterTypeName, clusterTypeSlug, clusterName, roleName, roleSlug, tenantName, tenantSlug, platformName, platformSlug, vmName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "id"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
+					// Capture the IDs for later use
+					testutil.ExtractResourceAttr("netbox_virtual_machine.test", "id", &vmID),
+					testutil.ExtractResourceAttr("netbox_cluster.test", "id", &clusterID),
+					testutil.ExtractResourceAttr("netbox_device_role.test", "id", &roleID),
+					testutil.ExtractResourceAttr("netbox_tenant.test", "id", &tenantID),
+					testutil.ExtractResourceAttr("netbox_platform.test", "id", &platformID),
+				),
+			},
+			// Step 2: Simulate fresh import by using ImportCommandWithID
+			// This uses the SAME config (with ID references), but simulates a user
+			// running `terraform import` on the command line
+			{
+				Config:            testAccVirtualMachineResourceConfig_importCommandIDRefs(clusterTypeName, clusterTypeSlug, clusterName, roleName, roleSlug, tenantName, tenantSlug, platformName, platformSlug, vmName),
+				ResourceName:      "netbox_virtual_machine.test",
+				ImportState:       true,
+				ImportStateKind:   resource.ImportCommandWithID,
+				ImportStateVerify: false,
+			},
+			// Step 3: Verify imported state contains numeric IDs (not names)
+			// After import, reference fields MUST contain IDs to match configs using resource.id references.
+			// This validates that UpdateReferenceAttribute correctly returns numeric IDs during import.
+			{
+				Config: testAccVirtualMachineResourceConfig_importCommandIDRefs(clusterTypeName, clusterTypeSlug, clusterName, roleName, roleSlug, tenantName, tenantSlug, platformName, platformSlug, vmName),
+				Check: resource.ComposeTestCheckFunc(
+					// Use the standard helper to validate all reference fields are numeric IDs
+					testutil.ReferenceFieldCheck("netbox_virtual_machine.test", "cluster"),
+					testutil.ReferenceFieldCheck("netbox_virtual_machine.test", "role"),
+					testutil.ReferenceFieldCheck("netbox_virtual_machine.test", "tenant"),
+					testutil.ReferenceFieldCheck("netbox_virtual_machine.test", "platform"),
+				),
+			},
+		},
+	})
+}
+
+func testAccVirtualMachineResourceConfig_importCommandIDRefs(clusterTypeName, clusterTypeSlug, clusterName, roleName, roleSlug, tenantName, tenantSlug, platformName, platformSlug, vmName string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_device_role" "test" {
+  name  = %q
+  slug  = %q
+  color = "ff0000"
+}
+
+resource "netbox_tenant" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_platform" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_virtual_machine" "test" {
+  name     = %q
+  cluster  = netbox_cluster.test.id
+  role     = netbox_device_role.test.id
+  tenant   = netbox_tenant.test.id
+  platform = netbox_platform.test.id
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, roleName, roleSlug, tenantName, tenantSlug, platformName, platformSlug, vmName)
+}
+
 func testAccVirtualMachineResourceConfig_platformNamePersistence(clusterTypeName, clusterTypeSlug, clusterName, platformName, platformSlug, vmName string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {

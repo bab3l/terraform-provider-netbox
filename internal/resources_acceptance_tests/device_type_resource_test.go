@@ -41,6 +41,10 @@ func TestAccDeviceTypeResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"manufacturer"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_device_type.test", "manufacturer"),
+					testutil.ReferenceFieldCheck("netbox_device_type.test", "default_platform"),
+				),
 			},
 			{
 				Config:   testAccDeviceTypeResourceConfig_basic(model, slug, manufacturerName, manufacturerSlug),

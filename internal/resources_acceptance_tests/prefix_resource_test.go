@@ -385,9 +385,30 @@ func TestAccPrefixResource_import(t *testing.T) {
 	t.Parallel()
 
 	prefix := testutil.RandomIPv4Prefix()
+	siteName := testutil.RandomName("site")
+	siteSlug := testutil.RandomSlug("site")
+	tenantName := testutil.RandomName("tenant")
+	tenantSlug := testutil.RandomSlug("tenant")
+	vrfName := testutil.RandomName("vrf")
+	vlanName := testutil.RandomName("vlan")
+	vlanVid := int32(100)
+	roleName := testutil.RandomName("role")
+	roleSlug := testutil.RandomSlug("role")
+	description := testutil.RandomName("description")
+	tagName1 := testutil.RandomName("tag1")
+	tagSlug1 := testutil.RandomSlug("tag1")
+	tagName2 := testutil.RandomName("tag2")
+	tagSlug2 := testutil.RandomSlug("tag2")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterPrefixCleanup(prefix)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterVRFCleanup(vrfName)
+	cleanup.RegisterVLANCleanup(vlanVid)
+	cleanup.RegisterRoleCleanup(roleSlug)
+	cleanup.RegisterTagCleanup(tagSlug1)
+	cleanup.RegisterTagCleanup(tagSlug2)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -395,7 +416,7 @@ func TestAccPrefixResource_import(t *testing.T) {
 		CheckDestroy:             testutil.CheckPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPrefixResourceConfig_basic(prefix),
+				Config: testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
 					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
@@ -405,9 +426,19 @@ func TestAccPrefixResource_import(t *testing.T) {
 				ResourceName:      "netbox_prefix.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"tags",
+				},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_prefix.test", "site"),
+					testutil.ReferenceFieldCheck("netbox_prefix.test", "tenant"),
+					testutil.ReferenceFieldCheck("netbox_prefix.test", "vrf"),
+					testutil.ReferenceFieldCheck("netbox_prefix.test", "vlan"),
+					testutil.ReferenceFieldCheck("netbox_prefix.test", "role"),
+				),
 			},
 			{
-				Config:   testAccPrefixResourceConfig_basic(prefix),
+				Config:   testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 		},

@@ -39,6 +39,10 @@ func TestAccPowerFeedResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"power_panel"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_power_feed.test", "rack"),
+					testutil.ReferenceFieldCheck("netbox_power_feed.test", "tenant"),
+				),
 			},
 			{
 				Config:             testAccPowerFeedResourceConfig_basic(siteName, siteSlug, panelName, feedName),

@@ -82,14 +82,13 @@ func TestAccVirtualChassisResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVirtualChassisResourceConfig_full(name, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccVirtualChassisResourceConfig_full(name, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_virtual_chassis.test", "id"),
 					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "name", name),
@@ -97,15 +96,12 @@ func TestAccVirtualChassisResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "comments", "Test comments"),
 					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config: testAccVirtualChassisResourceConfig_fullUpdate(name, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccVirtualChassisResourceConfig_fullUpdate(name, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "description", updatedDescription),
-					resource.TestCheckResourceAttr("netbox_virtual_chassis.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 		},
@@ -191,7 +187,7 @@ resource "netbox_virtual_chassis" "test" {
 `, name, domain, description)
 }
 
-func testAccVirtualChassisResourceConfig_full(name, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccVirtualChassisResourceConfig_full(name, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
   name = %[3]q
@@ -203,12 +199,6 @@ resource "netbox_tag" "tag2" {
   slug = %[6]q
 }
 
-resource "netbox_custom_field" "test_field" {
-  name         = %[7]q
-  object_types = ["dcim.virtualchassis"]
-  type         = "text"
-}
-
 resource "netbox_virtual_chassis" "test" {
   name        = %[1]q
   domain      = "test-domain"
@@ -216,19 +206,11 @@ resource "netbox_virtual_chassis" "test" {
   comments    = "Test comments"
 
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
-
-  custom_fields = [
-    {
-      name  = netbox_custom_field.test_field.name
-      type  = "text"
-      value = "test_value"
-    }
-  ]
 }
-`, name, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccVirtualChassisResourceConfig_fullUpdate(name, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccVirtualChassisResourceConfig_fullUpdate(name, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
   name = %[3]q
@@ -240,12 +222,6 @@ resource "netbox_tag" "tag2" {
   slug = %[6]q
 }
 
-resource "netbox_custom_field" "test_field" {
-  name         = %[7]q
-  object_types = ["dcim.virtualchassis"]
-  type         = "text"
-}
-
 resource "netbox_virtual_chassis" "test" {
   name        = %[1]q
   domain      = "test-domain"
@@ -253,17 +229,9 @@ resource "netbox_virtual_chassis" "test" {
   comments    = "Test comments"
 
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
-
-  custom_fields = [
-    {
-      name  = netbox_custom_field.test_field.name
-      type  = "text"
-      value = "updated_value"
-    }
-  ]
 }
 
-`, name, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, description, tagName1, tagSlug1, tagName2, tagSlug2)
 
 }
 

@@ -134,6 +134,11 @@ func TestAccInventoryItemResource_import(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_inventory_item.test", "device"),
+					testutil.ReferenceFieldCheck("netbox_inventory_item.test", "role"),
+					testutil.ReferenceFieldCheck("netbox_inventory_item.test", "manufacturer"),
+				),
 			},
 			{
 				Config:   testAccInventoryItemResourceConfig_basicWithSlugs(name, siteSlug, manufacturerSlug, deviceTypeSlug, deviceRoleSlug),

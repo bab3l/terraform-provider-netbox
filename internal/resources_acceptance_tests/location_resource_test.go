@@ -104,6 +104,11 @@ func TestAccLocationResource_import(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"site"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_location.test", "site"),
+					testutil.ReferenceFieldCheck("netbox_location.test", "parent"),
+					testutil.ReferenceFieldCheck("netbox_location.test", "tenant"),
+				),
 			},
 			{
 				Config:   testAccLocationResourceConfig_import(siteName, siteSlug, name, slug),

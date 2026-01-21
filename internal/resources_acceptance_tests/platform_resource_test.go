@@ -164,6 +164,9 @@ func TestAccPlatformResource_import(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"manufacturer", "display_name"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_platform.test", "manufacturer"),
+				),
 			},
 			{
 				Config:   testAccPlatformResourceConfig_import(platformName, platformSlug, manufacturerName, manufacturerSlug),

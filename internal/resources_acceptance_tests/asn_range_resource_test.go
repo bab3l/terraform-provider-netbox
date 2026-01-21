@@ -366,6 +366,10 @@ func TestAccASNRangeResource_import(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"rir"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_asn_range.test", "rir"),
+					testutil.ReferenceFieldCheck("netbox_asn_range.test", "tenant"),
+				),
 			},
 			{
 				Config:   testAccASNRangeResourceConfig_basic(name, slug, rirName, rirSlug),

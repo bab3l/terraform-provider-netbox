@@ -188,6 +188,10 @@ func TestAccCircuitGroupAssignmentResource_import(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"group_id", "circuit_id"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_circuit_group_assignment.test", "group_id"),
+					testutil.ReferenceFieldCheck("netbox_circuit_group_assignment.test", "circuit_id"),
+				),
 			},
 			{
 				Config:   testAccCircuitGroupAssignmentResourceConfig_basic(groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),

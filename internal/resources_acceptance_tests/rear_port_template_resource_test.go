@@ -40,6 +40,10 @@ func TestAccRearPortTemplateResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"device_type"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_rear_port_template.test", "device_type"),
+					testutil.ReferenceFieldCheck("netbox_rear_port_template.test", "module_type"),
+				),
 			},
 			{
 				Config:             testAccRearPortTemplateResourceBasic(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, name, portType),

@@ -38,6 +38,9 @@ func TestAccRackTypeResource_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"manufacturer"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_rack_type.test", "manufacturer"),
+				),
 			},
 			{
 				Config:             testAccRackTypeResourceConfig_basic(mfgName, mfgSlug, model, slug),

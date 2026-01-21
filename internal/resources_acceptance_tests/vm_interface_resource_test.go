@@ -244,6 +244,11 @@ func TestAccVMInterfaceResource_import(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"virtual_machine"},
+				Check: resource.ComposeTestCheckFunc(
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "virtual_machine"),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "untagged_vlan"),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "vrf"),
+				),
 			},
 			{
 				Config:   testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),

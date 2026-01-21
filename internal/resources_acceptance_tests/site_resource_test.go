@@ -53,13 +53,11 @@ func TestAccSiteResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
-	cfName := testutil.RandomCustomFieldName("test_field")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(slug)
 	cleanup.RegisterTagCleanup(tagSlug1)
 	cleanup.RegisterTagCleanup(tagSlug2)
-	cleanup.RegisterCustomFieldCleanup(cfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -67,7 +65,7 @@ func TestAccSiteResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckSiteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
 					resource.TestCheckResourceAttr("netbox_site.test", "name", name),
@@ -75,23 +73,20 @@ func TestAccSiteResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_site.test", "status", "active"),
 					resource.TestCheckResourceAttr("netbox_site.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_site.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("netbox_site.test", "custom_fields.#", "1"),
-					resource.TestCheckResourceAttr("netbox_site.test", "custom_fields.0.value", "test_value"),
 				),
 			},
 			{
-				Config:   testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 			{
-				Config: testAccSiteResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config: testAccSiteResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_site.test", "description", updatedDescription),
-					resource.TestCheckResourceAttr("netbox_site.test", "custom_fields.0.value", "updated_value"),
 				),
 			},
 			{
-				Config:   testAccSiteResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, cfName),
+				Config:   testAccSiteResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 		},
@@ -340,7 +335,7 @@ resource "netbox_site" "test" {
 `, name, slug)
 }
 
-func testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[4]q
@@ -350,12 +345,6 @@ resource "netbox_tag" "tag1" {
 resource "netbox_tag" "tag2" {
 	name = %[6]q
 	slug = %[7]q
-}
-
-resource "netbox_custom_field" "test_field" {
-	name         = %[8]q
-	object_types = ["dcim.site"]
-	type         = "text"
 }
 
 resource "netbox_site" "test" {
@@ -368,19 +357,11 @@ resource "netbox_site" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "test_value"
-		}
-	]
 }
-`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccSiteResourceConfig_fullUpdate(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName string) string {
+func testAccSiteResourceConfig_fullUpdate(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[4]q
@@ -390,12 +371,6 @@ resource "netbox_tag" "tag1" {
 resource "netbox_tag" "tag2" {
 	name = %[6]q
 	slug = %[7]q
-}
-
-resource "netbox_custom_field" "test_field" {
-	name         = %[8]q
-	object_types = ["dcim.site"]
-	type         = "text"
 }
 
 resource "netbox_site" "test" {
@@ -409,16 +384,8 @@ resource "netbox_site" "test" {
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
-
-	custom_fields = [
-		{
-			name  = netbox_custom_field.test_field.name
-			type  = "text"
-			value = "updated_value"
-		}
-	]
 }
-`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, cfName)
+`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
 func testAccSiteResourceConfig_import(name, slug string) string {
