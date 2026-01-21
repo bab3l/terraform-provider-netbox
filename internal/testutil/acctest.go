@@ -10,6 +10,7 @@ import (
 
 	"github.com/bab3l/go-netbox"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 var (
@@ -174,5 +175,25 @@ func TestAccPreCheck(t interface {
 
 	if os.Getenv("NETBOX_API_TOKEN") == "" {
 		t.Fatal("NETBOX_API_TOKEN must be set for acceptance tests")
+	}
+}
+
+// ExtractResourceAttr returns a check function that extracts an attribute value
+// from a resource and stores it in the provided pointer.
+// This is useful for capturing IDs or other values during test steps for later use.
+func ExtractResourceAttr(resourceName, attrName string, value *string) func(*terraform.State) error {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("resource not found: %s", resourceName)
+		}
+
+		attrValue, ok := rs.Primary.Attributes[attrName]
+		if !ok {
+			return fmt.Errorf("attribute %q not found on resource %s", attrName, resourceName)
+		}
+
+		*value = attrValue
+		return nil
 	}
 }

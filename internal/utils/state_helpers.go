@@ -119,17 +119,12 @@ func Int64FromInt32API(hasValue bool, getValue func() int32, current types.Int64
 func UpdateReferenceAttribute(current types.String, apiName string, apiSlug string, apiID int32) types.String {
 	apiIDStr := fmt.Sprintf("%d", apiID)
 
-	// If current state is unknown, return the preferred format (name > slug > ID)
-	// This handles both initial resource creation and import scenarios
+	// If current state is unknown or null (import scenario), prefer ID for consistency
+	// with typical Terraform config patterns where users reference resources by ID
+	// (e.g., cluster = netbox_cluster.test.id). This prevents unnecessary plan diffs
+	// after import when configs use ID references.
 
 	if current.IsUnknown() || current.IsNull() {
-		// Prefer name, then slug, then ID
-		if apiName != "" {
-			return types.StringValue(apiName)
-		}
-		if apiSlug != "" {
-			return types.StringValue(apiSlug)
-		}
 		return types.StringValue(apiIDStr)
 	}
 

@@ -223,12 +223,7 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 
 	if vm.Cluster.IsSet() && vm.Cluster.Get() != nil {
 		clusterObj := vm.Cluster.Get()
-		// During import, data.Cluster is null, so use ID for consistency with typical config usage
-		if data.Cluster.IsNull() {
-			data.Cluster = types.StringValue(fmt.Sprintf("%d", clusterObj.GetId()))
-		} else {
-			data.Cluster = utils.UpdateReferenceAttribute(data.Cluster, clusterObj.GetName(), "", clusterObj.GetId())
-		}
+		data.Cluster = utils.UpdateReferenceAttribute(data.Cluster, clusterObj.GetName(), "", clusterObj.GetId())
 	} else {
 		data.Cluster = types.StringNull()
 	}

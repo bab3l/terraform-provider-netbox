@@ -2219,28 +2219,28 @@ func TestUpdateReferenceAttribute(t *testing.T) {
 			expectedValue: "provider-name",
 		},
 		{
-			name:          "Set to name when unknown (during create)",
+			name:          "Set to ID when unknown (during create) - prefer ID for config consistency",
 			currentValue:  types.StringUnknown(),
 			apiID:         456,
 			apiName:       "new-provider",
 			apiSlug:       "new-provider-slug",
-			expectedValue: "new-provider", // NEW: prefer name over ID
+			expectedValue: "456", // Prefer ID for consistency with typical resource.id patterns
 		},
 		{
-			name:          "Set to name when unknown (during create)",
+			name:          "Set to ID when unknown even with name/slug available",
 			currentValue:  types.StringUnknown(),
 			apiID:         456,
 			apiName:       "new-provider",
 			apiSlug:       "new-provider-slug",
-			expectedValue: "new-provider", // NEW: prefer name over ID
+			expectedValue: "456", // Prefer ID for consistency with typical resource.id patterns
 		},
 		{
-			name:          "Set to slug when unknown and no name available",
+			name:          "Set to ID when unknown and no name available",
 			currentValue:  types.StringUnknown(),
 			apiID:         456,
 			apiName:       "",
 			apiSlug:       "new-provider-slug",
-			expectedValue: "new-provider-slug",
+			expectedValue: "456", // Always prefer ID when state is unknown
 		},
 		{
 			name:          "Set to ID when unknown and no name or slug available",
@@ -2251,12 +2251,12 @@ func TestUpdateReferenceAttribute(t *testing.T) {
 			expectedValue: "456",
 		},
 		{
-			name:          "Populate name when current is null (import scenario)",
+			name:          "Populate ID when current is null (import scenario)",
 			currentValue:  types.StringNull(),
 			apiID:         789,
 			apiName:       "provider",
 			apiSlug:       "provider-slug",
-			expectedValue: "provider", // NEW: populate with name during import
+			expectedValue: "789", // Prefer ID during import for config consistency
 		},
 		{
 			name:          "Preserve non-numeric value when reference changed but value is not numeric",
