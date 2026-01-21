@@ -3,12 +3,10 @@ package resources_acceptance_tests
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccVirtualMachineResource_basic(t *testing.T) {
@@ -352,55 +350,15 @@ func TestAccVirtualMachineResource_ImportCommandRequiresApply(t *testing.T) {
 			},
 			// Step 3: Verify imported state contains numeric IDs (not names)
 			// After import, reference fields MUST contain IDs to match configs using resource.id references.
-			// This is the actual validation - if UpdateReferenceAttribute returns names instead of IDs,
-			// this step will fail with assertion errors.
+			// This validates that UpdateReferenceAttribute correctly returns numeric IDs during import.
 			{
 				Config: testAccVirtualMachineResourceConfig_importCommandIDRefs(clusterTypeName, clusterTypeSlug, clusterName, roleName, roleSlug, tenantName, tenantSlug, platformName, platformSlug, vmName),
 				Check: resource.ComposeTestCheckFunc(
-					func(s *terraform.State) error {
-						rs := s.RootModule().Resources["netbox_virtual_machine.test"]
-						if rs == nil {
-							return fmt.Errorf("resource not found")
-						}
-
-						// Helper to verify a field contains a numeric ID
-						verifyNumericID := func(fieldName, expectedID string) error {
-							actual := rs.Primary.Attributes[fieldName]
-							if actual == "" {
-								return fmt.Errorf("%s is empty", fieldName)
-							}
-							// Try to parse as integer - if it fails, it's probably a name string
-							if _, err := strconv.Atoi(actual); err != nil {
-								return fmt.Errorf("%s should be numeric ID after import, got non-numeric value: %q", fieldName, actual)
-							}
-							// Verify it matches the expected ID
-							if actual != expectedID {
-								return fmt.Errorf("%s mismatch: got %q, expected %q", fieldName, actual, expectedID)
-							}
-							return nil
-						}
-
-						// Verify all reference fields contain numeric IDs
-						if err := verifyNumericID("cluster", clusterID); err != nil {
-							return err
-						}
-						if err := verifyNumericID("role", roleID); err != nil {
-							return err
-						}
-						if err := verifyNumericID("tenant", tenantID); err != nil {
-							return err
-						}
-						if err := verifyNumericID("platform", platformID); err != nil {
-							return err
-						}
-
-						t.Logf("✓ After import - all reference fields contain numeric IDs:")
-						t.Logf("  cluster: %s ✓", clusterID)
-						t.Logf("  role: %s ✓", roleID)
-						t.Logf("  tenant: %s ✓", tenantID)
-						t.Logf("  platform: %s ✓", platformID)
-						return nil
-					},
+					// Use the standard helper to validate all reference fields are numeric IDs
+					testutil.ReferenceFieldCheck("netbox_virtual_machine.test", "cluster"),
+					testutil.ReferenceFieldCheck("netbox_virtual_machine.test", "role"),
+					testutil.ReferenceFieldCheck("netbox_virtual_machine.test", "tenant"),
+					testutil.ReferenceFieldCheck("netbox_virtual_machine.test", "platform"),
 				),
 			},
 		},
