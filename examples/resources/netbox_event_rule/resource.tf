@@ -27,3 +27,8 @@ resource "netbox_event_rule" "ip_changes" {
   action_object_id   = netbox_webhook.device_changes.id
   enabled            = true
 }
+
+import {
+  to = netbox_event_rule.device_changes
+  id = "123"
+}

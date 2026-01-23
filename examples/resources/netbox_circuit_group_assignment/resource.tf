@@ -32,3 +32,8 @@ resource "netbox_circuit_group_assignment" "test" {
     "primary-link"
   ]
 }
+
+import {
+  to = netbox_circuit_group_assignment.test
+  id = "123"
+}

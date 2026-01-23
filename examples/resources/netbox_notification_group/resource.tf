@@ -9,3 +9,8 @@ resource "netbox_notification_group" "network_engineers" {
   name        = "network-engineers"
   description = "Network engineering team for infrastructure alerts"
 }
+
+import {
+  to = netbox_notification_group.ops_team
+  id = "123"
+}

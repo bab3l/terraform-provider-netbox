@@ -5,3 +5,8 @@ resource "netbox_export_template" "test" {
   file_extension = "txt"
   mime_type      = "text/plain"
 }
+
+import {
+  to = netbox_export_template.test
+  id = "123"
+}

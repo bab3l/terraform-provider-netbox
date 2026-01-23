@@ -46,3 +46,8 @@ resource "netbox_fhrp_group_assignment" "test" {
   interface_id   = netbox_interface.test.id
   priority       = 100
 }
+
+import {
+  to = netbox_fhrp_group_assignment.test
+  id = "123"
+}

@@ -24,3 +24,8 @@ resource "netbox_contact" "with_tags" {
 
   tags = ["primary", "on-call"]
 }
+
+import {
+  to = netbox_contact.basic
+  id = "123"
+}

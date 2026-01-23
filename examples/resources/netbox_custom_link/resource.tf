@@ -4,3 +4,8 @@ resource "netbox_custom_link" "example" {
   link_text    = "View Documentation"
   link_url     = "https://docs.example.com/devices/{{ object.name }}"
 }
+
+import {
+  to = netbox_custom_link.example
+  id = "123"
+}

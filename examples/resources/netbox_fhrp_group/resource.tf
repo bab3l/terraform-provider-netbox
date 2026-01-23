@@ -4,3 +4,8 @@ resource "netbox_fhrp_group" "test" {
   auth_type = "plaintext"
   auth_key  = "secret"
 }
+
+import {
+  to = netbox_fhrp_group.test
+  id = "123"
+}

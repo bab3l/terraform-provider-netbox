@@ -28,3 +28,8 @@ resource "netbox_tag" "staging" {
   color       = "ff9800"
   description = "Staging environment resources"
 }
+
+import {
+  to = netbox_tag.production
+  id = "123"
+}

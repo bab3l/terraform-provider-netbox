@@ -8,3 +8,8 @@ resource "netbox_platform" "test" {
   slug         = "cisco-ios"
   manufacturer = netbox_manufacturer.test.name
 }
+
+import {
+  to = netbox_platform.test
+  id = "123"
+}
