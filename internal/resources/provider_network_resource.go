@@ -524,7 +524,7 @@ func (r *ProviderNetworkResource) ImportState(ctx context.Context, req resource.
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // buildProviderNetworkRequest builds a ProviderNetworkRequest from the Terraform model.

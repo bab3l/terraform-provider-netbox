@@ -1008,7 +1008,7 @@ func (r *VMInterfaceResource) ImportState(ctx context.Context, req resource.Impo
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 
 	// Mark mode as unknown during import so that Read method knows to populate it
 	// This allows import to preserve mode field while regular reads without mode in config don't cause drift

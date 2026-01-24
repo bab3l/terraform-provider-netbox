@@ -407,7 +407,7 @@ func (r *CustomFieldResource) Delete(ctx context.Context, req resource.DeleteReq
 
 // ImportState imports the resource state.
 func (r *CustomFieldResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // buildCustomFieldRequest builds a WritableCustomFieldRequest from the Terraform model.

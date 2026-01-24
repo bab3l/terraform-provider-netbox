@@ -593,7 +593,7 @@ func (r *PowerPortResource) ImportState(ctx context.Context, req resource.Import
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapResponseToModel maps the API response to the Terraform model.

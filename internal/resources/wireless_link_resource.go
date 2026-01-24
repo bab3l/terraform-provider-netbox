@@ -863,7 +863,7 @@ func (r *WirelessLinkResource) ImportState(ctx context.Context, req resource.Imp
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapToState maps the API response to the Terraform state.

@@ -414,7 +414,7 @@ func (r *ContactResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 func (r *ContactResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapContactToState maps a Netbox Contact to the Terraform state model.

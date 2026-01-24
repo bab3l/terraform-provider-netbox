@@ -357,7 +357,7 @@ func (r *ModuleBayTemplateResource) Delete(ctx context.Context, req resource.Del
 
 // ImportState imports the resource state.
 func (r *ModuleBayTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapToState maps the API response to the Terraform state.

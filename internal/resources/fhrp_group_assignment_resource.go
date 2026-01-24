@@ -376,7 +376,7 @@ func (r *FHRPGroupAssignmentResource) Delete(ctx context.Context, req resource.D
 
 // ImportState imports an existing FHRP group assignment.
 func (r *FHRPGroupAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapResponseToState maps the API response to the Terraform state.

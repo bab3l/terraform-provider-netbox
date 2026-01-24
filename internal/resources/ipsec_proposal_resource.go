@@ -447,7 +447,7 @@ func (r *IPSecProposalResource) ImportState(ctx context.Context, req resource.Im
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // setOptionalFields sets optional fields on the WritableIPSecProposalRequest.

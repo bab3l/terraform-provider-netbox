@@ -409,7 +409,7 @@ func (r *CircuitTypeResource) ImportState(ctx context.Context, req resource.Impo
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapCircuitTypeToState maps a CircuitType to the Terraform state model.

@@ -496,7 +496,7 @@ func (r *ASNRangeResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // setOptionalFields sets optional fields on the ASNRange request from the resource model.

@@ -250,7 +250,7 @@ func (r *DevicePrimaryIPResource) Delete(ctx context.Context, req resource.Delet
 
 // ImportState imports an existing device primary IP assignment into Terraform.
 func (r *DevicePrimaryIPResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 func (r *DevicePrimaryIPResource) mapToState(device *netbox.Device, data *DevicePrimaryIPResourceModel) {

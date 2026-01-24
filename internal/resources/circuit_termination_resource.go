@@ -426,7 +426,7 @@ func (r *CircuitTerminationResource) ImportState(ctx context.Context, req resour
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // buildCreateRequest builds a CircuitTerminationRequest from the model.

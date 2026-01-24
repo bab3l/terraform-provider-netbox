@@ -662,7 +662,7 @@ func (r *DeviceTypeResource) ImportState(ctx context.Context, req resource.Impor
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapDeviceTypeToState maps a DeviceType from the API to the Terraform state model.

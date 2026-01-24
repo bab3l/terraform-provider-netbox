@@ -597,7 +597,7 @@ func (r *SiteResource) ImportState(ctx context.Context, req resource.ImportState
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapSiteToState maps API response to Terraform state using state helpers.

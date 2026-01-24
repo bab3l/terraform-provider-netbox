@@ -261,7 +261,7 @@ func (r *TagResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 }
 
 func (r *TagResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapTagToState maps API response to Terraform state.

@@ -462,7 +462,7 @@ func (r *InventoryItemTemplateResource) Delete(ctx context.Context, req resource
 
 // ImportState imports the resource state.
 func (r *InventoryItemTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapToState maps the API response to the Terraform state.
