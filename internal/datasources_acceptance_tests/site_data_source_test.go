@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -141,6 +142,36 @@ func TestAccSiteDataSource_IDPreservation(t *testing.T) {
 	})
 }
 
+func TestAccSiteDataSource_asns(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-site-asn-ds")
+	slug := testutil.RandomSlug("tf-test-site-asn-ds")
+	rirName := testutil.RandomName("tf-test-rir")
+	rirSlug := testutil.RandomSlug("tf-test-rir")
+	asn := int64(acctest.RandIntRange(64512, 64711))
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(slug)
+	cleanup.RegisterRIRCleanup(rirSlug)
+	cleanup.RegisterASNCleanup(asn)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckSiteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSiteDataSourceConfigWithASN(name, slug, rirName, rirSlug, asn),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.netbox_site.test", "id"),
+					resource.TestCheckResourceAttr("data.netbox_site.test", "asns.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func testAccSiteDataSourceConfig(name, slug string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -192,4 +223,34 @@ data "netbox_site" "test" {
   name = netbox_site.test.name
 }
 `, name, slug)
+}
+
+func testAccSiteDataSourceConfigWithASN(name, slug, rirName, rirSlug string, asn int64) string {
+	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+	name   = %q
+	slug   = %q
+	status = "active"
+}
+
+resource "netbox_rir" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_asn" "test" {
+	asn = %d
+	rir = netbox_rir.test.id
+}
+
+resource "netbox_site_asn_assignment" "test" {
+	site = netbox_site.test.slug
+	asn  = netbox_asn.test.id
+}
+
+data "netbox_site" "test" {
+	slug = netbox_site.test.slug
+	depends_on = [netbox_site_asn_assignment.test]
+}
+`, name, slug, rirName, rirSlug, asn)
 }

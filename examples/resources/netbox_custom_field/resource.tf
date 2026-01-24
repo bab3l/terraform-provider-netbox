@@ -5,3 +5,8 @@ resource "netbox_custom_field" "test" {
   label         = "Test Field"
   required      = false
 }
+
+import {
+  to = netbox_custom_field.test
+  id = "123"
+}

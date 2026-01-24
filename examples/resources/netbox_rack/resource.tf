@@ -15,6 +15,7 @@ resource "netbox_rack" "test" {
   site        = netbox_site.test.name
   status      = "active"
   role        = netbox_rack_role.test.name
+  facility_id = "FAC-01"
   u_height    = 42
   width       = 19
   description = "Primary datacenter rack"

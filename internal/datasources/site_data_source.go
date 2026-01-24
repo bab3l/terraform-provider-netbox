@@ -45,6 +45,7 @@ type SiteDataSourceModel struct {
 	Tenant       types.String `tfsdk:"tenant"`
 	TenantID     types.String `tfsdk:"tenant_id"`
 	Facility     types.String `tfsdk:"facility"`
+	ASNs         types.List   `tfsdk:"asns"`
 	Description  types.String `tfsdk:"description"`
 	Comments     types.String `tfsdk:"comments"`
 	Tags         types.Set    `tfsdk:"tags"`
@@ -60,17 +61,22 @@ func (d *SiteDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Use this data source to get information about a site in Netbox. Sites represent physical locations such as data centers, offices, or other facilities where network infrastructure is deployed. You can identify the site using `id`, `slug`, or `name`.",
 		Attributes: map[string]schema.Attribute{
-			"id":            nbschema.DSIDAttribute("site"),
-			"name":          nbschema.DSNameAttribute("site"),
-			"slug":          nbschema.DSSlugAttribute("site"),
-			"status":        nbschema.DSComputedStringAttribute("Operational status of the site (e.g., `planned`, `staging`, `active`, `decommissioning`, `retired`)."),
-			"region":        nbschema.DSComputedStringAttribute("Name of the region where this site is located."),
-			"region_id":     nbschema.DSComputedStringAttribute("ID of the region where this site is located."),
-			"group":         nbschema.DSComputedStringAttribute("Name of the site group."),
-			"group_id":      nbschema.DSComputedStringAttribute("ID of the site group."),
-			"tenant":        nbschema.DSComputedStringAttribute("Name of the tenant that owns this site."),
-			"tenant_id":     nbschema.DSComputedStringAttribute("ID of the tenant that owns this site."),
-			"facility":      nbschema.DSComputedStringAttribute("Local facility identifier or description."),
+			"id":        nbschema.DSIDAttribute("site"),
+			"name":      nbschema.DSNameAttribute("site"),
+			"slug":      nbschema.DSSlugAttribute("site"),
+			"status":    nbschema.DSComputedStringAttribute("Operational status of the site (e.g., `planned`, `staging`, `active`, `decommissioning`, `retired`)."),
+			"region":    nbschema.DSComputedStringAttribute("Name of the region where this site is located."),
+			"region_id": nbschema.DSComputedStringAttribute("ID of the region where this site is located."),
+			"group":     nbschema.DSComputedStringAttribute("Name of the site group."),
+			"group_id":  nbschema.DSComputedStringAttribute("ID of the site group."),
+			"tenant":    nbschema.DSComputedStringAttribute("Name of the tenant that owns this site."),
+			"tenant_id": nbschema.DSComputedStringAttribute("ID of the tenant that owns this site."),
+			"facility":  nbschema.DSComputedStringAttribute("Local facility identifier or description."),
+			"asns": schema.ListAttribute{
+				MarkdownDescription: "List of ASN IDs associated with this site.",
+				Computed:            true,
+				ElementType:         types.Int64Type,
+			},
 			"description":   nbschema.DSComputedStringAttribute("Detailed description of the site."),
 			"comments":      nbschema.DSComputedStringAttribute("Additional comments or notes about the site."),
 			"display_name":  nbschema.DSComputedStringAttribute("The display name of the site."),
@@ -137,7 +143,9 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			resp.Diagnostics.AddError("Multiple Sites Found", fmt.Sprintf("Multiple sites found with slug: %s. This should not happen as slugs should be unique.", siteSlug))
 			return
 		}
-		site = &sites.GetResults()[0]
+		siteSummary := sites.GetResults()[0]
+		site, httpResp, err = d.client.DcimAPI.DcimSitesRetrieve(ctx, siteSummary.GetId()).Execute()
+		defer utils.CloseResponseBody(httpResp)
 
 	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		siteName := data.Name.ValueString()
@@ -157,7 +165,9 @@ func (d *SiteDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			resp.Diagnostics.AddError("Multiple Sites Found", fmt.Sprintf("Multiple sites found with name: %s. Site names may not be unique in Netbox.", siteName))
 			return
 		}
-		site = &sites.GetResults()[0]
+		siteSummary := sites.GetResults()[0]
+		site, httpResp, err = d.client.DcimAPI.DcimSitesRetrieve(ctx, siteSummary.GetId()).Execute()
+		defer utils.CloseResponseBody(httpResp)
 
 	default:
 		resp.Diagnostics.AddError("Missing Site Identifier", "Either 'id', 'slug', or 'name' must be specified to identify the site.")
@@ -218,6 +228,13 @@ func (d *SiteDataSource) mapSiteToState(ctx context.Context, site *netbox.Site, 
 		data.Group = types.StringNull()
 		data.GroupID = types.StringNull()
 	}
+
+	// Handle ASNs
+	asnIDs := make([]int64, len(site.GetAsns()))
+	for i, asn := range site.GetAsns() {
+		asnIDs[i] = int64(asn.GetId())
+	}
+	data.ASNs, _ = types.ListValueFrom(ctx, types.Int64Type, asnIDs)
 
 	// Handle tenant reference
 	if site.HasTenant() {

@@ -81,3 +81,8 @@ resource "netbox_config_context" "high_security" {
   })
   tags = ["security-hardened", "pci-compliant"]
 }
+
+import {
+  to = netbox_config_context.basic
+  id = "123"
+}

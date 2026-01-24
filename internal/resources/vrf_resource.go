@@ -50,6 +50,10 @@ type VRFResourceModel struct {
 
 	EnforceUnique types.Bool `tfsdk:"enforce_unique"`
 
+	ImportTargets types.List `tfsdk:"import_targets"`
+
+	ExportTargets types.List `tfsdk:"export_targets"`
+
 	Description types.String `tfsdk:"description"`
 
 	Comments types.String `tfsdk:"comments"`
@@ -88,6 +92,18 @@ func (r *VRFResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Computed: true,
 
 				Default: booldefault.StaticBool(true),
+			},
+
+			"import_targets": schema.ListAttribute{
+				MarkdownDescription: "List of Route Target IDs to import into this VRF.",
+				Optional:            true,
+				ElementType:         types.Int64Type,
+			},
+
+			"export_targets": schema.ListAttribute{
+				MarkdownDescription: "List of Route Target IDs to export from this VRF.",
+				Optional:            true,
+				ElementType:         types.Int64Type,
 			},
 
 			"description": nbschema.DescriptionAttribute("VRF"),
@@ -550,6 +566,48 @@ func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.
 		vrfRequest.EnforceUnique = utils.BoolPtr(data.EnforceUnique)
 	}
 
+	// Import targets
+	if !data.ImportTargets.IsNull() && !data.ImportTargets.IsUnknown() {
+		var targetIDs []int64
+		diags.Append(data.ImportTargets.ElementsAs(ctx, &targetIDs, false)...)
+		if diags.HasError() {
+			return
+		}
+		importTargets := make([]int32, len(targetIDs))
+		for i, id := range targetIDs {
+			converted, err := utils.SafeInt32(id)
+			if err != nil {
+				diags.AddError("Invalid import target ID", err.Error())
+				return
+			}
+			importTargets[i] = converted
+		}
+		vrfRequest.ImportTargets = importTargets
+	} else if state != nil && data.ImportTargets.IsNull() {
+		vrfRequest.ImportTargets = []int32{}
+	}
+
+	// Export targets
+	if !data.ExportTargets.IsNull() && !data.ExportTargets.IsUnknown() {
+		var targetIDs []int64
+		diags.Append(data.ExportTargets.ElementsAs(ctx, &targetIDs, false)...)
+		if diags.HasError() {
+			return
+		}
+		exportTargets := make([]int32, len(targetIDs))
+		for i, id := range targetIDs {
+			converted, err := utils.SafeInt32(id)
+			if err != nil {
+				diags.AddError("Invalid export target ID", err.Error())
+				return
+			}
+			exportTargets[i] = converted
+		}
+		vrfRequest.ExportTargets = exportTargets
+	} else if state != nil && data.ExportTargets.IsNull() {
+		vrfRequest.ExportTargets = []int32{}
+	}
+
 	// Description
 	utils.ApplyDescription(vrfRequest, data.Description)
 
@@ -601,6 +659,38 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 
 	// Enforce unique - default is true
 	data.EnforceUnique = types.BoolValue(vrf.GetEnforceUnique())
+
+	// Import targets
+	if len(vrf.GetImportTargets()) > 0 {
+		importIDs := make([]int64, len(vrf.GetImportTargets()))
+		for i, target := range vrf.GetImportTargets() {
+			importIDs[i] = int64(target.GetId())
+		}
+		importValue, importDiags := types.ListValueFrom(ctx, types.Int64Type, importIDs)
+		diags.Append(importDiags...)
+		if diags.HasError() {
+			return
+		}
+		data.ImportTargets = importValue
+	} else {
+		data.ImportTargets = types.ListNull(types.Int64Type)
+	}
+
+	// Export targets
+	if len(vrf.GetExportTargets()) > 0 {
+		exportIDs := make([]int64, len(vrf.GetExportTargets()))
+		for i, target := range vrf.GetExportTargets() {
+			exportIDs[i] = int64(target.GetId())
+		}
+		exportValue, exportDiags := types.ListValueFrom(ctx, types.Int64Type, exportIDs)
+		diags.Append(exportDiags...)
+		if diags.HasError() {
+			return
+		}
+		data.ExportTargets = exportValue
+	} else {
+		data.ExportTargets = types.ListNull(types.Int64Type)
+	}
 
 	// Description
 	data.Description = utils.NullableStringFromAPI(

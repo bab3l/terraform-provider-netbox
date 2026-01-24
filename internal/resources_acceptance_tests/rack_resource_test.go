@@ -47,6 +47,7 @@ func TestAccRackResource_full(t *testing.T) {
 	siteSlug := testutil.RandomSlug("tf-test-rack-s-full")
 	rackName := testutil.RandomName("tf-test-rack-full")
 	description := testutil.RandomName("description")
+	facilityID := "FAC-01"
 
 	// Register cleanup
 	cleanup := testutil.NewCleanupResource(t)
@@ -59,7 +60,7 @@ func TestAccRackResource_full(t *testing.T) {
 		CheckDestroy:             testutil.ComposeCheckDestroy(testutil.CheckRackDestroy, testutil.CheckSiteDestroy),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRackResourceConfig_full(siteName, siteSlug, rackName, description),
+				Config: testAccRackResourceConfig_full(siteName, siteSlug, rackName, description, facilityID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
@@ -67,6 +68,7 @@ func TestAccRackResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_rack.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_rack.test", "u_height", "42"),
 					resource.TestCheckResourceAttr("netbox_rack.test", "width", "19"),
+					resource.TestCheckResourceAttr("netbox_rack.test", "facility_id", facilityID),
 				),
 			},
 		},
@@ -382,34 +384,24 @@ resource "netbox_rack" "test" {
 }
 
 // testAccRackResourceConfig_full returns a test configuration with all fields.
-func testAccRackResourceConfig_full(siteName, siteSlug, rackName, description string) string {
+func testAccRackResourceConfig_full(siteName, siteSlug, rackName, description, facilityID string) string {
 	return fmt.Sprintf(`
-terraform {
-  required_providers {
-    netbox = {
-      source = "bab3l/netbox"
-      version = ">= 0.1.0"
-    }
-  }
-}
-
-provider "netbox" {}
-
 resource "netbox_site" "test" {
-  name   = %q
-  slug   = %q
-  status = "active"
+	name   = %q
+	slug   = %q
+	status = "active"
 }
 
 resource "netbox_rack" "test" {
-  name        = %q
-  site        = netbox_site.test.id
-  status      = "active"
-  u_height    = 42
-  width       = 19
-  description = %q
+	name        = %q
+	site        = netbox_site.test.id
+	status      = "active"
+	u_height    = 42
+	width       = 19
+	description = %q
+	facility_id = %q
 }
-`, siteName, siteSlug, rackName, description)
+`, siteName, siteSlug, rackName, description, facilityID)
 }
 
 func testAccRackResourceConfig_tags(siteName, siteSlug, rackName, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
@@ -494,17 +486,6 @@ resource "netbox_rack" "test" {
 // testAccRackResourceConfig_withLocation returns a test configuration with location.
 func testAccRackResourceConfig_withLocation(siteName, siteSlug, locationName, locationSlug, rackName string) string {
 	return fmt.Sprintf(`
-terraform {
-  required_providers {
-    netbox = {
-      source = "bab3l/netbox"
-      version = ">= 0.1.0"
-    }
-  }
-}
-
-provider "netbox" {}
-
 resource "netbox_site" "test" {
   name   = %q
   slug   = %q
@@ -660,6 +641,7 @@ func TestAccRackResource_removePhysicalFields(t *testing.T) {
 		OptionalFields: map[string]string{
 			"airflow":        "front-to-rear",
 			"form_factor":    "4-post-cabinet",
+			"facility_id":    "FAC-01",
 			"max_weight":     "1000",
 			"mounting_depth": "100",
 			"outer_depth":    "120",
@@ -680,51 +662,52 @@ func TestAccRackResource_removePhysicalFields(t *testing.T) {
 func testAccRackResourceConfig_physicalFields(siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
-  name   = %[1]q
-  slug   = %[2]q
-  status = "active"
+	name   = %[1]q
+	slug   = %[2]q
+	status = "active"
 }
 
 resource "netbox_location" "test" {
-  name = %[3]q
-  slug = %[4]q
-  site = netbox_site.test.id
+	name = %[3]q
+	slug = %[4]q
+	site = netbox_site.test.id
 }
 
 resource "netbox_tenant" "test" {
-  name = %[5]q
-  slug = %[6]q
+	name = %[5]q
+	slug = %[6]q
 }
 
 resource "netbox_rack_role" "test" {
-  name = %[7]q
-  slug = %[8]q
+	name = %[7]q
+	slug = %[8]q
 }
 
 resource "netbox_rack" "test" {
-  name           = %[9]q
-  site           = netbox_site.test.id
-  status         = "active"
-  location       = netbox_location.test.id
-  tenant         = netbox_tenant.test.id
-  role           = netbox_rack_role.test.id
-  airflow        = "front-to-rear"
-  desc_units     = true
-  form_factor    = "4-post-cabinet"
-  max_weight     = "1000"
-  mounting_depth = "100"
-  outer_depth    = "120"
-  outer_unit     = "mm"
-  outer_width    = "80"
-  starting_unit  = "1"
-  u_height       = "48"
-  weight         = "50.5"
-  weight_unit    = "kg"
-  width          = "19"
-  serial         = "SN123456"
-  asset_tag      = "TAG123456"
-  description    = "Test description"
-  comments       = "Test comments"
+	name           = %[9]q
+	site           = netbox_site.test.id
+	status         = "active"
+	facility_id    = "FAC-01"
+	location       = netbox_location.test.id
+	tenant         = netbox_tenant.test.id
+	role           = netbox_rack_role.test.id
+	airflow        = "front-to-rear"
+	desc_units     = true
+	form_factor    = "4-post-cabinet"
+	max_weight     = "1000"
+	mounting_depth = "100"
+	outer_depth    = "120"
+	outer_unit     = "mm"
+	outer_width    = "80"
+	starting_unit  = "1"
+	u_height       = "48"
+	weight         = "50.5"
+	weight_unit    = "kg"
+	width          = "19"
+	serial         = "SN123456"
+	asset_tag      = "TAG123456"
+	description    = "Test description"
+	comments       = "Test comments"
 }
 `, siteName, siteSlug, locationName, locationSlug, tenantName, tenantSlug, roleName, roleSlug, rackName)
 }
@@ -859,7 +842,6 @@ resource "netbox_rack" "test" {
 }
 `, siteName, siteSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName)
 }
-
 func testAccRackResourceConfig_referenceFields(siteName, siteSlug, mfgName, mfgSlug, rackTypeName, rackTypeSlug, rackName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {

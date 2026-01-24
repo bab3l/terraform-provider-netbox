@@ -103,7 +103,7 @@ resource "netbox_tag" "tag2" {
 resource "netbox_rack_type" "test" {
   model        = %q
   slug         = %q
-	manufacturer = netbox_manufacturer.test.name
+	manufacturer = netbox_manufacturer.test.id
   form_factor  = "4-post-frame"
 
   custom_fields = [

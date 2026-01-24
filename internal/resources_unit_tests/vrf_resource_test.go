@@ -72,7 +72,7 @@ func TestVRFResourceSchema(t *testing.T) {
 
 	}
 
-	optionalAttrs := []string{"rd", "tenant", "enforce_unique", "description", "comments"}
+	optionalAttrs := []string{"rd", "tenant", "enforce_unique", "import_targets", "export_targets", "description", "comments"}
 
 	for _, attr := range optionalAttrs {
 

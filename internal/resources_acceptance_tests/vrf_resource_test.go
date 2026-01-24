@@ -43,9 +43,13 @@ func TestAccVRFResource_full(t *testing.T) {
 	name := testutil.RandomName("tf-test-vrf-full")
 	rd := "65000:100"
 	description := "Test VRF with all fields"
+	importTargetName := testutil.RandomName("65000:300")
+	exportTargetName := testutil.RandomName("65000:400")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVRFCleanup(name)
+	cleanup.RegisterRouteTargetCleanup(importTargetName)
+	cleanup.RegisterRouteTargetCleanup(exportTargetName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -53,17 +57,19 @@ func TestAccVRFResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckVRFDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVRFResourceConfig_full(name, rd, description),
+				Config: testAccVRFResourceConfig_full(name, rd, description, importTargetName, exportTargetName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "rd", rd),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "enforce_unique", "true"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "import_targets.#", "1"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "export_targets.#", "1"),
 				),
 			},
 			{
-				Config:   testAccVRFResourceConfig_full(name, rd, description),
+				Config:   testAccVRFResourceConfig_full(name, rd, description, importTargetName, exportTargetName),
 				PlanOnly: true,
 			},
 		},
@@ -75,10 +81,14 @@ func TestAccVRFResource_update(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-vrf-update")
 	updatedName := testutil.RandomName("tf-test-vrf-updated")
+	importTargetName := testutil.RandomName("65000:310")
+	exportTargetName := testutil.RandomName("65000:410")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVRFCleanup(name)
 	cleanup.RegisterVRFCleanup(updatedName)
+	cleanup.RegisterRouteTargetCleanup(importTargetName)
+	cleanup.RegisterRouteTargetCleanup(exportTargetName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -97,7 +107,7 @@ func TestAccVRFResource_update(t *testing.T) {
 				PlanOnly: true,
 			},
 			{
-				Config: testAccVRFResourceConfig_full(updatedName, "65000:200", "Updated description"),
+				Config: testAccVRFResourceConfig_full(updatedName, "65000:200", "Updated description", importTargetName, exportTargetName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vrf.test", "name", updatedName),
@@ -106,7 +116,7 @@ func TestAccVRFResource_update(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccVRFResourceConfig_full(updatedName, "65000:200", "Updated description"),
+				Config:   testAccVRFResourceConfig_full(updatedName, "65000:200", "Updated description", importTargetName, exportTargetName),
 				PlanOnly: true,
 			},
 		},
@@ -226,15 +236,104 @@ resource "netbox_vrf" "test" {
 `, name)
 }
 
-func testAccVRFResourceConfig_full(name, rd, description string) string {
+func testAccVRFResourceConfig_full(name, rd, description, importTargetName, exportTargetName string) string {
 	return fmt.Sprintf(`
+resource "netbox_route_target" "import" {
+  name = %q
+}
+
+resource "netbox_route_target" "export" {
+  name = %q
+}
+
 resource "netbox_vrf" "test" {
   name           = %q
   rd             = %q
   description    = %q
   enforce_unique = true
+  import_targets = [netbox_route_target.import.id]
+  export_targets = [netbox_route_target.export.id]
 }
-`, name, rd, description)
+`, importTargetName, exportTargetName, name, rd, description)
+}
+
+func testAccVRFResourceConfig_withTargets(name, importTargetName, exportTargetName string) string {
+	return fmt.Sprintf(`
+resource "netbox_route_target" "import" {
+  name = %q
+}
+
+resource "netbox_route_target" "export" {
+  name = %q
+}
+
+resource "netbox_vrf" "test" {
+  name           = %q
+  import_targets = [netbox_route_target.import.id]
+  export_targets = [netbox_route_target.export.id]
+}
+`, importTargetName, exportTargetName, name)
+}
+
+func testAccVRFResourceConfig_withoutTargets(name, importTargetName, exportTargetName string) string {
+	return fmt.Sprintf(`
+resource "netbox_route_target" "import" {
+  name = %q
+}
+
+resource "netbox_route_target" "export" {
+  name = %q
+}
+
+resource "netbox_vrf" "test" {
+  name = %q
+}
+`, importTargetName, exportTargetName, name)
+}
+
+func TestAccVRFResource_removeRouteTargets(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-vrf-rt-remove")
+	importTargetName := testutil.RandomName("65000:320")
+	exportTargetName := testutil.RandomName("65000:420")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVRFCleanup(name)
+	cleanup.RegisterRouteTargetCleanup(importTargetName)
+	cleanup.RegisterRouteTargetCleanup(exportTargetName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckVRFDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVRFResourceConfig_withTargets(name, importTargetName, exportTargetName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "import_targets.#", "1"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "export_targets.#", "1"),
+				),
+			},
+			{
+				Config: testAccVRFResourceConfig_withoutTargets(name, importTargetName, exportTargetName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
+					resource.TestCheckNoResourceAttr("netbox_vrf.test", "import_targets"),
+					resource.TestCheckNoResourceAttr("netbox_vrf.test", "export_targets"),
+				),
+			},
+			{
+				Config: testAccVRFResourceConfig_withTargets(name, importTargetName, exportTargetName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_vrf.test", "id"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "import_targets.#", "1"),
+					resource.TestCheckResourceAttr("netbox_vrf.test", "export_targets.#", "1"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccVRFResource_removeOptionalFields(t *testing.T) {

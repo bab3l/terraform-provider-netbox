@@ -1,10 +1,15 @@
 resource "netbox_site" "example" {
-  name        = "Example Site"
-  slug        = "example-site"
-  status      = "active"
-  description = "An example site created with Terraform"
-  facility    = "DC01"
-  comments    = "This is a sample site configuration"
+  name             = "Example Site"
+  slug             = "example-site"
+  status           = "active"
+  description      = "An example site created with Terraform"
+  facility         = "DC01"
+  time_zone        = "America/Los_Angeles"
+  physical_address = "123 Terraform Ave, Example City"
+  shipping_address = "PO Box 123, Example City"
+  latitude         = 37.7749
+  longitude        = -122.4194
+  comments         = "This is a sample site configuration"
 
   # Partial custom fields management
   # Only specified custom fields are managed, others in NetBox preserved

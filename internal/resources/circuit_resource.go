@@ -50,6 +50,7 @@ type CircuitResourceModel struct {
 	ID              types.String `tfsdk:"id"`
 	Cid             types.String `tfsdk:"cid"`
 	CircuitProvider types.String `tfsdk:"circuit_provider"`
+	ProviderAccount types.String `tfsdk:"provider_account"`
 	Type            types.String `tfsdk:"type"`
 	Status          types.String `tfsdk:"status"`
 	Tenant          types.String `tfsdk:"tenant"`
@@ -89,6 +90,10 @@ func (r *CircuitResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"circuit_provider": schema.StringAttribute{
 				MarkdownDescription: "The circuit provider (carrier or ISP) supplying this circuit. Can be specified by name, slug, or ID.",
 				Required:            true,
+			},
+			"provider_account": schema.StringAttribute{
+				MarkdownDescription: "The provider account for this circuit. Can be specified by account or ID (scoped to the provider).",
+				Optional:            true,
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "The type of circuit (e.g., Internet Transit, MPLS, Point-to-Point). Can be specified by name, slug, or ID.",
@@ -454,6 +459,25 @@ func (r *CircuitResource) buildCircuitRequest(ctx context.Context, data *Circuit
 		Type:     *circuitType,
 	}
 
+	// Provider account
+	if utils.IsSet(data.ProviderAccount) {
+		providerID, providerIDDiags := netboxlookup.GenericLookupID(ctx, data.CircuitProvider.ValueString(), netboxlookup.ProviderLookupConfig(r.client), func(p *netbox.Provider) int32 {
+			return p.GetId()
+		})
+		diags.Append(providerIDDiags...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		providerAccount, accountDiags := netboxlookup.LookupProviderAccount(ctx, r.client, providerID, data.ProviderAccount.ValueString())
+		diags.Append(accountDiags...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		circuitReq.ProviderAccount = *netbox.NewNullableBriefProviderAccountRequest(providerAccount)
+	} else if data.ProviderAccount.IsNull() {
+		circuitReq.SetProviderAccountNil()
+	}
+
 	// Status
 	if utils.IsSet(data.Status) {
 		status := netbox.CircuitStatusValue(data.Status.ValueString())
@@ -566,6 +590,23 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 				data.Type = types.StringValue(typeObj.GetName())
 			}
 		}
+	}
+
+	// Provider account - preserve user input if it matches, otherwise normalize to account
+	if circuit.ProviderAccount.IsSet() && circuit.ProviderAccount.Get() != nil {
+		accountObj := circuit.ProviderAccount.Get()
+		if data.ProviderAccount.IsUnknown() || data.ProviderAccount.IsNull() {
+			data.ProviderAccount = types.StringValue(fmt.Sprintf("%d", accountObj.GetId()))
+		} else {
+			userAccount := data.ProviderAccount.ValueString()
+			if userAccount == accountObj.GetAccount() || userAccount == accountObj.GetName() || userAccount == accountObj.GetDisplay() || userAccount == fmt.Sprintf("%d", accountObj.GetId()) {
+				// Keep user's original value
+			} else {
+				data.ProviderAccount = types.StringValue(accountObj.GetAccount())
+			}
+		}
+	} else {
+		data.ProviderAccount = types.StringNull()
 	}
 
 	// Status

@@ -5,3 +5,8 @@ resource "netbox_ike_proposal" "test" {
   authentication_algorithm = "sha-256"
   group                    = "group-14"
 }
+
+import {
+  to = netbox_ike_proposal.test
+  id = "123"
+}

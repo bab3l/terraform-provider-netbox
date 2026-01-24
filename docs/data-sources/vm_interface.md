@@ -86,6 +86,7 @@ output "interface_is_management" {
 
 ### Read-Only
 
+- `bridge` (String) The bridge interface this interface belongs to.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Detailed description of the VM interface.
 - `display_name` (String) Display name for the VM interface.
@@ -93,6 +94,8 @@ output "interface_is_management" {
 - `mac_address` (String) The MAC address of the interface.
 - `mode` (String) The 802.1Q mode of the interface (access, tagged, tagged-all).
 - `mtu` (Number) The Maximum Transmission Unit (MTU) size for the interface.
+- `parent` (String) The parent interface (for sub-interfaces).
+- `tagged_vlans` (List of String) Tagged VLANs assigned to this interface.
 - `tags` (List of String) Tags assigned to this VM interface.
 - `untagged_vlan` (String) The untagged VLAN assigned to this interface.
 - `vrf` (String) The VRF assigned to this interface.

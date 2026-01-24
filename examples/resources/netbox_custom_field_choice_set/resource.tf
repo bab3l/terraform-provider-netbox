@@ -7,3 +7,8 @@ resource "netbox_custom_field_choice_set" "example" {
     { value = "low", label = "Low" },
   ]
 }
+
+import {
+  to = netbox_custom_field_choice_set.example
+  id = "123"
+}

@@ -46,3 +46,8 @@ resource "netbox_module" "test" {
   module_type = netbox_module_type.test.model
   status      = "active"
 }
+
+import {
+  to = netbox_module.test
+  id = "123"
+}

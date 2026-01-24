@@ -90,13 +90,17 @@ output "vm_backup_enabled" {
 
 - `cluster` (String) The cluster this virtual machine belongs to.
 - `comments` (String) Additional comments or notes about the virtual machine.
+- `config_template` (String) The config template assigned to this virtual machine.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Detailed description of the virtual machine.
+- `device` (String) The device hosting this virtual machine.
 - `disk` (Number) The total disk space (in GB) allocated to this virtual machine.
 - `display_name` (String) Display name of the virtual machine.
+- `local_context_data` (String) Local config context data for this virtual machine, serialized as JSON.
 - `memory` (Number) The amount of memory (in MB) allocated to this virtual machine.
 - `platform` (String) The platform (operating system) running on this virtual machine.
 - `role` (String) The device role for this virtual machine.
+- `serial` (String) The serial number assigned to this virtual machine.
 - `site` (String) The site where this virtual machine is located.
 - `status` (String) The status of the virtual machine (offline, active, planned, staged, failed, decommissioning).
 - `tags` (List of String) Tags assigned to this virtual machine.

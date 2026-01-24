@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"sort"
 	"strings"
 
 	"github.com/bab3l/go-netbox"
@@ -67,7 +68,13 @@ type VMInterfaceResourceModel struct {
 
 	Mode types.String `tfsdk:"mode"`
 
+	Parent types.String `tfsdk:"parent"`
+
+	Bridge types.String `tfsdk:"bridge"`
+
 	UntaggedVLAN types.String `tfsdk:"untagged_vlan"`
+
+	TaggedVLANs types.Set `tfsdk:"tagged_vlans"`
 
 	VRF types.String `tfsdk:"vrf"`
 
@@ -139,10 +146,26 @@ func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional: true,
 			},
 
+			"parent": nbschema.ReferenceAttributeWithDiffSuppress(
+				"parent interface",
+				"Name or ID of the parent interface (for sub-interfaces).",
+			),
+
+			"bridge": nbschema.ReferenceAttributeWithDiffSuppress(
+				"bridge interface",
+				"Name or ID of the bridge interface this interface belongs to.",
+			),
+
 			"untagged_vlan": nbschema.ReferenceAttributeWithDiffSuppress(
 				"vlan",
 				"The name or ID of the untagged VLAN (for access or tagged mode).",
 			),
+
+			"tagged_vlans": schema.SetAttribute{
+				MarkdownDescription: "Set of VLAN names or IDs to tag on this interface. Can only be set when mode is `tagged` or `tagged-all`.",
+				Optional:            true,
+				ElementType:         types.StringType,
+			},
 
 			"vrf": nbschema.ReferenceAttributeWithDiffSuppress(
 				"vrf",
@@ -251,6 +274,24 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 		}
 	}
 
+	// Parent
+
+	if iface.Parent.IsSet() && iface.Parent.Get() != nil {
+		parent := iface.Parent.Get()
+		data.Parent = utils.UpdateReferenceAttribute(data.Parent, parent.GetName(), "", parent.GetId())
+	} else {
+		data.Parent = types.StringNull()
+	}
+
+	// Bridge
+
+	if iface.Bridge.IsSet() && iface.Bridge.Get() != nil {
+		bridge := iface.Bridge.Get()
+		data.Bridge = utils.UpdateReferenceAttribute(data.Bridge, bridge.GetName(), "", bridge.GetId())
+	} else {
+		data.Bridge = types.StringNull()
+	}
+
 	// Untagged VLAN
 
 	if iface.UntaggedVlan.IsSet() && iface.UntaggedVlan.Get() != nil {
@@ -260,6 +301,10 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 	} else {
 		data.UntaggedVLAN = types.StringNull()
 	}
+
+	// Tagged VLANs
+
+	data.TaggedVLANs = updateVMInterfaceTaggedVLANs(ctx, data.TaggedVLANs, iface.GetTaggedVlans(), diags)
 
 	// VRF
 
@@ -361,6 +406,32 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, plan 
 		ifaceRequest.Mode = &emptyMode
 	}
 
+	// Parent
+
+	if utils.IsSet(plan.Parent) {
+		parentID, parentDiags := r.resolveVMInterfaceID(ctx, plan.Parent.ValueString())
+		diags.Append(parentDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		ifaceRequest.Parent = *netbox.NewNullableInt32(&parentID)
+	} else if plan.Parent.IsNull() && utils.IsSet(state.Parent) {
+		ifaceRequest.Parent.Set(nil)
+	}
+
+	// Bridge
+
+	if utils.IsSet(plan.Bridge) {
+		bridgeID, bridgeDiags := r.resolveVMInterfaceID(ctx, plan.Bridge.ValueString())
+		diags.Append(bridgeDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		ifaceRequest.Bridge = *netbox.NewNullableInt32(&bridgeID)
+	} else if plan.Bridge.IsNull() && utils.IsSet(state.Bridge) {
+		ifaceRequest.Bridge.Set(nil)
+	}
+
 	// Untagged VLAN
 
 	if utils.IsSet(plan.UntaggedVLAN) {
@@ -376,6 +447,19 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, plan 
 	} else if plan.UntaggedVLAN.IsNull() && utils.IsSet(state.UntaggedVLAN) {
 		// Only explicitly set to nil if we're clearing a previously set value
 		ifaceRequest.SetUntaggedVlanNil()
+	}
+
+	// Tagged VLANs
+
+	if utils.IsSet(plan.TaggedVLANs) {
+		vlanIDs, vlanDiags := r.resolveTaggedVLANIDs(ctx, plan.TaggedVLANs)
+		diags.Append(vlanDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		ifaceRequest.TaggedVlans = vlanIDs
+	} else if plan.TaggedVLANs.IsNull() && utils.IsSet(state.TaggedVLANs) {
+		ifaceRequest.TaggedVlans = []int32{}
 	}
 
 	// VRF
@@ -407,6 +491,123 @@ func (r *VMInterfaceResource) buildVMInterfaceRequest(ctx context.Context, plan 
 	return ifaceRequest
 }
 
+func (r *VMInterfaceResource) resolveVMInterfaceID(ctx context.Context, value string) (int32, diag.Diagnostics) {
+	ifaceID, err := utils.ParseID(value)
+	if err == nil {
+		return ifaceID, nil
+	}
+
+	ifaces, httpResp, listErr := r.client.VirtualizationAPI.VirtualizationInterfacesList(ctx).Name([]string{value}).Execute()
+	defer utils.CloseResponseBody(httpResp)
+	if listErr != nil {
+		return 0, diag.Diagnostics{diag.NewErrorDiagnostic(
+			"Error resolving VM interface",
+			utils.FormatAPIError(fmt.Sprintf("lookup VM interface %s", value), listErr, httpResp),
+		)}
+	}
+
+	results := ifaces.GetResults()
+	if len(results) == 0 {
+		return 0, diag.Diagnostics{diag.NewErrorDiagnostic(
+			"VM interface not found",
+			fmt.Sprintf("No VM interface found with name %q", value),
+		)}
+	}
+	if len(results) > 1 {
+		return 0, diag.Diagnostics{diag.NewErrorDiagnostic(
+			"VM interface name not unique",
+			fmt.Sprintf("Multiple VM interfaces found with name %q; use an ID instead", value),
+		)}
+	}
+
+	return results[0].GetId(), nil
+}
+
+func (r *VMInterfaceResource) resolveTaggedVLANIDs(ctx context.Context, taggedVlans types.Set) ([]int32, diag.Diagnostics) {
+	var vlanRefs []string
+	var diags diag.Diagnostics
+	if setDiags := taggedVlans.ElementsAs(ctx, &vlanRefs, false); setDiags.HasError() {
+		diags.Append(setDiags...)
+		return nil, diags
+	}
+
+	ids := make([]int32, 0, len(vlanRefs))
+	for _, vlanRef := range vlanRefs {
+		id, vlanDiags := netboxlookup.GenericLookupID(ctx, vlanRef, netboxlookup.VLANLookupConfig(r.client), func(v *netbox.VLAN) int32 {
+			return v.GetId()
+		})
+		diags.Append(vlanDiags...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		ids = append(ids, id)
+	}
+
+	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
+	return ids, diags
+}
+
+func updateVMInterfaceTaggedVLANs(ctx context.Context, current types.Set, vlans []netbox.VLAN, diags *diag.Diagnostics) types.Set {
+	existing := map[string]struct{}{}
+	if !current.IsNull() && !current.IsUnknown() {
+		var currentValues []string
+		diags.Append(current.ElementsAs(ctx, &currentValues, false)...)
+		for _, value := range currentValues {
+			existing[value] = struct{}{}
+		}
+	}
+
+	if len(vlans) == 0 {
+		if !current.IsNull() && !current.IsUnknown() && len(current.Elements()) == 0 {
+			return types.SetValueMust(types.StringType, []attr.Value{})
+		}
+		return types.SetNull(types.StringType)
+	}
+
+	values := make([]string, 0, len(vlans))
+	for _, vlan := range vlans {
+		idValue := fmt.Sprintf("%d", vlan.GetId())
+		nameValue := vlan.GetName()
+		value := idValue
+		if _, ok := existing[nameValue]; ok {
+			value = nameValue
+		}
+		values = append(values, value)
+	}
+
+	sort.Strings(values)
+	setValue, setDiags := types.SetValueFrom(ctx, types.StringType, values)
+	diags.Append(setDiags...)
+	return setValue
+}
+
+func validateVMInterfaceModeAndTaggedVLANs(ctx context.Context, plan *VMInterfaceResourceModel, diags *diag.Diagnostics) {
+	if !utils.IsSet(plan.TaggedVLANs) {
+		return
+	}
+
+	var vlanRefs []string
+	if setDiags := plan.TaggedVLANs.ElementsAs(ctx, &vlanRefs, false); setDiags.HasError() {
+		diags.Append(setDiags...)
+		return
+	}
+	if len(vlanRefs) == 0 {
+		return
+	}
+
+	mode := ""
+	if utils.IsSet(plan.Mode) {
+		mode = plan.Mode.ValueString()
+	}
+
+	if mode != "tagged" && mode != "tagged-all" {
+		diags.AddError(
+			"Invalid tagged_vlans configuration",
+			"tagged_vlans can only be set when mode is \"tagged\" or \"tagged-all\".",
+		)
+	}
+}
+
 // Create creates a new VM interface resource.
 
 func (r *VMInterfaceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -414,6 +615,11 @@ func (r *VMInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	validateVMInterfaceModeAndTaggedVLANs(ctx, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -571,6 +777,11 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	validateVMInterfaceModeAndTaggedVLANs(ctx, &plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}

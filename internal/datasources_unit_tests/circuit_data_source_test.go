@@ -24,8 +24,8 @@ func TestCircuitDataSourceSchema(t *testing.T) {
 	}
 
 	testutil.ValidateDataSourceSchema(t, resp.Schema.Attributes, testutil.DataSourceValidation{
-		LookupAttrs:   []string{},
-		ComputedAttrs: []string{},
+		LookupAttrs:   []string{"id", "cid"},
+		ComputedAttrs: []string{"id", "cid", "circuit_provider", "provider_account", "type", "status", "tenant", "install_date", "termination_date", "commit_rate", "description", "comments", "display_name", "tags", "custom_fields"},
 	})
 }
 

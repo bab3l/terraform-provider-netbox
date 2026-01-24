@@ -8,9 +8,15 @@ resource "netbox_circuit_type" "test" {
   slug = "internet-transit"
 }
 
+resource "netbox_provider_account" "test" {
+  account          = "ACCT-100"
+  circuit_provider = netbox_provider.test.slug
+}
+
 resource "netbox_circuit" "test" {
   cid              = "CID-12345"
   circuit_provider = netbox_provider.test.name
+  provider_account = netbox_provider_account.test.account
   type             = netbox_circuit_type.test.name
   status           = "active"
   description      = "Main Internet Circuit"

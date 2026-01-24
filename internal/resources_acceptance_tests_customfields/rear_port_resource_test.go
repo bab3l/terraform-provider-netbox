@@ -213,7 +213,7 @@ resource "netbox_tag" "tag2" {
 
 # Main Resource
 resource "netbox_rear_port" "test" {
-  device      = netbox_device.test.name
+  device      = netbox_device.test.id
   name        = %q
   type        = "lc"
   positions   = 4

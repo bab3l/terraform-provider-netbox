@@ -37,22 +37,25 @@ func TestAccIPAddressResource_full(t *testing.T) {
 	t.Parallel()
 
 	ip := fmt.Sprintf("10.0.%d.%d/32", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+	natInside := fmt.Sprintf("10.1.%d.%d/32", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterIPAddressCleanup(ip)
+	cleanup.RegisterIPAddressCleanup(natInside)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIPAddressResourceConfig_full(ip),
+				Config: testAccIPAddressResourceConfig_full(ip, natInside),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", ip),
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "status", "active"),
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "dns_name", "test.example.com"),
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "description", "Test IP address"),
+					resource.TestCheckResourceAttrPair("netbox_ip_address.test", "nat_inside", "netbox_ip_address.nat_inside", "id"),
 				),
 			},
 		},
@@ -64,10 +67,12 @@ func TestAccIPAddressResource_update(t *testing.T) {
 
 	ip1 := fmt.Sprintf("172.16.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
 	ip2 := fmt.Sprintf("172.16.%d.%d/24", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
+	natInside := fmt.Sprintf("172.17.%d.%d/32", acctest.RandIntRange(0, 255), acctest.RandIntRange(1, 254))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterIPAddressCleanup(ip1)
 	cleanup.RegisterIPAddressCleanup(ip2)
+	cleanup.RegisterIPAddressCleanup(natInside)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -81,11 +86,12 @@ func TestAccIPAddressResource_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccIPAddressResourceConfig_full(ip2),
+				Config: testAccIPAddressResourceConfig_full(ip2, natInside),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_ip_address.test", "id"),
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "dns_name", "test.example.com"),
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "description", "Test IP address"),
+					resource.TestCheckResourceAttrPair("netbox_ip_address.test", "nat_inside", "netbox_ip_address.nat_inside", "id"),
 				),
 			},
 		},
@@ -222,15 +228,20 @@ resource "netbox_ip_address" "test" {
 `, address)
 }
 
-func testAccIPAddressResourceConfig_full(address string) string {
+func testAccIPAddressResourceConfig_full(address, natInside string) string {
 	return fmt.Sprintf(`
+resource "netbox_ip_address" "nat_inside" {
+	address = %q
+}
+
 resource "netbox_ip_address" "test" {
   address     = %q
   status      = "active"
+	nat_inside  = netbox_ip_address.nat_inside.id
   dns_name    = "test.example.com"
   description = "Test IP address"
 }
-`, address)
+`, natInside, address)
 }
 
 func TestAccConsistency_IPAddress_LiteralNames(t *testing.T) {

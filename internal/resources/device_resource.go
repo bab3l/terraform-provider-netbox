@@ -41,29 +41,31 @@ type DeviceResource struct {
 
 // DeviceResourceModel describes the resource data model.
 type DeviceResourceModel struct {
-	ID           types.String  `tfsdk:"id"`
-	Name         types.String  `tfsdk:"name"`
-	DeviceType   types.String  `tfsdk:"device_type"`
-	Role         types.String  `tfsdk:"role"`
-	Tenant       types.String  `tfsdk:"tenant"`
-	Platform     types.String  `tfsdk:"platform"`
-	Serial       types.String  `tfsdk:"serial"`
-	AssetTag     types.String  `tfsdk:"asset_tag"`
-	Site         types.String  `tfsdk:"site"`
-	Location     types.String  `tfsdk:"location"`
-	Rack         types.String  `tfsdk:"rack"`
-	Position     types.Float64 `tfsdk:"position"`
-	Face         types.String  `tfsdk:"face"`
-	Latitude     types.Float64 `tfsdk:"latitude"`
-	Longitude    types.Float64 `tfsdk:"longitude"`
-	Status       types.String  `tfsdk:"status"`
-	Airflow      types.String  `tfsdk:"airflow"`
-	VcPosition   types.Int64   `tfsdk:"vc_position"`
-	VcPriority   types.Int64   `tfsdk:"vc_priority"`
-	Description  types.String  `tfsdk:"description"`
-	Comments     types.String  `tfsdk:"comments"`
-	Tags         types.Set     `tfsdk:"tags"`
-	CustomFields types.Set     `tfsdk:"custom_fields"`
+	ID             types.String  `tfsdk:"id"`
+	Name           types.String  `tfsdk:"name"`
+	DeviceType     types.String  `tfsdk:"device_type"`
+	Role           types.String  `tfsdk:"role"`
+	Tenant         types.String  `tfsdk:"tenant"`
+	Platform       types.String  `tfsdk:"platform"`
+	Cluster        types.String  `tfsdk:"cluster"`
+	Serial         types.String  `tfsdk:"serial"`
+	AssetTag       types.String  `tfsdk:"asset_tag"`
+	Site           types.String  `tfsdk:"site"`
+	Location       types.String  `tfsdk:"location"`
+	Rack           types.String  `tfsdk:"rack"`
+	Position       types.Float64 `tfsdk:"position"`
+	Face           types.String  `tfsdk:"face"`
+	Latitude       types.Float64 `tfsdk:"latitude"`
+	Longitude      types.Float64 `tfsdk:"longitude"`
+	Status         types.String  `tfsdk:"status"`
+	Airflow        types.String  `tfsdk:"airflow"`
+	VcPosition     types.Int64   `tfsdk:"vc_position"`
+	VcPriority     types.Int64   `tfsdk:"vc_priority"`
+	Description    types.String  `tfsdk:"description"`
+	Comments       types.String  `tfsdk:"comments"`
+	ConfigTemplate types.String  `tfsdk:"config_template"`
+	Tags           types.Set     `tfsdk:"tags"`
+	CustomFields   types.Set     `tfsdk:"custom_fields"`
 }
 
 func (r *DeviceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -80,6 +82,7 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"role":        nbschema.RequiredReferenceAttributeWithDiffSuppress("device role", "ID or slug of the device role. Required."),
 			"tenant":      nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant that owns this device."),
 			"platform":    nbschema.ReferenceAttributeWithDiffSuppress("platform", "ID or slug of the platform (operating system/software) running on this device."),
+			"cluster":     nbschema.ReferenceAttributeWithDiffSuppress("cluster", "ID or name of the cluster this device belongs to."),
 			"serial":      nbschema.SerialAttribute(),
 			"asset_tag":   nbschema.AssetTagAttribute(),
 			"site":        nbschema.RequiredReferenceAttributeWithDiffSuppress("site", "ID or slug of the site where this device is located. Required."),
@@ -143,6 +146,7 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					int64validator.Between(0, 255),
 				},
 			},
+			"config_template": nbschema.ReferenceAttributeWithDiffSuppress("config template", "ID or name of the config template assigned to this device."),
 		},
 	}
 
@@ -233,6 +237,15 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 		deviceRequest.SetPlatform(*platform)
 	}
 
+	if !data.Cluster.IsNull() && !data.Cluster.IsUnknown() {
+		cluster, diags := netboxlookup.LookupCluster(ctx, r.client, data.Cluster.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		deviceRequest.SetCluster(*cluster)
+	}
+
 	if !data.Serial.IsNull() && !data.Serial.IsUnknown() {
 		serial := data.Serial.ValueString()
 		deviceRequest.Serial = &serial
@@ -288,6 +301,15 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	if !data.Airflow.IsNull() && !data.Airflow.IsUnknown() && data.Airflow.ValueString() != "" {
 		airflow := netbox.DeviceAirflowValue(data.Airflow.ValueString())
 		deviceRequest.Airflow = &airflow
+	}
+
+	if !data.ConfigTemplate.IsNull() && !data.ConfigTemplate.IsUnknown() {
+		configTemplate, diags := netboxlookup.LookupConfigTemplate(ctx, r.client, data.ConfigTemplate.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		deviceRequest.SetConfigTemplate(*configTemplate)
 	}
 
 	if !data.VcPosition.IsNull() && !data.VcPosition.IsUnknown() {
@@ -523,6 +545,17 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		deviceRequest.SetPlatform(*platform)
 	}
 
+	if !plan.Cluster.IsNull() && !plan.Cluster.IsUnknown() {
+		cluster, diags := netboxlookup.LookupCluster(ctx, r.client, plan.Cluster.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		deviceRequest.SetCluster(*cluster)
+	} else if plan.Cluster.IsNull() {
+		deviceRequest.SetClusterNil()
+	}
+
 	if !plan.Serial.IsNull() && !plan.Serial.IsUnknown() {
 		serial := plan.Serial.ValueString()
 		deviceRequest.Serial = &serial
@@ -582,6 +615,17 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if !plan.Airflow.IsNull() && !plan.Airflow.IsUnknown() && plan.Airflow.ValueString() != "" {
 		airflow := netbox.DeviceAirflowValue(plan.Airflow.ValueString())
 		deviceRequest.Airflow = &airflow
+	}
+
+	if !plan.ConfigTemplate.IsNull() && !plan.ConfigTemplate.IsUnknown() {
+		configTemplate, diags := netboxlookup.LookupConfigTemplate(ctx, r.client, plan.ConfigTemplate.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		deviceRequest.SetConfigTemplate(*configTemplate)
+	} else if plan.ConfigTemplate.IsNull() {
+		deviceRequest.SetConfigTemplateNil()
 	}
 
 	if !plan.VcPosition.IsNull() && !plan.VcPosition.IsUnknown() {
@@ -873,6 +917,19 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		data.Platform = types.StringNull()
 	}
 
+	// Handle cluster - preserve the original input value
+	switch {
+	case device.Cluster.IsSet() && device.Cluster.Get() != nil:
+		clusterObj := device.Cluster.Get()
+		data.Cluster = utils.UpdateReferenceAttribute(data.Cluster, clusterObj.GetName(), "", clusterObj.GetId())
+
+	case !data.Cluster.IsNull() && !data.Cluster.IsUnknown():
+		// User had a value but API says null
+
+	default:
+		data.Cluster = types.StringNull()
+	}
+
 	// Handle serial
 	if device.HasSerial() && device.GetSerial() != "" {
 		data.Serial = types.StringValue(device.GetSerial())
@@ -993,6 +1050,19 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 		data.Comments = types.StringValue(device.GetComments())
 	} else if !data.Comments.IsNull() {
 		data.Comments = types.StringNull()
+	}
+
+	// Handle config template - preserve the original input value
+	switch {
+	case device.ConfigTemplate.IsSet() && device.ConfigTemplate.Get() != nil:
+		templateObj := device.ConfigTemplate.Get()
+		data.ConfigTemplate = utils.UpdateReferenceAttribute(data.ConfigTemplate, templateObj.GetName(), "", templateObj.GetId())
+
+	case !data.ConfigTemplate.IsNull() && !data.ConfigTemplate.IsUnknown():
+		// User had a value but API says null
+
+	default:
+		data.ConfigTemplate = types.StringNull()
 	}
 
 	// Handle custom fields using consolidated helper

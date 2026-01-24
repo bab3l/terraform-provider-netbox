@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/bab3l/go-netbox"
+	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -36,14 +37,15 @@ type DeviceRoleResource struct {
 
 // DeviceRoleResourceModel describes the resource data model.
 type DeviceRoleResourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	Name         types.String `tfsdk:"name"`
-	Slug         types.String `tfsdk:"slug"`
-	Color        types.String `tfsdk:"color"`
-	VMRole       types.Bool   `tfsdk:"vm_role"`
-	Description  types.String `tfsdk:"description"`
-	Tags         types.Set    `tfsdk:"tags"`
-	CustomFields types.Set    `tfsdk:"custom_fields"`
+	ID             types.String `tfsdk:"id"`
+	Name           types.String `tfsdk:"name"`
+	Slug           types.String `tfsdk:"slug"`
+	Color          types.String `tfsdk:"color"`
+	VMRole         types.Bool   `tfsdk:"vm_role"`
+	ConfigTemplate types.String `tfsdk:"config_template"`
+	Description    types.String `tfsdk:"description"`
+	Tags           types.Set    `tfsdk:"tags"`
+	CustomFields   types.Set    `tfsdk:"custom_fields"`
 }
 
 func (r *DeviceRoleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -54,13 +56,14 @@ func (r *DeviceRoleResource) Schema(ctx context.Context, req resource.SchemaRequ
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a device role in Netbox. Device roles are used to categorize devices by their function within the network infrastructure (e.g., 'Router', 'Switch', 'Server', 'Firewall').",
 		Attributes: map[string]schema.Attribute{
-			"id":            nbschema.IDAttribute("device role"),
-			"name":          nbschema.NameAttribute("device role", 100),
-			"slug":          nbschema.SlugAttribute("device role"),
-			"color":         nbschema.ComputedColorAttribute("device role"),
-			"vm_role":       nbschema.BoolAttributeWithDefault("Whether virtual machines may be assigned to this role. Set to true to allow VMs to use this role, false otherwise. Defaults to true.", true),
-			"tags":          nbschema.TagsSlugAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
+			"id":              nbschema.IDAttribute("device role"),
+			"name":            nbschema.NameAttribute("device role", 100),
+			"slug":            nbschema.SlugAttribute("device role"),
+			"color":           nbschema.ComputedColorAttribute("device role"),
+			"vm_role":         nbschema.BoolAttributeWithDefault("Whether virtual machines may be assigned to this role. Set to true to allow VMs to use this role, false otherwise. Defaults to true.", true),
+			"config_template": nbschema.ReferenceAttributeWithDiffSuppress("config template", "ID or name of the config template assigned to this device role."),
+			"tags":            nbschema.TagsSlugAttribute(),
+			"custom_fields":   nbschema.CustomFieldsAttribute(),
 		},
 	}
 
@@ -111,6 +114,19 @@ func (r *DeviceRoleResource) mapDeviceRoleToState(ctx context.Context, deviceRol
 		data.VMRole = types.BoolValue(true) // Default to true per Netbox API
 	}
 
+	// Handle config template - preserve the original input value
+	switch {
+	case deviceRole.ConfigTemplate.IsSet() && deviceRole.ConfigTemplate.Get() != nil:
+		templateObj := deviceRole.ConfigTemplate.Get()
+		data.ConfigTemplate = utils.UpdateReferenceAttribute(data.ConfigTemplate, templateObj.GetName(), "", templateObj.GetId())
+
+	case !data.ConfigTemplate.IsNull() && !data.ConfigTemplate.IsUnknown():
+		// User had a value but API says null
+
+	default:
+		data.ConfigTemplate = types.StringNull()
+	}
+
 	// Handle description
 	if deviceRole.HasDescription() && deviceRole.GetDescription() != "" {
 		data.Description = types.StringValue(deviceRole.GetDescription())
@@ -147,6 +163,14 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 	if !data.VMRole.IsNull() && !data.VMRole.IsUnknown() {
 		vmRole := data.VMRole.ValueBool()
 		deviceRoleRequest.VmRole = &vmRole
+	}
+	if !data.ConfigTemplate.IsNull() && !data.ConfigTemplate.IsUnknown() {
+		configTemplate, diags := netboxlookup.LookupConfigTemplate(ctx, r.client, data.ConfigTemplate.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		deviceRoleRequest.SetConfigTemplate(*configTemplate)
 	}
 
 	// Apply description
@@ -330,6 +354,16 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	if !data.VMRole.IsNull() && !data.VMRole.IsUnknown() {
 		vmRole := data.VMRole.ValueBool()
 		deviceRoleRequest.VmRole = &vmRole
+	}
+	if !data.ConfigTemplate.IsNull() && !data.ConfigTemplate.IsUnknown() {
+		configTemplate, diags := netboxlookup.LookupConfigTemplate(ctx, r.client, data.ConfigTemplate.ValueString())
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		deviceRoleRequest.SetConfigTemplate(*configTemplate)
+	} else if data.ConfigTemplate.IsNull() {
+		deviceRoleRequest.SetConfigTemplateNil()
 	}
 
 	// Apply description

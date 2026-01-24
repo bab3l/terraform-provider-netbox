@@ -22,6 +22,11 @@ resource "netbox_cluster" "test" {
   type = netbox_cluster_type.test.id
 }
 
+resource "netbox_config_template" "test" {
+  name          = "test-config-template"
+  template_code = "hostname {{ device.name }}"
+}
+
 resource "netbox_virtual_machine" "test" {
   name        = "test-vm-1"
   cluster     = netbox_cluster.test.name
@@ -31,6 +36,9 @@ resource "netbox_virtual_machine" "test" {
   status      = "active"
   description = "Test virtual machine"
   comments    = "Production web server VM"
+  serial      = "VM-serial-12345"
+
+  config_template = netbox_config_template.test.id
 
   # Partial custom fields management
   # Only specified custom fields are managed, others in NetBox preserved
@@ -87,12 +95,15 @@ import {
 
 - `cluster` (String) ID or name of the cluster this virtual machine belongs to.
 - `comments` (String) Additional comments or notes about the virtual machine. Supports Markdown formatting.
+- `config_template` (String) ID or name of the config template assigned to this virtual machine.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the virtual machine.
+- `device` (String) ID or name of the device hosting this virtual machine.
 - `disk` (Number) The total disk space (in GB) allocated to this virtual machine.
 - `memory` (Number) The amount of memory (in MB) allocated to this virtual machine.
 - `platform` (String) ID or slug of the platform (operating system) running on this virtual machine.
 - `role` (String) ID or slug of the device role for this virtual machine.
+- `serial` (String) Serial number, assigned by the manufacturer.
 - `site` (String) ID or slug of the site where this virtual machine is located.
 - `status` (String) The status of the virtual machine. Valid values are: `offline`, `active`, `planned`, `staged`, `failed`, `decommissioning`. Defaults to `active`.
 - `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
@@ -102,6 +113,7 @@ import {
 ### Read-Only
 
 - `id` (String) The unique numeric ID of the virtual machine.
+- `local_context_data` (String) Local config context data for this virtual machine, serialized as JSON.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

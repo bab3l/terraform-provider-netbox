@@ -176,7 +176,7 @@ resource "netbox_power_feed" "test" {
   name        = %q
   power_panel = netbox_power_panel.test.id
   status      = "active"
-  tenant      = netbox_tenant.test.name
+  tenant      = netbox_tenant.test.id
 
   tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 

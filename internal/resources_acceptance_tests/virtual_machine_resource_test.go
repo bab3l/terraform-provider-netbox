@@ -53,6 +53,45 @@ func TestAccVirtualMachineResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccVirtualMachineResource_import(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-import")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-import")
+	clusterName := testutil.RandomName("tf-test-cluster-import")
+	roleName := testutil.RandomName("tf-test-vm-role-import")
+	roleSlug := testutil.RandomSlug("tf-test-vm-role-import")
+	tenantName := testutil.RandomName("tf-test-vm-tenant-import")
+	tenantSlug := testutil.RandomSlug("tf-test-vm-tenant-import")
+	platformName := testutil.RandomName("tf-test-vm-platform-import")
+	platformSlug := testutil.RandomSlug("tf-test-vm-platform-import")
+	vmName := testutil.RandomName("tf-test-vm-import")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterTenantCleanup(tenantSlug)
+	cleanup.RegisterPlatformCleanup(platformSlug)
+
+	testutil.RunImportTest(t, testutil.ImportTestConfig{
+		ResourceName: "netbox_virtual_machine",
+		Config: func() string {
+			return testAccVirtualMachineResourceConfig_importCommandIDRefs(clusterTypeName, clusterTypeSlug, clusterName, roleName, roleSlug, tenantName, tenantSlug, platformName, platformSlug, vmName)
+		},
+		AdditionalChecks: testutil.ValidateReferenceIDs("netbox_virtual_machine.test", "cluster", "role", "tenant", "platform"),
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckTenantDestroy,
+			testutil.CheckPlatformDestroy,
+		),
+	})
+}
+
 func TestAccVirtualMachineResource_full(t *testing.T) {
 	t.Parallel()
 
@@ -62,11 +101,28 @@ func TestAccVirtualMachineResource_full(t *testing.T) {
 	vmName := testutil.RandomName("tf-test-vm-full")
 	description := "Test VM with all fields"
 	comments := "Test comments"
+	siteName := testutil.RandomName("tf-test-site")
+	siteSlug := testutil.RandomSlug("tf-test-site")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer")
+	manufacturerSlug := testutil.RandomSlug("tf-test-manufacturer")
+	deviceRoleName := testutil.RandomName("tf-test-device-role")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-device-role")
+	deviceTypeName := testutil.RandomName("tf-test-device-type")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-device-type")
+	deviceName := testutil.RandomName("tf-test-device")
+	configTemplateName := testutil.RandomName("tf-test-config-template")
+	serial := "VM-serial-12345"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
 	cleanup.RegisterClusterCleanup(clusterName)
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterConfigTemplateCleanup(configTemplateName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -78,7 +134,7 @@ func TestAccVirtualMachineResource_full(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments),
+				Config: testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, configTemplateName, serial),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "id"),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
@@ -88,6 +144,9 @@ func TestAccVirtualMachineResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "disk", "50"),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "comments", comments),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_template"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "device"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "serial", serial),
 				),
 			},
 		},
@@ -102,12 +161,29 @@ func TestAccVirtualMachineResource_update(t *testing.T) {
 	clusterName := testutil.RandomName("tf-test-cluster-update")
 	vmName := testutil.RandomName("tf-test-vm-update")
 	updatedName := testutil.RandomName("tf-test-vm-updated")
+	siteName := testutil.RandomName("tf-test-site-update")
+	siteSlug := testutil.RandomSlug("tf-test-site-update")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-update")
+	manufacturerSlug := testutil.RandomSlug("tf-test-manufacturer-update")
+	deviceRoleName := testutil.RandomName("tf-test-device-role-update")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-device-role-update")
+	deviceTypeName := testutil.RandomName("tf-test-device-type-update")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-device-type-update")
+	deviceName := testutil.RandomName("tf-test-device-update")
+	configTemplateName := testutil.RandomName("tf-test-config-template-update")
+	serial := "VM-serial-update"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
 	cleanup.RegisterVirtualMachineCleanup(updatedName)
 	cleanup.RegisterClusterCleanup(clusterName)
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterConfigTemplateCleanup(configTemplateName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -125,10 +201,13 @@ func TestAccVirtualMachineResource_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, updatedName, "Updated description", "Updated comments"),
+				Config: testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, updatedName, "Updated description", "Updated comments", siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, configTemplateName, serial),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", updatedName),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "description", "Updated description"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_template"),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "device"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "serial", serial),
 				),
 			},
 		},
@@ -220,8 +299,31 @@ resource "netbox_virtual_machine" "test" {
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName)
 }
 
-func testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments string) string {
+func testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, configTemplateName, serial string) string {
 	return fmt.Sprintf(`
+resource "netbox_site" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_manufacturer" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_device_role" "test" {
+	name    = %q
+	slug    = %q
+	color   = "aa1409"
+	vm_role = false
+}
+
+resource "netbox_device_type" "test" {
+	manufacturer = netbox_manufacturer.test.id
+	model        = %q
+	slug         = %q
+}
+
 resource "netbox_cluster_type" "test" {
   name = %q
   slug = %q
@@ -230,6 +332,19 @@ resource "netbox_cluster_type" "test" {
 resource "netbox_cluster" "test" {
   name = %q
   type = netbox_cluster_type.test.id
+}
+
+resource "netbox_device" "test" {
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	site        = netbox_site.test.id
+	cluster     = netbox_cluster.test.id
+	name        = %q
+}
+
+resource "netbox_config_template" "test" {
+	name          = %q
+	template_code = "hostname {{ device.name }}"
 }
 
 resource "netbox_virtual_machine" "test" {
@@ -241,8 +356,11 @@ resource "netbox_virtual_machine" "test" {
   disk        = 50
   description = %q
   comments    = %q
+	serial      = %q
+	device      = netbox_device.test.id
+	config_template = netbox_config_template.test.id
 }
-`, clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments)
+`, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, clusterTypeName, clusterTypeSlug, clusterName, deviceName, configTemplateName, vmName, description, comments, serial)
 }
 
 func TestAccConsistency_VirtualMachine_PlatformNamePersistence(t *testing.T) {
@@ -365,6 +483,77 @@ func TestAccVirtualMachineResource_ImportCommandRequiresApply(t *testing.T) {
 	})
 }
 
+func TestAccVirtualMachineResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-tags")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-tags")
+	clusterName := testutil.RandomName("tf-test-cluster-tags")
+	vmName := testutil.RandomName("tf-test-vm-tags")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_virtual_machine",
+		ConfigWithoutTags: func() string {
+			return testAccVirtualMachineResourceConfig_tagLifecycle(clusterTypeName, clusterTypeSlug, clusterName, vmName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, "none")
+		},
+		ConfigWithTags: func() string {
+			return testAccVirtualMachineResourceConfig_tagLifecycle(clusterTypeName, clusterTypeSlug, clusterName, vmName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, caseTag1Uscore2)
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccVirtualMachineResourceConfig_tagLifecycle(clusterTypeName, clusterTypeSlug, clusterName, vmName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, caseTag3)
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 1,
+		CheckDestroy:              testutil.CheckVirtualMachineDestroy,
+	})
+}
+
+func TestAccVirtualMachineResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-tagorder")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-tagorder")
+	clusterName := testutil.RandomName("tf-test-cluster-tagorder")
+	vmName := testutil.RandomName("tf-test-vm-tagorder")
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_virtual_machine",
+		ConfigWithTagsOrderA: func() string {
+			return testAccVirtualMachineResourceConfig_tagOrder(clusterTypeName, clusterTypeSlug, clusterName, vmName, tag1Name, tag1Slug, tag2Name, tag2Slug, caseTag1Uscore2)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccVirtualMachineResourceConfig_tagOrder(clusterTypeName, clusterTypeSlug, clusterName, vmName, tag1Name, tag1Slug, tag2Name, tag2Slug, caseTag2Uscore1)
+		},
+		ExpectedTagCount: 2,
+		CheckDestroy:     testutil.CheckVirtualMachineDestroy,
+	})
+}
+
 func testAccVirtualMachineResourceConfig_importCommandIDRefs(clusterTypeName, clusterTypeSlug, clusterName, roleName, roleSlug, tenantName, tenantSlug, platformName, platformSlug, vmName string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {
@@ -445,6 +634,89 @@ resource "netbox_virtual_machine" "test" {
   cluster = netbox_cluster.test.name
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName)
+}
+
+func testAccVirtualMachineResourceConfig_tagLifecycle(clusterTypeName, clusterTypeSlug, clusterName, vmName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagCase string) string {
+	var tagsList string
+	switch tagCase {
+	case caseTag1Uscore2:
+		tagsList = tagsDoubleSlug
+	case caseTag3:
+		tagsList = tagsSingleSlug
+	default:
+		tagsList = tagsEmpty
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+	name = %[1]q
+	slug = %[2]q
+}
+
+resource "netbox_cluster" "test" {
+	name = %[3]q
+	type = netbox_cluster_type.test.id
+}
+
+resource "netbox_tag" "tag1" {
+	name = %[5]q
+	slug = %[6]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = %[7]q
+	slug = %[8]q
+}
+
+resource "netbox_tag" "tag3" {
+	name = %[9]q
+	slug = %[10]q
+}
+
+resource "netbox_virtual_machine" "test" {
+	name    = %[4]q
+	cluster = netbox_cluster.test.id
+	%[11]s
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagsList)
+}
+
+func testAccVirtualMachineResourceConfig_tagOrder(clusterTypeName, clusterTypeSlug, clusterName, vmName, tag1Name, tag1Slug, tag2Name, tag2Slug, tagOrder string) string {
+	var tagsList string
+	switch tagOrder {
+	case caseTag1Uscore2:
+		tagsList = tagsDoubleSlug
+	case caseTag2Uscore1:
+		tagsList = tagsDoubleSlugReversed
+	}
+
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+	name = %[1]q
+	slug = %[2]q
+}
+
+resource "netbox_cluster" "test" {
+	name = %[3]q
+	type = netbox_cluster_type.test.id
+}
+
+resource "netbox_tag" "tag1" {
+	name = %[5]q
+	slug = %[6]q
+}
+
+resource "netbox_tag" "tag2" {
+	name = %[7]q
+	slug = %[8]q
+}
+
+resource "netbox_virtual_machine" "test" {
+	name    = %[4]q
+	cluster = netbox_cluster.test.id
+	%[9]s
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, tag1Name, tag1Slug, tag2Name, tag2Slug, tagsList)
 }
 
 func TestAccVirtualMachineResource_externalDeletion(t *testing.T) {

@@ -5,3 +5,8 @@ resource "netbox_config_template" "test" {
     "foo" : "bar"
   })
 }
+
+import {
+  to = netbox_config_template.test
+  id = "123"
+}

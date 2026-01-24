@@ -31,22 +31,26 @@ type VirtualMachineDataSource struct {
 
 // VirtualMachineDataSourceModel describes the data source data model.
 type VirtualMachineDataSourceModel struct {
-	ID           types.String  `tfsdk:"id"`
-	Name         types.String  `tfsdk:"name"`
-	Status       types.String  `tfsdk:"status"`
-	Site         types.String  `tfsdk:"site"`
-	Cluster      types.String  `tfsdk:"cluster"`
-	Role         types.String  `tfsdk:"role"`
-	Tenant       types.String  `tfsdk:"tenant"`
-	Platform     types.String  `tfsdk:"platform"`
-	Vcpus        types.Float64 `tfsdk:"vcpus"`
-	Memory       types.Int64   `tfsdk:"memory"`
-	Disk         types.Int64   `tfsdk:"disk"`
-	Description  types.String  `tfsdk:"description"`
-	Comments     types.String  `tfsdk:"comments"`
-	DisplayName  types.String  `tfsdk:"display_name"`
-	Tags         types.List    `tfsdk:"tags"`
-	CustomFields types.Set     `tfsdk:"custom_fields"`
+	ID               types.String  `tfsdk:"id"`
+	Name             types.String  `tfsdk:"name"`
+	Status           types.String  `tfsdk:"status"`
+	Site             types.String  `tfsdk:"site"`
+	Cluster          types.String  `tfsdk:"cluster"`
+	Role             types.String  `tfsdk:"role"`
+	Tenant           types.String  `tfsdk:"tenant"`
+	Platform         types.String  `tfsdk:"platform"`
+	Device           types.String  `tfsdk:"device"`
+	Serial           types.String  `tfsdk:"serial"`
+	Vcpus            types.Float64 `tfsdk:"vcpus"`
+	Memory           types.Int64   `tfsdk:"memory"`
+	Disk             types.Int64   `tfsdk:"disk"`
+	Description      types.String  `tfsdk:"description"`
+	Comments         types.String  `tfsdk:"comments"`
+	ConfigTemplate   types.String  `tfsdk:"config_template"`
+	LocalContextData types.String  `tfsdk:"local_context_data"`
+	DisplayName      types.String  `tfsdk:"display_name"`
+	Tags             types.List    `tfsdk:"tags"`
+	CustomFields     types.Set     `tfsdk:"custom_fields"`
 }
 
 // Metadata returns the data source type name.
@@ -59,20 +63,24 @@ func (d *VirtualMachineDataSource) Schema(ctx context.Context, req datasource.Sc
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Use this data source to get information about a virtual machine in Netbox. Virtual machines represent virtualized compute instances. You can identify the virtual machine using `id` or `name`.",
 		Attributes: map[string]schema.Attribute{
-			"id":           nbschema.DSIDAttribute("virtual machine"),
-			"name":         nbschema.DSNameAttribute("virtual machine"),
-			"status":       nbschema.DSComputedStringAttribute("The status of the virtual machine (offline, active, planned, staged, failed, decommissioning)."),
-			"site":         nbschema.DSComputedStringAttribute("The site where this virtual machine is located."),
-			"cluster":      nbschema.DSComputedStringAttribute("The cluster this virtual machine belongs to."),
-			"role":         nbschema.DSComputedStringAttribute("The device role for this virtual machine."),
-			"tenant":       nbschema.DSComputedStringAttribute("The tenant this virtual machine is assigned to."),
-			"platform":     nbschema.DSComputedStringAttribute("The platform (operating system) running on this virtual machine."),
-			"vcpus":        nbschema.DSComputedFloat64Attribute("The number of virtual CPUs allocated to this virtual machine."),
-			"memory":       nbschema.DSComputedInt64Attribute("The amount of memory (in MB) allocated to this virtual machine."),
-			"disk":         nbschema.DSComputedInt64Attribute("The total disk space (in GB) allocated to this virtual machine."),
-			"description":  nbschema.DSComputedStringAttribute("Detailed description of the virtual machine."),
-			"comments":     nbschema.DSComputedStringAttribute("Additional comments or notes about the virtual machine."),
-			"display_name": nbschema.DSComputedStringAttribute("Display name of the virtual machine."),
+			"id":                 nbschema.DSIDAttribute("virtual machine"),
+			"name":               nbschema.DSNameAttribute("virtual machine"),
+			"status":             nbschema.DSComputedStringAttribute("The status of the virtual machine (offline, active, planned, staged, failed, decommissioning)."),
+			"site":               nbschema.DSComputedStringAttribute("The site where this virtual machine is located."),
+			"cluster":            nbschema.DSComputedStringAttribute("The cluster this virtual machine belongs to."),
+			"role":               nbschema.DSComputedStringAttribute("The device role for this virtual machine."),
+			"tenant":             nbschema.DSComputedStringAttribute("The tenant this virtual machine is assigned to."),
+			"platform":           nbschema.DSComputedStringAttribute("The platform (operating system) running on this virtual machine."),
+			"device":             nbschema.DSComputedStringAttribute("The device hosting this virtual machine."),
+			"serial":             nbschema.DSComputedStringAttribute("The serial number assigned to this virtual machine."),
+			"vcpus":              nbschema.DSComputedFloat64Attribute("The number of virtual CPUs allocated to this virtual machine."),
+			"memory":             nbschema.DSComputedInt64Attribute("The amount of memory (in MB) allocated to this virtual machine."),
+			"disk":               nbschema.DSComputedInt64Attribute("The total disk space (in GB) allocated to this virtual machine."),
+			"description":        nbschema.DSComputedStringAttribute("Detailed description of the virtual machine."),
+			"comments":           nbschema.DSComputedStringAttribute("Additional comments or notes about the virtual machine."),
+			"config_template":    nbschema.DSComputedStringAttribute("The config template assigned to this virtual machine."),
+			"local_context_data": nbschema.DSComputedStringAttribute("Local config context data for this virtual machine, serialized as JSON."),
+			"display_name":       nbschema.DSComputedStringAttribute("Display name of the virtual machine."),
 			"tags": schema.ListAttribute{
 				MarkdownDescription: "Tags assigned to this virtual machine.",
 				Computed:            true,
@@ -230,6 +238,20 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		data.Platform = types.StringNull()
 	}
 
+	// Device
+	if vm.Device.IsSet() && vm.Device.Get() != nil {
+		data.Device = types.StringValue(vm.Device.Get().GetName())
+	} else {
+		data.Device = types.StringNull()
+	}
+
+	// Serial
+	if vm.Serial != nil {
+		data.Serial = types.StringValue(*vm.Serial)
+	} else {
+		data.Serial = types.StringNull()
+	}
+
 	// Vcpus
 	if vm.Vcpus.IsSet() && vm.Vcpus.Get() != nil {
 		data.Vcpus = types.Float64Value(*vm.Vcpus.Get())
@@ -263,6 +285,29 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 		data.Comments = types.StringValue(vm.GetComments())
 	} else {
 		data.Comments = types.StringNull()
+	}
+
+	// Config template
+	if vm.ConfigTemplate.IsSet() && vm.ConfigTemplate.Get() != nil {
+		data.ConfigTemplate = types.StringValue(vm.ConfigTemplate.Get().GetName())
+	} else {
+		data.ConfigTemplate = types.StringNull()
+	}
+
+	// Local context data
+	if vm.LocalContextData != nil {
+		localContextJSON, err := utils.ToJSONString(vm.LocalContextData)
+		if err != nil {
+			resp.Diagnostics.AddError("Failed to serialize local_context_data", fmt.Sprintf("Unable to serialize local_context_data to JSON: %s", err))
+			return
+		}
+		if localContextJSON != "" {
+			data.LocalContextData = types.StringValue(localContextJSON)
+		} else {
+			data.LocalContextData = types.StringNull()
+		}
+	} else {
+		data.LocalContextData = types.StringNull()
 	}
 
 	// Handle display_name

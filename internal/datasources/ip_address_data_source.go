@@ -44,6 +44,7 @@ type IPAddressDataSourceModel struct {
 	Role               types.String `tfsdk:"role"`
 	AssignedObjectType types.String `tfsdk:"assigned_object_type"`
 	AssignedObjectID   types.Int64  `tfsdk:"assigned_object_id"`
+	NatInside          types.String `tfsdk:"nat_inside"`
 	DNSName            types.String `tfsdk:"dns_name"`
 	Description        types.String `tfsdk:"description"`
 	Comments           types.String `tfsdk:"comments"`
@@ -105,6 +106,10 @@ func (d *IPAddressDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			},
 			"assigned_object_id": schema.Int64Attribute{
 				MarkdownDescription: "The ID of the assigned object.",
+				Computed:            true,
+			},
+			"nat_inside": schema.StringAttribute{
+				MarkdownDescription: "The ID of the inside IP address for NAT (the IP for which this address is the outside IP).",
 				Computed:            true,
 			},
 			"dns_name": schema.StringAttribute{
@@ -294,6 +299,14 @@ func (d *IPAddressDataSource) mapIPAddressToState(ctx context.Context, ipAddress
 		data.AssignedObjectID = types.Int64Value(*ipAddress.AssignedObjectId.Get())
 	} else {
 		data.AssignedObjectID = types.Int64Null()
+	}
+
+	// NAT Inside
+	if ipAddress.NatInside.IsSet() && ipAddress.NatInside.Get() != nil {
+		nat := ipAddress.NatInside.Get()
+		data.NatInside = types.StringValue(fmt.Sprintf("%d", nat.GetId()))
+	} else {
+		data.NatInside = types.StringNull()
 	}
 
 	// DNS Name

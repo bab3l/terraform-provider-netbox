@@ -14,6 +14,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -41,21 +42,26 @@ type SiteResource struct {
 
 // SiteResourceModel describes the resource data model.
 type SiteResourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	Name         types.String `tfsdk:"name"`
-	Slug         types.String `tfsdk:"slug"`
-	Status       types.String `tfsdk:"status"`
-	Region       types.String `tfsdk:"region"`
-	RegionID     types.String `tfsdk:"region_id"`
-	Group        types.String `tfsdk:"group"`
-	GroupID      types.String `tfsdk:"group_id"`
-	Tenant       types.String `tfsdk:"tenant"`
-	TenantID     types.String `tfsdk:"tenant_id"`
-	Facility     types.String `tfsdk:"facility"`
-	Description  types.String `tfsdk:"description"`
-	Comments     types.String `tfsdk:"comments"`
-	Tags         types.Set    `tfsdk:"tags"`
-	CustomFields types.Set    `tfsdk:"custom_fields"`
+	ID              types.String  `tfsdk:"id"`
+	Name            types.String  `tfsdk:"name"`
+	Slug            types.String  `tfsdk:"slug"`
+	Status          types.String  `tfsdk:"status"`
+	Region          types.String  `tfsdk:"region"`
+	RegionID        types.String  `tfsdk:"region_id"`
+	Group           types.String  `tfsdk:"group"`
+	GroupID         types.String  `tfsdk:"group_id"`
+	Tenant          types.String  `tfsdk:"tenant"`
+	TenantID        types.String  `tfsdk:"tenant_id"`
+	Facility        types.String  `tfsdk:"facility"`
+	TimeZone        types.String  `tfsdk:"time_zone"`
+	PhysicalAddress types.String  `tfsdk:"physical_address"`
+	ShippingAddress types.String  `tfsdk:"shipping_address"`
+	Latitude        types.Float64 `tfsdk:"latitude"`
+	Longitude       types.Float64 `tfsdk:"longitude"`
+	Description     types.String  `tfsdk:"description"`
+	Comments        types.String  `tfsdk:"comments"`
+	Tags            types.Set     `tfsdk:"tags"`
+	CustomFields    types.Set     `tfsdk:"custom_fields"`
 }
 
 func (r *SiteResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -93,6 +99,32 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(50),
+				},
+			},
+			"time_zone": schema.StringAttribute{
+				MarkdownDescription: "Time zone for this site (IANA name, e.g. 'America/Los_Angeles').",
+				Optional:            true,
+			},
+			"physical_address": schema.StringAttribute{
+				MarkdownDescription: "Physical address of the site.",
+				Optional:            true,
+			},
+			"shipping_address": schema.StringAttribute{
+				MarkdownDescription: "Shipping address for the site (if different from physical address).",
+				Optional:            true,
+			},
+			"latitude": schema.Float64Attribute{
+				MarkdownDescription: "GPS latitude coordinate in decimal format (xx.yyyyyy).",
+				Optional:            true,
+				Validators: []validator.Float64{
+					float64validator.Between(-90, 90),
+				},
+			},
+			"longitude": schema.Float64Attribute{
+				MarkdownDescription: "GPS longitude coordinate in decimal format (xx.yyyyyy).",
+				Optional:            true,
+				Validators: []validator.Float64{
+					float64validator.Between(-180, 180),
 				},
 			},
 		},
@@ -148,6 +180,19 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Use helper for optional string fields
 	siteRequest.Facility = utils.StringPtr(data.Facility)
+	siteRequest.PhysicalAddress = utils.StringPtr(data.PhysicalAddress)
+	siteRequest.ShippingAddress = utils.StringPtr(data.ShippingAddress)
+	if utils.IsSet(data.TimeZone) {
+		siteRequest.SetTimeZone(data.TimeZone.ValueString())
+	}
+	if utils.IsSet(data.Latitude) {
+		latitude := data.Latitude.ValueFloat64()
+		siteRequest.SetLatitude(latitude)
+	}
+	if utils.IsSet(data.Longitude) {
+		longitude := data.Longitude.ValueFloat64()
+		siteRequest.SetLongitude(longitude)
+	}
 
 	// Set status if provided
 	if utils.IsSet(data.Status) {
@@ -324,6 +369,35 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		siteRequest.Facility = &empty
 	} else {
 		siteRequest.Facility = utils.StringPtr(plan.Facility)
+	}
+	if plan.PhysicalAddress.IsNull() {
+		empty := ""
+		siteRequest.PhysicalAddress = &empty
+	} else {
+		siteRequest.PhysicalAddress = utils.StringPtr(plan.PhysicalAddress)
+	}
+	if plan.ShippingAddress.IsNull() {
+		empty := ""
+		siteRequest.ShippingAddress = &empty
+	} else {
+		siteRequest.ShippingAddress = utils.StringPtr(plan.ShippingAddress)
+	}
+	if utils.IsSet(plan.TimeZone) {
+		siteRequest.SetTimeZone(plan.TimeZone.ValueString())
+	} else if plan.TimeZone.IsNull() {
+		siteRequest.SetTimeZoneNil()
+	}
+	if utils.IsSet(plan.Latitude) {
+		latitude := plan.Latitude.ValueFloat64()
+		siteRequest.SetLatitude(latitude)
+	} else if plan.Latitude.IsNull() {
+		siteRequest.SetLatitudeNil()
+	}
+	if utils.IsSet(plan.Longitude) {
+		longitude := plan.Longitude.ValueFloat64()
+		siteRequest.SetLongitude(longitude)
+	} else if plan.Longitude.IsNull() {
+		siteRequest.SetLongitudeNil()
 	}
 
 	// Set status if provided
@@ -580,6 +654,21 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 	data.Facility = utils.StringFromAPI(site.HasFacility(), site.GetFacility, data.Facility)
 	data.Description = utils.StringFromAPI(site.HasDescription(), site.GetDescription, data.Description)
 	data.Comments = utils.StringFromAPI(site.HasComments(), site.GetComments, data.Comments)
+	data.TimeZone = utils.StringFromAPI(site.HasTimeZone(), site.GetTimeZone, data.TimeZone)
+	data.PhysicalAddress = utils.StringFromAPI(site.HasPhysicalAddress(), site.GetPhysicalAddress, data.PhysicalAddress)
+	data.ShippingAddress = utils.StringFromAPI(site.HasShippingAddress(), site.GetShippingAddress, data.ShippingAddress)
+
+	// Handle latitude/longitude
+	if site.HasLatitude() && site.Latitude.Get() != nil {
+		data.Latitude = types.Float64Value(*site.Latitude.Get())
+	} else {
+		data.Latitude = types.Float64Null()
+	}
+	if site.HasLongitude() && site.Longitude.Get() != nil {
+		data.Longitude = types.Float64Value(*site.Longitude.Get())
+	} else {
+		data.Longitude = types.Float64Null()
+	}
 
 	// Handle tags
 	var tagSlugs []string

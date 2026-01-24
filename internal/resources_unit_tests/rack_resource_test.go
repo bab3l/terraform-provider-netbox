@@ -51,7 +51,7 @@ func TestRackResourceSchema(t *testing.T) {
 
 		Required: []string{"name", "site"},
 
-		Optional: []string{"id", "location", "tenant", "status", "role", "rack_type", "serial", "asset_tag", "form_factor", "width", "u_height", "starting_unit", "weight", "max_weight", "weight_unit", "desc_units", "outer_width", "outer_depth", "outer_unit", "mounting_depth", "airflow", "description", "comments", "tags", "custom_fields"},
+		Optional: []string{"id", "location", "tenant", "status", "role", "rack_type", "serial", "asset_tag", "facility_id", "form_factor", "width", "u_height", "starting_unit", "weight", "max_weight", "weight_unit", "desc_units", "outer_width", "outer_depth", "outer_unit", "mounting_depth", "airflow", "description", "comments", "tags", "custom_fields"},
 
 		Computed: []string{},
 	})

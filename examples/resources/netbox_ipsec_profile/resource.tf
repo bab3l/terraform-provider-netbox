@@ -30,3 +30,8 @@ resource "netbox_ipsec_profile" "test" {
   ike_policy   = netbox_ike_policy.test.name
   ipsec_policy = netbox_ipsec_policy.test.name
 }
+
+import {
+  to = netbox_ipsec_profile.test
+  id = "123"
+}

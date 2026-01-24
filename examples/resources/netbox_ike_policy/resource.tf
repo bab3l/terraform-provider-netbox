@@ -12,3 +12,8 @@ resource "netbox_ike_policy" "test" {
   mode      = "main"
   proposals = [netbox_ike_proposal.test.id]
 }
+
+import {
+  to = netbox_ike_policy.test
+  id = "123"
+}

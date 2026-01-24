@@ -8,3 +8,8 @@ resource "netbox_ipsec_policy" "test" {
   name      = "Test IPSec Policy"
   proposals = [netbox_ipsec_proposal.test.id]
 }
+
+import {
+  to = netbox_ipsec_policy.test
+  id = "123"
+}

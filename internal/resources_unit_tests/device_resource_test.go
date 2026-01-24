@@ -34,7 +34,7 @@ func TestDeviceResourceSchema(t *testing.T) {
 
 	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
 		Required: []string{"site", "device_type", "role"},
-		Optional: []string{"name", "status", "description", "comments", "tenant", "platform", "serial", "asset_tag", "rack", "position", "face", "latitude", "longitude", "tags", "custom_fields"},
+		Optional: []string{"name", "status", "description", "comments", "tenant", "platform", "cluster", "serial", "asset_tag", "rack", "position", "face", "latitude", "longitude", "config_template", "tags", "custom_fields"},
 		Computed: []string{"id"},
 	})
 }

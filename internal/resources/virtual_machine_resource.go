@@ -67,6 +67,10 @@ type VirtualMachineResourceModel struct {
 
 	Platform types.String `tfsdk:"platform"`
 
+	Device types.String `tfsdk:"device"`
+
+	Serial types.String `tfsdk:"serial"`
+
 	Vcpus types.Float64 `tfsdk:"vcpus"`
 
 	Memory types.Int64 `tfsdk:"memory"`
@@ -76,6 +80,10 @@ type VirtualMachineResourceModel struct {
 	Description types.String `tfsdk:"description"`
 
 	Comments types.String `tfsdk:"comments"`
+
+	ConfigTemplate types.String `tfsdk:"config_template"`
+
+	LocalContextData types.String `tfsdk:"local_context_data"`
 
 	Tags types.Set `tfsdk:"tags"`
 
@@ -127,6 +135,10 @@ func (r *VirtualMachineResource) Schema(ctx context.Context, req resource.Schema
 
 			"platform": nbschema.ReferenceAttributeWithDiffSuppress("platform", "ID or slug of the platform (operating system) running on this virtual machine."),
 
+			"device": nbschema.ReferenceAttributeWithDiffSuppress("device", "ID or name of the device hosting this virtual machine."),
+
+			"serial": nbschema.SerialAttribute(),
+
 			"vcpus": schema.Float64Attribute{
 				MarkdownDescription: "The number of virtual CPUs allocated to this virtual machine.",
 
@@ -151,6 +163,11 @@ func (r *VirtualMachineResource) Schema(ctx context.Context, req resource.Schema
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
 				},
+			},
+			"config_template": nbschema.ReferenceAttributeWithDiffSuppress("config template", "ID or name of the config template assigned to this virtual machine."),
+			"local_context_data": schema.StringAttribute{
+				MarkdownDescription: "Local config context data for this virtual machine, serialized as JSON.",
+				Computed:            true,
 			},
 		},
 	}
@@ -258,6 +275,19 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 		data.Platform = types.StringNull()
 	}
 
+	// Device
+
+	if vm.Device.IsSet() && vm.Device.Get() != nil {
+		deviceObj := vm.Device.Get()
+		data.Device = utils.UpdateReferenceAttribute(data.Device, deviceObj.GetName(), "", deviceObj.GetId())
+	} else {
+		data.Device = types.StringNull()
+	}
+
+	// Serial
+
+	data.Serial = utils.NullableStringFromAPI(vm.Serial != nil, func() string { return *vm.Serial }, data.Serial)
+
 	// Vcpus
 
 	if vm.Vcpus.IsSet() && vm.Vcpus.Get() != nil {
@@ -296,6 +326,32 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, v
 		data.Comments = types.StringValue(vm.GetComments())
 	} else {
 		data.Comments = types.StringNull()
+	}
+
+	// Config template
+
+	if vm.ConfigTemplate.IsSet() && vm.ConfigTemplate.Get() != nil {
+		configTemplateObj := vm.ConfigTemplate.Get()
+		data.ConfigTemplate = utils.UpdateReferenceAttribute(data.ConfigTemplate, configTemplateObj.GetName(), "", configTemplateObj.GetId())
+	} else {
+		data.ConfigTemplate = types.StringNull()
+	}
+
+	// Local context data
+
+	if vm.LocalContextData != nil {
+		localContextJSON, err := utils.ToJSONString(vm.LocalContextData)
+		if err != nil {
+			diags.AddError("Failed to serialize local_context_data", fmt.Sprintf("Unable to serialize local_context_data to JSON: %s", err))
+			return
+		}
+		if localContextJSON != "" {
+			data.LocalContextData = types.StringValue(localContextJSON)
+		} else {
+			data.LocalContextData = types.StringNull()
+		}
+	} else {
+		data.LocalContextData = types.StringNull()
 	}
 
 	// Tags and custom fields are now handled in Create/Read/Update with filter-to-owned pattern
@@ -386,6 +442,24 @@ func (r *VirtualMachineResource) buildVirtualMachineRequest(ctx context.Context,
 		vmRequest.Platform = *netbox.NewNullableBriefPlatformRequest(platform)
 	}
 
+	// Device
+
+	if utils.IsSet(data.Device) {
+		device, deviceDiags := netboxlookup.LookupDevice(ctx, r.client, data.Device.ValueString())
+		diags.Append(deviceDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		vmRequest.Device = *netbox.NewNullableBriefDeviceRequest(device)
+	}
+
+	// Serial
+
+	if utils.IsSet(data.Serial) {
+		serial := data.Serial.ValueString()
+		vmRequest.Serial = &serial
+	}
+
 	// Vcpus
 
 	if utils.IsSet(data.Vcpus) {
@@ -420,6 +494,17 @@ func (r *VirtualMachineResource) buildVirtualMachineRequest(ctx context.Context,
 		}
 
 		vmRequest.Disk = *netbox.NewNullableInt32(&disk)
+	}
+
+	// Config template
+
+	if utils.IsSet(data.ConfigTemplate) {
+		configTemplate, configTemplateDiags := netboxlookup.LookupConfigTemplate(ctx, r.client, data.ConfigTemplate.ValueString())
+		diags.Append(configTemplateDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		vmRequest.ConfigTemplate = *netbox.NewNullableBriefConfigTemplateRequest(configTemplate)
 	}
 
 	// Set common fields (description, comments, tags, custom_fields)
@@ -510,6 +595,24 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 		vmRequest.SetPlatformNil()
 	}
 
+	// Device
+	if utils.IsSet(plan.Device) {
+		device, deviceDiags := netboxlookup.LookupDevice(ctx, r.client, plan.Device.ValueString())
+		diags.Append(deviceDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		vmRequest.Device = *netbox.NewNullableBriefDeviceRequest(device)
+	} else if plan.Device.IsNull() {
+		vmRequest.SetDeviceNil()
+	}
+
+	// Serial
+	if utils.IsSet(plan.Serial) {
+		serial := plan.Serial.ValueString()
+		vmRequest.Serial = &serial
+	}
+
 	// Vcpus
 	if utils.IsSet(plan.Vcpus) {
 		vcpus := plan.Vcpus.ValueFloat64()
@@ -543,6 +646,18 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 	} else {
 		// Clear disk when removed
 		vmRequest.Disk = *netbox.NewNullableInt32(nil)
+	}
+
+	// Config template
+	if utils.IsSet(plan.ConfigTemplate) {
+		configTemplate, configTemplateDiags := netboxlookup.LookupConfigTemplate(ctx, r.client, plan.ConfigTemplate.ValueString())
+		diags.Append(configTemplateDiags...)
+		if diags.HasError() {
+			return nil
+		}
+		vmRequest.ConfigTemplate = *netbox.NewNullableBriefConfigTemplateRequest(configTemplate)
+	} else if plan.ConfigTemplate.IsNull() {
+		vmRequest.SetConfigTemplateNil()
 	}
 
 	// Apply description and comments

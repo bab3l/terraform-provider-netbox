@@ -186,7 +186,7 @@ resource "netbox_tag" "tag2" {
 # Virtual Device Context with comprehensive custom fields and tags
 resource "netbox_virtual_device_context" "test" {
   name   = %q
-  device = netbox_device.test.name
+  device = netbox_device.test.id
   status = "active"
 
   custom_fields = [

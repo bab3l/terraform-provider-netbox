@@ -32,6 +32,12 @@ resource "netbox_vm_interface" "test" {
   virtual_machine = netbox_virtual_machine.test.name
 }
 
+# VM interface linked using VM ID
+resource "netbox_vm_interface" "test_by_id" {
+  name            = "eth1"
+  virtual_machine = netbox_virtual_machine.test.id
+}
+
 # Optional: seed owned custom fields during import
 import {
   to = netbox_vm_interface.test
@@ -56,12 +62,15 @@ import {
 
 ### Optional
 
+- `bridge` (String) Name or ID of the bridge interface this interface belongs to.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the VM interface.
 - `enabled` (Boolean) Whether the interface is enabled. Defaults to true.
 - `mac_address` (String) The MAC address of the interface.
 - `mode` (String) The 802.1Q mode of the interface. Valid values are: `access`, `tagged`, `tagged-all`.
 - `mtu` (Number) The Maximum Transmission Unit (MTU) size for the interface.
+- `parent` (String) Name or ID of the parent interface (for sub-interfaces).
+- `tagged_vlans` (Set of String) Set of VLAN names or IDs to tag on this interface. Can only be set when mode is `tagged` or `tagged-all`.
 - `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `untagged_vlan` (String) The name or ID of the untagged VLAN (for access or tagged mode).
 - `vrf` (String) The name or ID of the VRF assigned to this interface.

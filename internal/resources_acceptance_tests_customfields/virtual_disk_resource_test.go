@@ -169,7 +169,7 @@ resource "netbox_tag" "tag2" {
 # Main Resource
 resource "netbox_virtual_disk" "test" {
   name         = %q
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   size         = 100
 
   custom_fields = [
@@ -322,7 +322,7 @@ resource "netbox_custom_field" "cf_integer" {
 
 resource "netbox_virtual_disk" "test" {
   name         = %q
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   size         = 100
 
   custom_fields = [
@@ -376,7 +376,7 @@ resource "netbox_custom_field" "cf_integer" {
 
 resource "netbox_virtual_disk" "test" {
   name         = %q
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   size         = 100
 
   # custom_fields intentionally omitted - should preserve in NetBox

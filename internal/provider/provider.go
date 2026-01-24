@@ -227,6 +227,8 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 
 		resources.NewSiteResource,
 
+		resources.NewSiteASNAssignmentResource,
+
 		resources.NewSiteGroupResource,
 
 		resources.NewTenantGroupResource,
@@ -251,6 +253,8 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 
 		resources.NewDeviceResource,
 
+		resources.NewDevicePrimaryIPResource,
+
 		resources.NewInterfaceResource,
 
 		resources.NewVRFResource,
@@ -270,6 +274,8 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 		resources.NewClusterResource,
 
 		resources.NewVirtualMachineResource,
+
+		resources.NewVirtualMachinePrimaryIPResource,
 
 		resources.NewVMInterfaceResource,
 

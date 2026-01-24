@@ -18,6 +18,12 @@ resource "netbox_vm_interface" "test" {
   virtual_machine = netbox_virtual_machine.test.name
 }
 
+# VM interface linked using VM ID
+resource "netbox_vm_interface" "test_by_id" {
+  name            = "eth1"
+  virtual_machine = netbox_virtual_machine.test.id
+}
+
 # Optional: seed owned custom fields during import
 import {
   to = netbox_vm_interface.test

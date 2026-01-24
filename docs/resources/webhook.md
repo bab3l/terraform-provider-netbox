@@ -103,3 +103,12 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# Webhooks can be imported by ID
+terraform import netbox_webhook.basic 123
+```

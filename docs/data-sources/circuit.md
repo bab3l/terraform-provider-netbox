@@ -84,6 +84,7 @@ output "circuit_contract_id" {
 - `description` (String) Description of the circuit.
 - `display_name` (String) The display name of the circuit.
 - `install_date` (String) The date when the circuit was installed.
+- `provider_account` (String) The provider account for this circuit (account identifier).
 - `status` (String) The operational status of the circuit.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
 - `tenant` (String) The tenant that owns this circuit.

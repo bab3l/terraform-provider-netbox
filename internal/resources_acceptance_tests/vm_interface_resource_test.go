@@ -9,6 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const (
+	vmInterfaceNameEth0       = "eth0"
+	vmInterfaceNameEth0Parent = "eth0-parent"
+	vmInterfaceNameEth0Bridge = "eth0-bridge"
+)
+
 // NOTE: Custom field tests for VM interface resource are in resources_acceptance_tests_customfields package
 
 func TestAccVMInterfaceResource_basic(t *testing.T) {
@@ -55,14 +61,32 @@ func TestAccVMInterfaceResource_full(t *testing.T) {
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-full")
 	clusterName := testutil.RandomName("tf-test-cluster-full")
 	vmName := testutil.RandomName("tf-test-vm-full")
-	const ifaceName = "eth0"
+	siteName := testutil.RandomName("tf-test-site-vm-int-full")
+	siteSlug := testutil.RandomSlug("tf-test-site-vm-int-full")
+	untaggedVLANName := testutil.RandomName("tf-test-vlan-untagged-full")
+	untaggedVLANVID := testutil.RandomVID()
+	taggedVLANOneName := testutil.RandomName("tf-test-vlan-tagged1-full")
+	taggedVLANOneVID := testutil.RandomVID()
+	taggedVLANTwoName := testutil.RandomName("tf-test-vlan-tagged2-full")
+	taggedVLANTwoVID := testutil.RandomVID()
+	vrfName := testutil.RandomName("tf-test-vrf-full")
+	const ifaceName = vmInterfaceNameEth0
+	parentIfaceName := vmInterfaceNameEth0Parent
+	bridgeIfaceName := vmInterfaceNameEth0Bridge
 	description := "Test VM interface with all fields"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
+	cleanup.RegisterVMInterfaceCleanup(parentIfaceName, vmName)
+	cleanup.RegisterVMInterfaceCleanup(bridgeIfaceName, vmName)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
 	cleanup.RegisterClusterCleanup(clusterName)
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterVLANCleanup(untaggedVLANVID)
+	cleanup.RegisterVLANCleanup(taggedVLANOneVID)
+	cleanup.RegisterVLANCleanup(taggedVLANTwoVID)
+	cleanup.RegisterVRFCleanup(vrfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -76,7 +100,25 @@ func TestAccVMInterfaceResource_full(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVMInterfaceResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description),
+				Config: testAccVMInterfaceResourceConfig_full(
+					clusterTypeName,
+					clusterTypeSlug,
+					clusterName,
+					vmName,
+					ifaceName,
+					description,
+					siteName,
+					siteSlug,
+					untaggedVLANName,
+					untaggedVLANVID,
+					taggedVLANOneName,
+					taggedVLANOneVID,
+					taggedVLANTwoName,
+					taggedVLANTwoVID,
+					vrfName,
+					parentIfaceName,
+					bridgeIfaceName,
+				),
 
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
@@ -84,7 +126,14 @@ func TestAccVMInterfaceResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "virtual_machine", vmName),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "enabled", "true"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mtu", "1500"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mac_address", "00:11:22:33:44:55"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mode", "tagged"),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "parent"),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "bridge"),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "untagged_vlan"),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "vrf"),
+					testutil.ReferenceListNumericCheck("netbox_vm_interface.test", "tagged_vlans"),
 				),
 			},
 		},
@@ -131,15 +180,33 @@ func TestAccVMInterfaceResource_update(t *testing.T) {
 	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-update")
 	clusterName := testutil.RandomName("tf-test-cluster-update")
 	vmName := testutil.RandomName("tf-test-vm-update")
-	const ifaceName = "eth0"
+	siteName := testutil.RandomName("tf-test-site-vm-int-update")
+	siteSlug := testutil.RandomSlug("tf-test-site-vm-int-update")
+	untaggedVLANName := testutil.RandomName("tf-test-vlan-untagged-update")
+	untaggedVLANVID := testutil.RandomVID()
+	taggedVLANOneName := testutil.RandomName("tf-test-vlan-tagged1-update")
+	taggedVLANOneVID := testutil.RandomVID()
+	taggedVLANTwoName := testutil.RandomName("tf-test-vlan-tagged2-update")
+	taggedVLANTwoVID := testutil.RandomVID()
+	vrfName := testutil.RandomName("tf-test-vrf-update")
+	const ifaceName = vmInterfaceNameEth0
 	updatedIfaceName := "eth1"
+	parentIfaceName := vmInterfaceNameEth0Parent
+	bridgeIfaceName := vmInterfaceNameEth0Bridge
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
 	cleanup.RegisterVMInterfaceCleanup(updatedIfaceName, vmName)
+	cleanup.RegisterVMInterfaceCleanup(parentIfaceName, vmName)
+	cleanup.RegisterVMInterfaceCleanup(bridgeIfaceName, vmName)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
 	cleanup.RegisterClusterCleanup(clusterName)
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterVLANCleanup(untaggedVLANVID)
+	cleanup.RegisterVLANCleanup(taggedVLANOneVID)
+	cleanup.RegisterVLANCleanup(taggedVLANTwoVID)
+	cleanup.RegisterVRFCleanup(vrfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
@@ -160,18 +227,179 @@ func TestAccVMInterfaceResource_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccVMInterfaceResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, updatedIfaceName, "Updated description"),
+				Config: testAccVMInterfaceResourceConfig_full(
+					clusterTypeName,
+					clusterTypeSlug,
+					clusterName,
+					vmName,
+					updatedIfaceName,
+					"Updated description",
+					siteName,
+					siteSlug,
+					untaggedVLANName,
+					untaggedVLANVID,
+					taggedVLANOneName,
+					taggedVLANOneVID,
+					taggedVLANTwoName,
+					taggedVLANTwoVID,
+					vrfName,
+					parentIfaceName,
+					bridgeIfaceName,
+				),
 
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", updatedIfaceName),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "description", "Updated description"),
+					testutil.ReferenceListNumericCheck("netbox_vm_interface.test", "tagged_vlans"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccVMInterfaceResource_external_deletion(t *testing.T) {
+func TestAccVMInterfaceResource_tagLifecycle(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-tags")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-tags")
+	clusterName := testutil.RandomName("tf-test-cluster-tags")
+	vmName := testutil.RandomName("tf-test-vm-tags")
+	ifaceName := vmInterfaceNameEth0
+
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagLifecycleTest(t, testutil.TagLifecycleTestConfig{
+		ResourceName: "netbox_vm_interface",
+		ConfigWithoutTags: func() string {
+			return testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName)
+		},
+		ConfigWithTags: func() string {
+			return testAccVMInterfaceResourceConfig_withTags(
+				clusterTypeName,
+				clusterTypeSlug,
+				clusterName,
+				vmName,
+				ifaceName,
+				tag1Name,
+				tag1Slug,
+				tag2Name,
+				tag2Slug,
+				tag3Name,
+				tag3Slug,
+				"netbox_tag.tag1.slug, netbox_tag.tag2.slug",
+			)
+		},
+		ConfigWithDifferentTags: func() string {
+			return testAccVMInterfaceResourceConfig_withTags(
+				clusterTypeName,
+				clusterTypeSlug,
+				clusterName,
+				vmName,
+				ifaceName,
+				tag1Name,
+				tag1Slug,
+				tag2Name,
+				tag2Slug,
+				tag3Name,
+				tag3Slug,
+				"netbox_tag.tag2.slug, netbox_tag.tag3.slug",
+			)
+		},
+		ExpectedTagCount:          2,
+		ExpectedDifferentTagCount: 2,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVMInterfaceDestroy,
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
+	})
+}
+
+func TestAccVMInterfaceResource_tagOrderInvariance(t *testing.T) {
+	t.Parallel()
+
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type-tag-order")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type-tag-order")
+	clusterName := testutil.RandomName("tf-test-cluster-tag-order")
+	vmName := testutil.RandomName("tf-test-vm-tag-order")
+	ifaceName := vmInterfaceNameEth0
+
+	tag1Name := testutil.RandomName("tag1")
+	tag1Slug := testutil.RandomSlug("tag1")
+	tag2Name := testutil.RandomName("tag2")
+	tag2Slug := testutil.RandomSlug("tag2")
+	tag3Name := testutil.RandomName("tag3")
+	tag3Slug := testutil.RandomSlug("tag3")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterTagCleanup(tag1Slug)
+	cleanup.RegisterTagCleanup(tag2Slug)
+	cleanup.RegisterTagCleanup(tag3Slug)
+
+	testutil.RunTagOrderTest(t, testutil.TagOrderTestConfig{
+		ResourceName: "netbox_vm_interface",
+		ConfigWithTagsOrderA: func() string {
+			return testAccVMInterfaceResourceConfig_withTags(
+				clusterTypeName,
+				clusterTypeSlug,
+				clusterName,
+				vmName,
+				ifaceName,
+				tag1Name,
+				tag1Slug,
+				tag2Name,
+				tag2Slug,
+				tag3Name,
+				tag3Slug,
+				"netbox_tag.tag1.slug, netbox_tag.tag2.slug",
+			)
+		},
+		ConfigWithTagsOrderB: func() string {
+			return testAccVMInterfaceResourceConfig_withTags(
+				clusterTypeName,
+				clusterTypeSlug,
+				clusterName,
+				vmName,
+				ifaceName,
+				tag1Name,
+				tag1Slug,
+				tag2Name,
+				tag2Slug,
+				tag3Name,
+				tag3Slug,
+				"netbox_tag.tag2.slug, netbox_tag.tag1.slug",
+			)
+		},
+		ExpectedTagCount: 2,
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckVMInterfaceDestroy,
+			testutil.CheckVirtualMachineDestroy,
+			testutil.CheckClusterDestroy,
+			testutil.CheckClusterTypeDestroy,
+		),
+	})
+}
+
+func TestAccVMInterfaceResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	clusterTypeName := testutil.RandomName("tf-test-cluster-type-ext-del")
@@ -229,6 +457,30 @@ func TestAccVMInterfaceResource_import(t *testing.T) {
 	clusterName := "test-cluster-" + testutil.GenerateSlug("cluster")
 	vmName := "test-vm-" + testutil.GenerateSlug("vm")
 	ifaceName := "test-iface-" + testutil.GenerateSlug("iface")
+	siteName := "test-site-" + testutil.GenerateSlug("site")
+	siteSlug := testutil.GenerateSlug("site")
+	untaggedVLANName := "test-vlan-untagged-" + testutil.GenerateSlug("vlan")
+	untaggedVLANVID := testutil.RandomVID()
+	taggedVLANOneName := "test-vlan-tagged1-" + testutil.GenerateSlug("vlan1")
+	taggedVLANOneVID := testutil.RandomVID()
+	taggedVLANTwoName := "test-vlan-tagged2-" + testutil.GenerateSlug("vlan2")
+	taggedVLANTwoVID := testutil.RandomVID()
+	vrfName := "test-vrf-" + testutil.GenerateSlug("vrf")
+	parentIfaceName := "test-iface-parent-" + testutil.GenerateSlug("iface")
+	bridgeIfaceName := "test-iface-bridge-" + testutil.GenerateSlug("iface")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
+	cleanup.RegisterVMInterfaceCleanup(parentIfaceName, vmName)
+	cleanup.RegisterVMInterfaceCleanup(bridgeIfaceName, vmName)
+	cleanup.RegisterVirtualMachineCleanup(vmName)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterVLANCleanup(untaggedVLANVID)
+	cleanup.RegisterVLANCleanup(taggedVLANOneVID)
+	cleanup.RegisterVLANCleanup(taggedVLANTwoVID)
+	cleanup.RegisterVRFCleanup(vrfName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testutil.TestAccPreCheck(t) },
@@ -237,7 +489,25 @@ func TestAccVMInterfaceResource_import(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
+				Config: testAccVMInterfaceResourceConfig_full(
+					clusterTypeName,
+					clusterTypeSlug,
+					clusterName,
+					vmName,
+					ifaceName,
+					"Import description",
+					siteName,
+					siteSlug,
+					untaggedVLANName,
+					untaggedVLANVID,
+					taggedVLANOneName,
+					taggedVLANOneVID,
+					taggedVLANTwoName,
+					taggedVLANTwoVID,
+					vrfName,
+					parentIfaceName,
+					bridgeIfaceName,
+				),
 			},
 			{
 				ResourceName:            "netbox_vm_interface.test",
@@ -248,10 +518,31 @@ func TestAccVMInterfaceResource_import(t *testing.T) {
 					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "virtual_machine"),
 					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "untagged_vlan"),
 					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "vrf"),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "parent"),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "bridge"),
+					testutil.ReferenceListNumericCheck("netbox_vm_interface.test", "tagged_vlans"),
 				),
 			},
 			{
-				Config:   testAccVMInterfaceResourceConfig_basic(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
+				Config: testAccVMInterfaceResourceConfig_full(
+					clusterTypeName,
+					clusterTypeSlug,
+					clusterName,
+					vmName,
+					ifaceName,
+					"Import description",
+					siteName,
+					siteSlug,
+					untaggedVLANName,
+					untaggedVLANVID,
+					taggedVLANOneName,
+					taggedVLANOneVID,
+					taggedVLANTwoName,
+					taggedVLANTwoVID,
+					vrfName,
+					parentIfaceName,
+					bridgeIfaceName,
+				),
 				PlanOnly: true,
 			},
 		},
@@ -318,11 +609,56 @@ resource "netbox_vm_interface" "test" {
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName)
 }
 
-func testAccVMInterfaceResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description string) string {
+func testAccVMInterfaceResourceConfig_withTags(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, tagList string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_cluster" "test" {
+	name = %q
+	type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+	name    = %q
+	cluster = netbox_cluster.test.name
+}
+
+resource "netbox_tag" "tag1" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_tag" "tag2" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_tag" "tag3" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_vm_interface" "test" {
+	virtual_machine = netbox_virtual_machine.test.name
+	name            = %q
+	tags            = [%s]
+}
+`, clusterTypeName, clusterTypeSlug, clusterName, vmName, tag1Name, tag1Slug, tag2Name, tag2Slug, tag3Name, tag3Slug, ifaceName, tagList)
+}
+
+func testAccVMInterfaceResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description, siteName, siteSlug, untaggedVLANName string, untaggedVLANVID int32, taggedVLANOneName string, taggedVLANOneVID int32, taggedVLANTwoName string, taggedVLANTwoVID int32, vrfName, parentIfaceName, bridgeIfaceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {
   name = %q
   slug = %q
+}
+
+resource "netbox_site" "test" {
+	name = %q
+	slug = %q
 }
 
 resource "netbox_cluster" "test" {
@@ -333,6 +669,39 @@ resource "netbox_cluster" "test" {
 resource "netbox_virtual_machine" "test" {
   name    = %q
   cluster = netbox_cluster.test.name
+	site    = netbox_site.test.name
+}
+
+resource "netbox_vlan" "untagged" {
+	name = %q
+	vid  = %d
+	site = netbox_site.test.id
+}
+
+resource "netbox_vlan" "tagged_1" {
+	name = %q
+	vid  = %d
+	site = netbox_site.test.id
+}
+
+resource "netbox_vlan" "tagged_2" {
+	name = %q
+	vid  = %d
+	site = netbox_site.test.id
+}
+
+resource "netbox_vrf" "test" {
+	name = %q
+}
+
+resource "netbox_vm_interface" "parent" {
+	virtual_machine = netbox_virtual_machine.test.name
+	name            = %q
+}
+
+resource "netbox_vm_interface" "bridge" {
+	virtual_machine = netbox_virtual_machine.test.name
+	name            = %q
 }
 
 resource "netbox_vm_interface" "test" {
@@ -340,9 +709,16 @@ resource "netbox_vm_interface" "test" {
   name            = %q
   enabled         = true
   mtu             = 1500
+	mac_address     = "00:11:22:33:44:55"
   description     = %q
+	mode            = "tagged"
+	parent          = netbox_vm_interface.parent.id
+	bridge          = netbox_vm_interface.bridge.id
+	untagged_vlan   = netbox_vlan.untagged.id
+	tagged_vlans    = [netbox_vlan.tagged_1.id, netbox_vlan.tagged_2.id]
+	vrf             = netbox_vrf.test.id
 }
-`, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description)
+`, clusterTypeName, clusterTypeSlug, siteName, siteSlug, clusterName, vmName, untaggedVLANName, untaggedVLANVID, taggedVLANOneName, taggedVLANOneVID, taggedVLANTwoName, taggedVLANTwoVID, vrfName, parentIfaceName, bridgeIfaceName, ifaceName, description)
 }
 
 func TestAccConsistency_VMInterface(t *testing.T) {
@@ -352,7 +728,7 @@ func TestAccConsistency_VMInterface(t *testing.T) {
 	clusterName := testutil.RandomName("cluster")
 	clusterTypeName := testutil.RandomName("cluster-type")
 	clusterTypeSlug := testutil.RandomSlug("cluster-type")
-	interfaceName := "eth0"
+	interfaceName := vmInterfaceNameEth0
 	macAddress := "AA:BB:CC:DD:EE:FF" // Uppercase to test case sensitivity
 	vlanName := testutil.RandomName("vlan")
 	vlanVid := int32(100)
@@ -1092,17 +1468,28 @@ func TestAccVMInterfaceResource_removeOptionalFields(t *testing.T) {
 	siteName := testutil.RandomName("tf-test-site-vm-iface")
 	siteSlug := testutil.RandomSlug("tf-test-site-vm-iface")
 	vmName := testutil.RandomName("tf-test-vm-remove")
-	ifaceName := "eth0"
+	ifaceName := vmInterfaceNameEth0
 	vlanName := testutil.RandomName("tf-test-vlan-vm-iface")
 	vlanVID := testutil.RandomVID()
+	taggedVLANOneName := testutil.RandomName("tf-test-vlan-tagged1-vm-iface")
+	taggedVLANOneVID := testutil.RandomVID()
+	taggedVLANTwoName := testutil.RandomName("tf-test-vlan-tagged2-vm-iface")
+	taggedVLANTwoVID := testutil.RandomVID()
 	vrfName := testutil.RandomName("tf-test-vrf-vm-iface")
+	parentIfaceName := vmInterfaceNameEth0Parent
+	bridgeIfaceName := vmInterfaceNameEth0Bridge
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVMInterfaceCleanup(ifaceName, vmName)
+	cleanup.RegisterVMInterfaceCleanup(parentIfaceName, vmName)
+	cleanup.RegisterVMInterfaceCleanup(bridgeIfaceName, vmName)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
 	cleanup.RegisterClusterCleanup(clusterName)
 	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
 	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterVLANCleanup(vlanVID)
+	cleanup.RegisterVLANCleanup(taggedVLANOneVID)
+	cleanup.RegisterVLANCleanup(taggedVLANTwoVID)
 	cleanup.RegisterVRFCleanup(vrfName)
 
 	resource.Test(t, resource.TestCase{
@@ -1117,21 +1504,24 @@ func TestAccVMInterfaceResource_removeOptionalFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Step 1: Create VM interface with all optional fields
 			{
-				Config: testAccVMInterfaceResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, vrfName),
+				Config: testAccVMInterfaceResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, taggedVLANOneName, taggedVLANOneVID, taggedVLANTwoName, taggedVLANTwoVID, vrfName, parentIfaceName, bridgeIfaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "enabled", "false"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mtu", "1500"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mac_address", "00:11:22:33:44:55"),
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mode", "access"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mode", "tagged"),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "parent"),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "bridge"),
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "untagged_vlan"),
+					testutil.ReferenceListNumericCheck("netbox_vm_interface.test", "tagged_vlans"),
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "vrf"),
 				),
 			},
 			// Step 2: Remove optional fields - should clear them
 			{
-				Config: testAccVMInterfaceResourceConfig_withoutOptionalFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, vrfName),
+				Config: testAccVMInterfaceResourceConfig_withoutOptionalFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, vrfName, parentIfaceName, bridgeIfaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
@@ -1139,21 +1529,27 @@ func TestAccVMInterfaceResource_removeOptionalFields(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "mtu"),
 					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "mac_address"),
 					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "mode"),
+					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "parent"),
+					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "bridge"),
 					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "untagged_vlan"),
+					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "tagged_vlans"),
 					resource.TestCheckNoResourceAttr("netbox_vm_interface.test", "vrf"),
 				),
 			},
 			// Step 3: Re-add optional fields - verify they can be set again
 			{
-				Config: testAccVMInterfaceResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, vrfName),
+				Config: testAccVMInterfaceResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName, vlanVID, taggedVLANOneName, taggedVLANOneVID, taggedVLANTwoName, taggedVLANTwoVID, vrfName, parentIfaceName, bridgeIfaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "enabled", "false"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mtu", "1500"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mac_address", "00:11:22:33:44:55"),
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mode", "access"),
+					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mode", "tagged"),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "parent"),
+					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "bridge"),
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "untagged_vlan"),
+					testutil.ReferenceListNumericCheck("netbox_vm_interface.test", "tagged_vlans"),
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "vrf"),
 				),
 			},
@@ -1161,7 +1557,7 @@ func TestAccVMInterfaceResource_removeOptionalFields(t *testing.T) {
 	})
 }
 
-func testAccVMInterfaceResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName string, vlanVID int32, vrfName string) string {
+func testAccVMInterfaceResourceConfig_withAllFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName string, vlanVID int32, taggedVLANOneName string, taggedVLANOneVID int32, taggedVLANTwoName string, taggedVLANTwoVID int32, vrfName, parentIfaceName, bridgeIfaceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {
   name = %q
@@ -1182,6 +1578,7 @@ resource "netbox_cluster" "test" {
 resource "netbox_virtual_machine" "test" {
   name    = %q
   cluster = netbox_cluster.test.id
+	site    = netbox_site.test.name
 }
 
 resource "netbox_vlan" "test" {
@@ -1190,8 +1587,30 @@ resource "netbox_vlan" "test" {
   site = netbox_site.test.id
 }
 
+resource "netbox_vlan" "tagged_1" {
+	name = %q
+	vid  = %d
+	site = netbox_site.test.id
+}
+
+resource "netbox_vlan" "tagged_2" {
+	name = %q
+	vid  = %d
+	site = netbox_site.test.id
+}
+
 resource "netbox_vrf" "test" {
   name = %q
+}
+
+resource "netbox_vm_interface" "parent" {
+	virtual_machine = netbox_virtual_machine.test.id
+	name            = %q
+}
+
+resource "netbox_vm_interface" "bridge" {
+	virtual_machine = netbox_virtual_machine.test.id
+	name            = %q
 }
 
 resource "netbox_vm_interface" "test" {
@@ -1200,14 +1619,17 @@ resource "netbox_vm_interface" "test" {
   enabled         = false
   mtu             = 1500
   mac_address     = "00:11:22:33:44:55"
-  mode            = "access"
+	mode            = "tagged"
+	parent          = netbox_vm_interface.parent.id
+	bridge          = netbox_vm_interface.bridge.id
   untagged_vlan   = netbox_vlan.test.id
+	tagged_vlans    = [netbox_vlan.tagged_1.id, netbox_vlan.tagged_2.id]
   vrf             = netbox_vrf.test.id
 }
-`, clusterTypeName, clusterTypeSlug, siteName, siteSlug, clusterName, vmName, vlanName, vlanVID, vrfName, ifaceName)
+`, clusterTypeName, clusterTypeSlug, siteName, siteSlug, clusterName, vmName, vlanName, vlanVID, taggedVLANOneName, taggedVLANOneVID, taggedVLANTwoName, taggedVLANTwoVID, vrfName, parentIfaceName, bridgeIfaceName, ifaceName)
 }
 
-func testAccVMInterfaceResourceConfig_withoutOptionalFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName string, vlanVID int32, vrfName string) string {
+func testAccVMInterfaceResourceConfig_withoutOptionalFields(clusterTypeName, clusterTypeSlug, clusterName, siteName, siteSlug, vmName, ifaceName, vlanName string, vlanVID int32, vrfName, parentIfaceName, bridgeIfaceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_cluster_type" "test" {
   name = %q
@@ -1228,6 +1650,7 @@ resource "netbox_cluster" "test" {
 resource "netbox_virtual_machine" "test" {
   name    = %q
   cluster = netbox_cluster.test.id
+	site    = netbox_site.test.name
 }
 
 resource "netbox_vlan" "test" {
@@ -1240,11 +1663,21 @@ resource "netbox_vrf" "test" {
   name = %q
 }
 
+resource "netbox_vm_interface" "parent" {
+	virtual_machine = netbox_virtual_machine.test.id
+	name            = %q
+}
+
+resource "netbox_vm_interface" "bridge" {
+	virtual_machine = netbox_virtual_machine.test.id
+	name            = %q
+}
+
 resource "netbox_vm_interface" "test" {
   virtual_machine = netbox_virtual_machine.test.id
   name            = %q
 }
-`, clusterTypeName, clusterTypeSlug, siteName, siteSlug, clusterName, vmName, vlanName, vlanVID, vrfName, ifaceName)
+`, clusterTypeName, clusterTypeSlug, siteName, siteSlug, clusterName, vmName, vlanName, vlanVID, vrfName, parentIfaceName, bridgeIfaceName, ifaceName)
 }
 
 func TestAccVMInterfaceResource_removeDescription(t *testing.T) {
@@ -1353,6 +1786,21 @@ resource "netbox_vm_interface" "test" {
 `
 				},
 				ExpectedError: testutil.ErrPatternRequired,
+			},
+			"tagged_vlans_without_tagged_mode": {
+				Config: func() string {
+					return `
+provider "netbox" {}
+
+resource "netbox_vm_interface" "test" {
+  virtual_machine = "test-vm"
+  name            = "eth0"
+  mode            = "access"
+  tagged_vlans    = ["10"]
+}
+`
+				},
+				ExpectedError: testutil.ErrPatternInvalidValue,
 			},
 		},
 	})

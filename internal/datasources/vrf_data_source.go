@@ -35,6 +35,8 @@ type VRFDataSourceModel struct {
 	RD            types.String `tfsdk:"rd"`
 	Tenant        types.String `tfsdk:"tenant"`
 	EnforceUnique types.Bool   `tfsdk:"enforce_unique"`
+	ImportTargets types.List   `tfsdk:"import_targets"`
+	ExportTargets types.List   `tfsdk:"export_targets"`
 	Description   types.String `tfsdk:"description"`
 	DisplayName   types.String `tfsdk:"display_name"`
 	Comments      types.String `tfsdk:"comments"`
@@ -71,6 +73,16 @@ func (d *VRFDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			"enforce_unique": schema.BoolAttribute{
 				MarkdownDescription: "Prevent duplicate prefixes/IP addresses within this VRF.",
 				Computed:            true,
+			},
+			"import_targets": schema.ListAttribute{
+				MarkdownDescription: "List of Route Target IDs imported into this VRF.",
+				Computed:            true,
+				ElementType:         types.Int64Type,
+			},
+			"export_targets": schema.ListAttribute{
+				MarkdownDescription: "List of Route Target IDs exported from this VRF.",
+				Computed:            true,
+				ElementType:         types.Int64Type,
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Brief description of the VRF.",
@@ -211,6 +223,38 @@ func (d *VRFDataSource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data
 
 	// Enforce unique
 	data.EnforceUnique = types.BoolValue(vrf.GetEnforceUnique())
+
+	// Import targets
+	if len(vrf.GetImportTargets()) > 0 {
+		importIDs := make([]int64, len(vrf.GetImportTargets()))
+		for i, target := range vrf.GetImportTargets() {
+			importIDs[i] = int64(target.GetId())
+		}
+		importValue, importDiags := types.ListValueFrom(ctx, types.Int64Type, importIDs)
+		diags.Append(importDiags...)
+		if diags.HasError() {
+			return
+		}
+		data.ImportTargets = importValue
+	} else {
+		data.ImportTargets = types.ListNull(types.Int64Type)
+	}
+
+	// Export targets
+	if len(vrf.GetExportTargets()) > 0 {
+		exportIDs := make([]int64, len(vrf.GetExportTargets()))
+		for i, target := range vrf.GetExportTargets() {
+			exportIDs[i] = int64(target.GetId())
+		}
+		exportValue, exportDiags := types.ListValueFrom(ctx, types.Int64Type, exportIDs)
+		diags.Append(exportDiags...)
+		if diags.HasError() {
+			return
+		}
+		data.ExportTargets = exportValue
+	} else {
+		data.ExportTargets = types.ListNull(types.Int64Type)
+	}
 
 	// Description
 	if desc, ok := vrf.GetDescriptionOk(); ok && desc != nil && *desc != "" {
