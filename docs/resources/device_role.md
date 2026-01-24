@@ -12,12 +12,18 @@ Manages a device role in Netbox. Device roles are used to categorize devices by 
 ## Example Usage
 
 ```terraform
+resource "netbox_config_template" "test" {
+  name          = "Test Config Template"
+  template_code = "{{ device_role.name }}"
+}
+
 resource "netbox_device_role" "test" {
-  name        = "Test Role"
-  slug        = "test-role"
-  color       = "ff0000"
-  vm_role     = false
-  description = "Network switch role"
+  name            = "Test Role"
+  slug            = "test-role"
+  color           = "ff0000"
+  vm_role         = false
+  description     = "Network switch role"
+  config_template = netbox_config_template.test.name
 
   # Partial custom fields management
   # Only specified custom fields are managed, others preserved
@@ -68,6 +74,7 @@ import {
 ### Optional
 
 - `color` (String) Color for the device role in 6-character hexadecimal format (without #). Example: 'aa1409'. If not specified, Netbox assigns a default.
+- `config_template` (String) ID or name of the config template assigned to this device role.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the device role.
 - `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.

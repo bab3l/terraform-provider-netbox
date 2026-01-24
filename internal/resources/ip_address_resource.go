@@ -52,6 +52,7 @@ type IPAddressResourceModel struct {
 	Role               types.String `tfsdk:"role"`
 	AssignedObjectType types.String `tfsdk:"assigned_object_type"`
 	AssignedObjectID   types.Int64  `tfsdk:"assigned_object_id"`
+	NatInside          types.String `tfsdk:"nat_inside"`
 	DNSName            types.String `tfsdk:"dns_name"`
 	Description        types.String `tfsdk:"description"`
 	Comments           types.String `tfsdk:"comments"`
@@ -98,6 +99,10 @@ func (r *IPAddressResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 			"assigned_object_id": schema.Int64Attribute{
 				MarkdownDescription: "The ID of the assigned object (interface or VM interface).",
+				Optional:            true,
+			},
+			"nat_inside": schema.StringAttribute{
+				MarkdownDescription: "ID or address of the inside IP address for NAT (the IP for which this address is the outside IP).",
 				Optional:            true,
 			},
 			"dns_name": schema.StringAttribute{
@@ -564,6 +569,20 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 		ipRequest.SetAssignedObjectIdNil()
 	}
 
+	// NAT Inside
+	if utils.IsSet(plan.NatInside) {
+		natID, natDiags := netboxlookup.GenericLookupID(ctx, plan.NatInside.ValueString(), netboxlookup.IPAddressLookupConfig(r.client), func(ip *netbox.IPAddress) int32 {
+			return ip.GetId()
+		})
+		diags.Append(natDiags...)
+		if diags.HasError() {
+			return
+		}
+		ipRequest.SetNatInside(natID)
+	} else if plan.NatInside.IsNull() && state != nil && utils.IsSet(state.NatInside) {
+		ipRequest.SetNatInsideNil()
+	}
+
 	// DNS Name
 	if utils.IsSet(plan.DNSName) {
 		dnsName := plan.DNSName.ValueString()
@@ -665,6 +684,14 @@ func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *
 		data.AssignedObjectID = types.Int64Value(*ipAddress.AssignedObjectId.Get())
 	} else {
 		data.AssignedObjectID = types.Int64Null()
+	}
+
+	// NAT Inside
+	if ipAddress.NatInside.IsSet() && ipAddress.NatInside.Get() != nil {
+		nat := ipAddress.NatInside.Get()
+		data.NatInside = types.StringValue(fmt.Sprintf("%d", nat.GetId()))
+	} else {
+		data.NatInside = types.StringNull()
 	}
 
 	// DNS Name

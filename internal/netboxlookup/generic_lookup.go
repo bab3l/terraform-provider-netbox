@@ -1938,6 +1938,62 @@ func LookupCluster(ctx context.Context, client *netbox.APIClient, value string) 
 
 }
 
+// ConfigTemplateLookupConfig returns the lookup configuration for Config Templates.
+
+func ConfigTemplateLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.ConfigTemplate, netbox.BriefConfigTemplateRequest] {
+
+	return LookupConfig[*netbox.ConfigTemplate, netbox.BriefConfigTemplateRequest]{
+
+		ResourceName: "Config Template",
+
+		RetrieveByID: func(ctx context.Context, id int32) (*netbox.ConfigTemplate, *http.Response, error) {
+
+			return client.ExtrasAPI.ExtrasConfigTemplatesRetrieve(ctx, id).Execute()
+
+		},
+
+		ListBySlug: func(ctx context.Context, name string) ([]*netbox.ConfigTemplate, *http.Response, error) {
+
+			list, resp, err := client.ExtrasAPI.ExtrasConfigTemplatesList(ctx).Name([]string{name}).Execute()
+
+			if err != nil {
+
+				return nil, resp, err
+
+			}
+
+			results := make([]*netbox.ConfigTemplate, len(list.Results))
+
+			for i := range list.Results {
+
+				results[i] = &list.Results[i]
+
+			}
+
+			return results, resp, nil
+
+		},
+
+		ToBriefRequest: func(t *netbox.ConfigTemplate) netbox.BriefConfigTemplateRequest {
+
+			return netbox.BriefConfigTemplateRequest{
+
+				Name: t.GetName(),
+			}
+
+		},
+	}
+
+}
+
+// LookupConfigTemplate looks up a Config Template by ID or name.
+
+func LookupConfigTemplate(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefConfigTemplateRequest, diag.Diagnostics) {
+
+	return GenericLookup(ctx, value, ConfigTemplateLookupConfig(client))
+
+}
+
 // VirtualMachineLookupConfig returns the lookup configuration for Virtual Machines.
 
 func VirtualMachineLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.VirtualMachineWithConfigContext, netbox.BriefVirtualMachineRequest] {
@@ -2058,6 +2114,63 @@ func LookupProvider(ctx context.Context, client *netbox.APIClient, value string)
 
 	return GenericLookup(ctx, value, ProviderLookupConfig(client))
 
+}
+
+// LookupProviderAccount looks up a provider account by ID or account string, scoped to a provider.
+
+func LookupProviderAccount(ctx context.Context, client *netbox.APIClient, providerID int32, value string) (*netbox.BriefProviderAccountRequest, diag.Diagnostics) {
+	var id int32
+
+	if _, err := fmt.Sscanf(value, "%d", &id); err == nil {
+		account, resp, err := client.CircuitsAPI.CircuitsProviderAccountsRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(resp)
+		if err != nil || resp == nil || resp.StatusCode != http.StatusOK {
+			errMsg := unknownErrorMsg
+			if err != nil {
+				errMsg = err.Error()
+			}
+			return nil, diag.Diagnostics{diag.NewErrorDiagnostic(
+				"Provider Account lookup failed",
+				fmt.Sprintf("Could not find Provider Account with ID %d: %s", id, errMsg),
+			)}
+		}
+		brief := netbox.BriefProviderAccountRequest{Account: account.GetAccount()}
+		if name := account.GetName(); name != "" {
+			brief.Name = &name
+		}
+		return &brief, nil
+	}
+
+	listReq := client.CircuitsAPI.CircuitsProviderAccountsList(ctx).
+		Account([]string{value}).
+		ProviderId([]int32{providerID})
+	list, resp, err := listReq.Execute()
+	defer utils.CloseResponseBody(resp)
+	if err != nil {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic(
+			"Provider Account lookup failed",
+			fmt.Sprintf("Could not list Provider Accounts with account '%s': %s", value, err.Error()),
+		)}
+	}
+	if list == nil || len(list.Results) == 0 {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic(
+			"Provider Account lookup failed",
+			fmt.Sprintf("No Provider Account found with account '%s' for provider ID %d", value, providerID),
+		)}
+	}
+	if len(list.Results) > 1 {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic(
+			"Provider Account lookup failed",
+			fmt.Sprintf("Multiple Provider Accounts found with account '%s' for provider ID %d", value, providerID),
+		)}
+	}
+
+	account := list.Results[0]
+	brief := netbox.BriefProviderAccountRequest{Account: account.GetAccount()}
+	if name := account.GetName(); name != "" {
+		brief.Name = &name
+	}
+	return &brief, nil
 }
 
 // CircuitTypeLookupConfig returns the lookup configuration for Circuit Types.

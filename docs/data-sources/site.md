@@ -82,6 +82,7 @@ output "site_datacenter_tier" {
 
 ### Read-Only
 
+- `asns` (List of Number) List of ASN IDs associated with this site.
 - `comments` (String) Additional comments or notes about the site.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Detailed description of the site.

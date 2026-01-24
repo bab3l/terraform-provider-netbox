@@ -303,6 +303,8 @@ func testAccVirtualMachinePrimaryIPResourceConfig(clusterTypeName, clusterTypeSl
 resource "netbox_ip_address" "test_v6" {
   address = %q
   status  = "active"
+  assigned_object_type = "virtualization.vminterface"
+  assigned_object_id   = netbox_vm_interface.test.id
 }
 `, ip6)
 		if setPrimaryIP6 {

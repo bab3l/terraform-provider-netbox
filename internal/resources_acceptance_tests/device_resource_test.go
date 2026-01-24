@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const configTemplateCode = "{{ device.name }}"
+
 func TestAccDeviceResource_basic(t *testing.T) {
 	t.Parallel()
 
@@ -57,6 +59,53 @@ func TestAccDeviceResource_basic(t *testing.T) {
 				PlanOnly: true,
 			},
 		},
+	})
+}
+
+func TestAccDeviceResource_import(t *testing.T) {
+	t.Parallel()
+
+	deviceName := testutil.RandomName("tf-test-device-import")
+	manufacturerName := testutil.RandomName("tf-test-manufacturer-import")
+	manufacturerSlug := testutil.RandomSlug("tf-test-mfr-import")
+	deviceTypeModel := testutil.RandomName("tf-test-device-type-import")
+	deviceTypeSlug := testutil.RandomSlug("tf-test-dt-import")
+	deviceRoleName := testutil.RandomName("tf-test-device-role-import")
+	deviceRoleSlug := testutil.RandomSlug("tf-test-dr-import")
+	siteName := testutil.RandomName("tf-test-site-import")
+	siteSlug := testutil.RandomSlug("tf-test-site-import")
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(manufacturerSlug)
+	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
+	cleanup.RegisterDeviceCleanup(deviceName)
+
+	testutil.RunImportTest(t, testutil.ImportTestConfig{
+		ResourceName: "netbox_device",
+		Config: func() string {
+			return testAccDeviceResourceConfig_basic(
+				deviceName,
+				manufacturerName,
+				manufacturerSlug,
+				deviceTypeModel,
+				deviceTypeSlug,
+				deviceRoleName,
+				deviceRoleSlug,
+				siteName,
+				siteSlug,
+			)
+		},
+		ImportStateVerifyIgnore: []string{"device_type", "role", "site"},
+		AdditionalChecks:        testutil.ValidateReferenceIDs("netbox_device.test", "device_type", "role", "site"),
+		CheckDestroy: testutil.ComposeCheckDestroy(
+			testutil.CheckDeviceDestroy,
+			testutil.CheckDeviceTypeDestroy,
+			testutil.CheckDeviceRoleDestroy,
+			testutil.CheckSiteDestroy,
+			testutil.CheckManufacturerDestroy,
+		),
 	})
 }
 
@@ -126,6 +175,11 @@ func TestAccDeviceResource_full(t *testing.T) {
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	serial := testutil.RandomName("SN")
 	assetTag := testutil.RandomName("AT")
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
+	clusterName := testutil.RandomName("tf-test-cluster")
+	configTemplateName := testutil.RandomName("tf-test-config-template")
+	configTemplateCode := configTemplateCode
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -133,13 +187,16 @@ func TestAccDeviceResource_full(t *testing.T) {
 	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 	cleanup.RegisterDeviceRoleCleanup(deviceRoleSlug)
 	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterConfigTemplateCleanup(configTemplateName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDeviceResourceConfig_full(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, assetTag),
+				Config: testAccDeviceResourceConfig_full(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, assetTag, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
 					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
@@ -152,6 +209,8 @@ func TestAccDeviceResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_device.test", "description", "Test device description"),
 					resource.TestCheckResourceAttr("netbox_device.test", "comments", "Test device comments"),
 					resource.TestCheckResourceAttr("netbox_device.test", "airflow", "front-to-rear"),
+					resource.TestCheckResourceAttrSet("netbox_device.test", "cluster"),
+					resource.TestCheckResourceAttrSet("netbox_device.test", "config_template"),
 					resource.TestCheckResourceAttr("netbox_device.test", "tags.#", "0"),
 				),
 			},
@@ -404,7 +463,7 @@ resource "netbox_device" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial, description, status)
 }
 
-func testAccDeviceResourceConfig_full(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, assetTag string) string {
+func testAccDeviceResourceConfig_full(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, assetTag, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = %[1]q
@@ -428,6 +487,21 @@ resource "netbox_site" "test" {
   status = "active"
 }
 
+resource "netbox_cluster_type" "test" {
+	name = %[12]q
+	slug = %[13]q
+}
+
+resource "netbox_cluster" "test" {
+	name = %[14]q
+	type = netbox_cluster_type.test.id
+}
+
+resource "netbox_config_template" "test" {
+	name          = %[15]q
+	template_code = %[16]q
+}
+
 resource "netbox_device" "test" {
   name        = %[9]q
   device_type = netbox_device_type.test.id
@@ -439,9 +513,11 @@ resource "netbox_device" "test" {
   description = "Test device description"
   comments    = "Test device comments"
   airflow     = "front-to-rear"
+	cluster     = netbox_cluster.test.id
+	config_template = netbox_config_template.test.id
   tags        = []
 }
-`, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial, assetTag)
+`, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial, assetTag, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode)
 }
 
 func testAccDeviceConsistencyConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, tenantName, tenantSlug string) string {
@@ -724,6 +800,11 @@ func TestAccDeviceResource_removeOptionalFields(t *testing.T) {
 	deviceTypeSlug := testutil.RandomSlug("tf-test-devtype")
 	roleName := testutil.RandomName("tf-test-role")
 	roleSlug := testutil.RandomSlug("tf-test-role")
+	clusterTypeName := testutil.RandomName("tf-test-cluster-type")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-cluster-type")
+	clusterName := testutil.RandomName("tf-test-cluster")
+	configTemplateName := testutil.RandomName("tf-test-config-template")
+	configTemplateCode := "{{ device.name }}"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -731,26 +812,31 @@ func TestAccDeviceResource_removeOptionalFields(t *testing.T) {
 	cleanup.RegisterDeviceTypeCleanup(deviceTypeSlug)
 	cleanup.RegisterDeviceRoleCleanup(roleSlug)
 	cleanup.RegisterDeviceCleanup(deviceName)
+	cleanup.RegisterClusterTypeCleanup(clusterTypeSlug)
+	cleanup.RegisterClusterCleanup(clusterName)
+	cleanup.RegisterConfigTemplateCleanup(configTemplateName)
 
 	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
 		ResourceName: "netbox_device",
 		BaseConfig: func() string {
 			return testAccDeviceResourceConfig_removeOptionalFields_base(
 				deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
-				deviceTypeName, deviceTypeSlug, roleName, roleSlug,
+				deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode,
 			)
 		},
 		ConfigWithFields: func() string {
 			return testAccDeviceResourceConfig_removeOptionalFields_withFields(
 				deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
-				deviceTypeName, deviceTypeSlug, roleName, roleSlug,
+				deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode,
 			)
 		},
 		OptionalFields: map[string]string{
-			"latitude":    "37.7749",
-			"longitude":   "-122.4194",
-			"vc_position": "1",
-			"vc_priority": "100",
+			"latitude":        "37.7749",
+			"longitude":       "-122.4194",
+			"vc_position":     "1",
+			"vc_priority":     "100",
+			"cluster":         clusterName,
+			"config_template": configTemplateName,
 		},
 		RequiredFields: map[string]string{
 			"name": deviceName,
@@ -759,7 +845,7 @@ func TestAccDeviceResource_removeOptionalFields(t *testing.T) {
 	})
 }
 
-func testAccDeviceResourceConfig_removeOptionalFields_base(deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug string) string {
+func testAccDeviceResourceConfig_removeOptionalFields_base(deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %[2]q
@@ -781,6 +867,21 @@ resource "netbox_device_role" "test" {
   name  = %[8]q
   slug  = %[9]q
   color = "ff0000"
+}
+
+resource "netbox_cluster_type" "test" {
+	name = %[10]q
+	slug = %[11]q
+}
+
+resource "netbox_cluster" "test" {
+	name = %[12]q
+	type = netbox_cluster_type.test.id
+}
+
+resource "netbox_config_template" "test" {
+	name          = %[13]q
+	template_code = %[14]q
 }
 
 resource "netbox_device" "test" {
@@ -789,10 +890,10 @@ resource "netbox_device" "test" {
   device_type = netbox_device_type.test.id
   role        = netbox_device_role.test.id
 }
-`, deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug)
+`, deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode)
 }
 
-func testAccDeviceResourceConfig_removeOptionalFields_withFields(deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug string) string {
+func testAccDeviceResourceConfig_removeOptionalFields_withFields(deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %[2]q
@@ -814,6 +915,21 @@ resource "netbox_device_role" "test" {
   name  = %[8]q
   slug  = %[9]q
   color = "ff0000"
+}
+
+resource "netbox_cluster_type" "test" {
+	name = %[10]q
+	slug = %[11]q
+}
+
+resource "netbox_cluster" "test" {
+	name = %[12]q
+	type = netbox_cluster_type.test.id
+}
+
+resource "netbox_config_template" "test" {
+	name          = %[13]q
+	template_code = %[14]q
 }
 
 resource "netbox_device" "test" {
@@ -825,8 +941,10 @@ resource "netbox_device" "test" {
   longitude   = -122.4194
   vc_position = 1
   vc_priority = 100
+	cluster     = netbox_cluster.test.name
+	config_template = netbox_config_template.test.name
 }
-`, deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug)
+`, deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode)
 }
 
 // TestAccDeviceResource_validationErrors tests validation error scenarios.

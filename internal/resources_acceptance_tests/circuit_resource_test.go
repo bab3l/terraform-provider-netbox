@@ -54,6 +54,7 @@ func TestAccCircuitResource_full(t *testing.T) {
 	providerSlug := testutil.RandomSlug("tf-test-provider-full")
 	typeName := testutil.RandomName("tf-test-circuit-type-full")
 	typeSlug := testutil.RandomSlug("tf-test-circuit-type-full")
+	providerAccountID := testutil.RandomName("acct-full")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCircuitCleanup(cid)
@@ -66,12 +67,13 @@ func TestAccCircuitResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCircuitResourceConfig_full(cid, providerName, providerSlug, typeName, typeSlug, testutil.Description1, testutil.Comments),
+				Config: testAccCircuitResourceConfig_full(cid, providerName, providerSlug, typeName, typeSlug, providerAccountID, testutil.Description1, testutil.Comments),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
 					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
 					resource.TestCheckResourceAttr("netbox_circuit.test", "circuit_provider", providerSlug),
 					resource.TestCheckResourceAttr("netbox_circuit.test", "type", typeSlug),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "provider_account", providerAccountID),
 					resource.TestCheckResourceAttr("netbox_circuit.test", "status", "active"),
 					resource.TestCheckResourceAttr("netbox_circuit.test", "description", testutil.Description1),
 					resource.TestCheckResourceAttr("netbox_circuit.test", "comments", testutil.Comments),
@@ -168,6 +170,7 @@ func TestAccCircuitResource_removeOptionalFields(t *testing.T) {
 	typeSlug := testutil.RandomSlug("tf-test-circuit-type-remove")
 	tenantName := testutil.RandomName("tf-test-tenant-remove")
 	tenantSlug := testutil.RandomSlug("tf-test-tenant-remove")
+	providerAccountID := testutil.RandomName("acct-remove")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterCircuitCleanup(cid)
@@ -178,12 +181,13 @@ func TestAccCircuitResource_removeOptionalFields(t *testing.T) {
 	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
 		ResourceName: "netbox_circuit",
 		BaseConfig: func() string {
-			return testAccCircuitResourceConfig_removeOptionalFields_base(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
+			return testAccCircuitResourceConfig_removeOptionalFields_base(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID)
 		},
 		ConfigWithFields: func() string {
-			return testAccCircuitResourceConfig_removeOptionalFields_withFields(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
+			return testAccCircuitResourceConfig_removeOptionalFields_withFields(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID)
 		},
 		OptionalFields: map[string]string{
+			"provider_account": providerAccountID,
 			"tenant":           tenantName,
 			"commit_rate":      "1000",
 			"install_date":     "2024-01-15",
@@ -197,11 +201,16 @@ func TestAccCircuitResource_removeOptionalFields(t *testing.T) {
 	})
 }
 
-func testAccCircuitResourceConfig_removeOptionalFields_base(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
+func testAccCircuitResourceConfig_removeOptionalFields_base(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID string) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
   name = %[2]q
   slug = %[3]q
+}
+
+resource "netbox_provider_account" "test" {
+	account          = %[8]q
+	circuit_provider = netbox_provider.test.slug
 }
 
 resource "netbox_circuit_type" "test" {
@@ -219,14 +228,19 @@ resource "netbox_circuit" "test" {
   circuit_provider = netbox_provider.test.slug
   type             = netbox_circuit_type.test.slug
 }
-`, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
+`, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID)
 }
 
-func testAccCircuitResourceConfig_removeOptionalFields_withFields(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug string) string {
+func testAccCircuitResourceConfig_removeOptionalFields_withFields(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID string) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
   name = %[2]q
   slug = %[3]q
+}
+
+resource "netbox_provider_account" "test" {
+	account          = %[8]q
+	circuit_provider = netbox_provider.test.slug
 }
 
 resource "netbox_circuit_type" "test" {
@@ -243,12 +257,13 @@ resource "netbox_circuit" "test" {
   cid              = %[1]q
   circuit_provider = netbox_provider.test.slug
   type             = netbox_circuit_type.test.slug
+	provider_account = netbox_provider_account.test.account
   tenant           = netbox_tenant.test.name
   commit_rate      = 1000
   install_date     = "2024-01-15"
   termination_date = "2025-12-31"
 }
-`, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
+`, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID)
 }
 
 // NOTE: Custom field tests for circuit resource are in resources_acceptance_tests_customfields package
@@ -349,11 +364,16 @@ resource "netbox_circuit" "test" {
 `, providerName, providerSlug, typeName, typeSlug, cid)
 }
 
-func testAccCircuitResourceConfig_full(cid, providerName, providerSlug, typeName, typeSlug, description, comments string) string {
+func testAccCircuitResourceConfig_full(cid, providerName, providerSlug, typeName, typeSlug, providerAccountID, description, comments string) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
   name = %q
   slug = %q
+}
+
+resource "netbox_provider_account" "test" {
+	account          = %q
+	circuit_provider = netbox_provider.test.slug
 }
 
 resource "netbox_circuit_type" "test" {
@@ -365,12 +385,13 @@ resource "netbox_circuit" "test" {
   cid              = %q
   circuit_provider = netbox_provider.test.slug
   type             = netbox_circuit_type.test.slug
+	provider_account = netbox_provider_account.test.account
   status           = "active"
   description      = %q
   comments         = %q
   commit_rate      = 10000
 }
-`, providerName, providerSlug, typeName, typeSlug, cid, description, comments)
+`, providerName, providerSlug, providerAccountID, typeName, typeSlug, cid, description, comments)
 }
 
 func testAccCircuitResourceConfig_withDescription(cid, providerName, providerSlug, typeName, typeSlug, description string) string {

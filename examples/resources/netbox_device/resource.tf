@@ -22,6 +22,21 @@ resource "netbox_device_role" "test" {
   color = "ff0000"
 }
 
+resource "netbox_cluster_type" "test" {
+  name = "Test Cluster Type"
+  slug = "test-cluster-type"
+}
+
+resource "netbox_cluster" "test" {
+  name = "Test Cluster"
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_config_template" "test" {
+  name          = "Test Config Template"
+  template_code = "{{ device.name }}"
+}
+
 resource "netbox_device" "test" {
   name        = "test-device-1"
   device_type = netbox_device_type.test.model
@@ -31,6 +46,9 @@ resource "netbox_device" "test" {
 
   serial    = "1234567890"
   asset_tag = "asset-123"
+
+  cluster         = netbox_cluster.test.name
+  config_template = netbox_config_template.test.name
 
   # Partial custom fields management (recommended pattern)
   # Only the custom fields specified here are managed by Terraform

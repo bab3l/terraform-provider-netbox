@@ -1,6 +1,11 @@
+resource "netbox_ip_address" "nat_inside" {
+  address = "10.0.0.254/24"
+}
+
 resource "netbox_ip_address" "test_v4" {
   address     = "10.0.0.1/24"
   status      = "active"
+  nat_inside  = netbox_ip_address.nat_inside.id
   dns_name    = "test.example.com"
   description = "Primary web server IP"
 

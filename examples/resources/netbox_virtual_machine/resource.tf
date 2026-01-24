@@ -8,6 +8,11 @@ resource "netbox_cluster" "test" {
   type = netbox_cluster_type.test.id
 }
 
+resource "netbox_config_template" "test" {
+  name          = "test-config-template"
+  template_code = "hostname {{ device.name }}"
+}
+
 resource "netbox_virtual_machine" "test" {
   name        = "test-vm-1"
   cluster     = netbox_cluster.test.name
@@ -17,6 +22,9 @@ resource "netbox_virtual_machine" "test" {
   status      = "active"
   description = "Test virtual machine"
   comments    = "Production web server VM"
+  serial      = "VM-serial-12345"
+
+  config_template = netbox_config_template.test.id
 
   # Partial custom fields management
   # Only specified custom fields are managed, others in NetBox preserved

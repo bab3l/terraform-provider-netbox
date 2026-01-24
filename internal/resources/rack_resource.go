@@ -46,6 +46,8 @@ type RackResourceModel struct {
 
 	Name types.String `tfsdk:"name"`
 
+	FacilityID types.String `tfsdk:"facility_id"`
+
 	Site types.String `tfsdk:"site"`
 
 	Location types.String `tfsdk:"location"`
@@ -123,6 +125,14 @@ func (r *RackResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"serial": nbschema.SerialAttribute(),
 
 			"asset_tag": nbschema.AssetTagAttribute(),
+
+			"facility_id": schema.StringAttribute{
+				MarkdownDescription: "Local facility ID or descriptor for the rack.",
+				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(50),
+				},
+			},
 
 			"rack_type": nbschema.ReferenceAttributeWithDiffSuppress("rack type", "ID or model of the rack type (model/form factor definition)."),
 
@@ -560,6 +570,11 @@ func (r *RackResource) buildRackRequest(ctx context.Context, data *RackResourceM
 	utils.ApplyDescription(&rackRequest, data.Description)
 	utils.ApplyComments(&rackRequest, data.Comments)
 
+	// Set facility_id
+	if !data.FacilityID.IsNull() && !data.FacilityID.IsUnknown() {
+		rackRequest.SetFacilityId(data.FacilityID.ValueString())
+	}
+
 	// Apply tags and custom fields
 	utils.ApplyTagsFromSlugs(ctx, r.client, &rackRequest, data.Tags, &resp.Diagnostics)
 
@@ -992,6 +1007,13 @@ func (r *RackResource) buildRackRequestForUpdate(ctx context.Context, data *Rack
 	}
 
 	// Note: Common fields (description, comments, tags, custom_fields) are now applied in Update method
+
+	// Set facility_id
+	if !data.FacilityID.IsNull() && !data.FacilityID.IsUnknown() {
+		rackRequest.SetFacilityId(data.FacilityID.ValueString())
+	} else if data.FacilityID.IsNull() {
+		rackRequest.SetFacilityIdNil()
+	}
 	// with merge-aware behavior
 
 	return &rackRequest
@@ -1242,6 +1264,9 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 	data.ID = types.StringValue(fmt.Sprintf("%d", rack.GetId()))
 
 	data.Name = types.StringValue(rack.GetName())
+
+	// Map facility_id
+	data.FacilityID = utils.StringFromAPI(rack.HasFacilityId(), rack.GetFacilityId, data.FacilityID)
 
 	// Map site
 

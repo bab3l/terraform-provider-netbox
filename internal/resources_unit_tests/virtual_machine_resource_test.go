@@ -36,8 +36,8 @@ func TestVirtualMachineResourceSchema(t *testing.T) {
 
 	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
 		Required: []string{"name"},
-		Optional: []string{"status", "cluster", "vcpus", "memory", "disk", "description", "comments"},
-		Computed: []string{"id"},
+		Optional: []string{"status", "site", "cluster", "role", "tenant", "platform", "device", "serial", "vcpus", "memory", "disk", "description", "comments", "config_template", "tags", "custom_fields"},
+		Computed: []string{"id", "local_context_data"},
 	})
 
 }

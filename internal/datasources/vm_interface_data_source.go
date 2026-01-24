@@ -40,7 +40,10 @@ type VMInterfaceDataSourceModel struct {
 	Description    types.String `tfsdk:"description"`
 	DisplayName    types.String `tfsdk:"display_name"`
 	Mode           types.String `tfsdk:"mode"`
+	Parent         types.String `tfsdk:"parent"`
+	Bridge         types.String `tfsdk:"bridge"`
 	UntaggedVLAN   types.String `tfsdk:"untagged_vlan"`
+	TaggedVLANs    types.List   `tfsdk:"tagged_vlans"`
 	VRF            types.String `tfsdk:"vrf"`
 	Tags           types.List   `tfsdk:"tags"`
 	CustomFields   types.Set    `tfsdk:"custom_fields"`
@@ -73,8 +76,15 @@ func (d *VMInterfaceDataSource) Schema(ctx context.Context, req datasource.Schem
 			"description":   nbschema.DSComputedStringAttribute("Detailed description of the VM interface."),
 			"display_name":  nbschema.DSComputedStringAttribute("Display name for the VM interface."),
 			"mode":          nbschema.DSComputedStringAttribute("The 802.1Q mode of the interface (access, tagged, tagged-all)."),
+			"parent":        nbschema.DSComputedStringAttribute("The parent interface (for sub-interfaces)."),
+			"bridge":        nbschema.DSComputedStringAttribute("The bridge interface this interface belongs to."),
 			"untagged_vlan": nbschema.DSComputedStringAttribute("The untagged VLAN assigned to this interface."),
-			"vrf":           nbschema.DSComputedStringAttribute("The VRF assigned to this interface."),
+			"tagged_vlans": schema.ListAttribute{
+				MarkdownDescription: "Tagged VLANs assigned to this interface.",
+				Computed:            true,
+				ElementType:         types.StringType,
+			},
+			"vrf": nbschema.DSComputedStringAttribute("The VRF assigned to this interface."),
 			"tags": schema.ListAttribute{
 				MarkdownDescription: "Tags assigned to this VM interface.",
 				Computed:            true,
@@ -229,11 +239,41 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.Mode = types.StringNull()
 	}
 
+	// Parent
+	if iface.Parent.IsSet() && iface.Parent.Get() != nil {
+		data.Parent = types.StringValue(iface.Parent.Get().GetName())
+	} else {
+		data.Parent = types.StringNull()
+	}
+
+	// Bridge
+	if iface.Bridge.IsSet() && iface.Bridge.Get() != nil {
+		data.Bridge = types.StringValue(iface.Bridge.Get().GetName())
+	} else {
+		data.Bridge = types.StringNull()
+	}
+
 	// Untagged VLAN
 	if iface.UntaggedVlan.IsSet() && iface.UntaggedVlan.Get() != nil {
 		data.UntaggedVLAN = types.StringValue(iface.UntaggedVlan.Get().GetName())
 	} else {
 		data.UntaggedVLAN = types.StringNull()
+	}
+
+	// Tagged VLANs
+	if len(iface.GetTaggedVlans()) > 0 {
+		vlanNames := make([]string, 0, len(iface.GetTaggedVlans()))
+		for _, vlan := range iface.GetTaggedVlans() {
+			vlanNames = append(vlanNames, vlan.GetName())
+		}
+		taggedValue, taggedDiags := types.ListValueFrom(ctx, types.StringType, vlanNames)
+		resp.Diagnostics.Append(taggedDiags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.TaggedVLANs = taggedValue
+	} else {
+		data.TaggedVLANs = types.ListNull(types.StringType)
 	}
 
 	// VRF

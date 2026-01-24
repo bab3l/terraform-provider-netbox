@@ -175,7 +175,7 @@ resource "netbox_virtual_machine" "test" {
 
 # Create VM interface with all custom fields and tags
 resource "netbox_vm_interface" "test" {
-	virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   name            = %[5]q
 
 	tags = [netbox_tag.vmint_test1.slug, netbox_tag.vmint_test2.slug]

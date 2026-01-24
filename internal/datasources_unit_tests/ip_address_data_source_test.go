@@ -24,8 +24,8 @@ func TestIPAddressDataSourceSchema(t *testing.T) {
 	}
 
 	testutil.ValidateDataSourceSchema(t, resp.Schema.Attributes, testutil.DataSourceValidation{
-		LookupAttrs:   []string{},
-		ComputedAttrs: []string{},
+		LookupAttrs:   []string{"id", "address"},
+		ComputedAttrs: []string{"id", "address", "display_name", "vrf", "vrf_id", "tenant", "tenant_id", "status", "role", "assigned_object_type", "assigned_object_id", "nat_inside", "dns_name", "description", "comments", "tags", "custom_fields"},
 	})
 }
 

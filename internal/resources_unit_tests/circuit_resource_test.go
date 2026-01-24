@@ -51,7 +51,7 @@ func TestCircuitResourceSchema(t *testing.T) {
 
 		Required: []string{"cid", "circuit_provider", "type"},
 
-		Optional: []string{"status", "tenant", "install_date", "termination_date", "commit_rate", "description", "comments", "tags", "custom_fields"},
+		Optional: []string{"provider_account", "status", "tenant", "install_date", "termination_date", "commit_rate", "description", "comments", "tags", "custom_fields"},
 
 		Computed: []string{"id"},
 	})

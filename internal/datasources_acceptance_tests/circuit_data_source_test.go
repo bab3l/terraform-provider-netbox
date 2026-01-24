@@ -16,6 +16,7 @@ func TestAccCircuitDataSource_byID(t *testing.T) {
 	circuitTypeName := testutil.RandomName("circuit-type")
 	circuitTypeSlug := testutil.RandomSlug("circuit-type")
 	cid := testutil.RandomName("circuit")
+	providerAccountID := testutil.RandomName("acct")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterProviderCleanup(providerSlug)
@@ -30,11 +31,12 @@ func TestAccCircuitDataSource_byID(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCircuitDataSourceConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid),
+				Config: testAccCircuitDataSourceConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid, providerAccountID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_circuit.by_id", "cid", cid),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_id", "id"),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_id", "circuit_provider"),
+					resource.TestCheckResourceAttrPair("data.netbox_circuit.by_id", "provider_account", "netbox_provider_account.test", "account"),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_id", "type"),
 				),
 			},
@@ -51,6 +53,7 @@ func TestAccCircuitDataSource_byCID(t *testing.T) {
 	circuitTypeName := testutil.RandomName("circuit-type")
 	circuitTypeSlug := testutil.RandomSlug("circuit-type")
 	cid := testutil.RandomName("circuit")
+	providerAccountID := testutil.RandomName("acct")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterProviderCleanup(providerSlug)
@@ -65,11 +68,12 @@ func TestAccCircuitDataSource_byCID(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCircuitDataSourceConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid),
+				Config: testAccCircuitDataSourceConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid, providerAccountID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.netbox_circuit.by_cid", "cid", cid),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "id"),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "circuit_provider"),
+					resource.TestCheckResourceAttrPair("data.netbox_circuit.by_cid", "provider_account", "netbox_provider_account.test", "account"),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "type"),
 				),
 			},
@@ -85,6 +89,7 @@ func TestAccCircuitDataSource_IDPreservation(t *testing.T) {
 	circuitTypeName := testutil.RandomName("tf-test-circuit-type-id")
 	circuitTypeSlug := testutil.RandomSlug("tf-test-circuit-type-id")
 	cid := testutil.RandomName("tf-test-circuit-id")
+	providerAccountID := testutil.RandomName("acct-id")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterProviderCleanup(providerSlug)
@@ -99,13 +104,14 @@ func TestAccCircuitDataSource_IDPreservation(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCircuitDataSourceConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid),
+				Config: testAccCircuitDataSourceConfig(providerName, providerSlug, circuitTypeName, circuitTypeSlug, cid, providerAccountID),
 				Check: resource.ComposeTestCheckFunc(
 					// Verify datasource returns ID correctly
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "id"),
 					resource.TestCheckResourceAttr("data.netbox_circuit.by_cid", "cid", cid),
 					// Verify reference attributes are set
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "circuit_provider"),
+					resource.TestCheckResourceAttrPair("data.netbox_circuit.by_cid", "provider_account", "netbox_provider_account.test", "account"),
 					resource.TestCheckResourceAttrSet("data.netbox_circuit.by_cid", "type"),
 				),
 			},
@@ -113,11 +119,16 @@ func TestAccCircuitDataSource_IDPreservation(t *testing.T) {
 	})
 }
 
-func testAccCircuitDataSourceConfig(providerName, providerSlug, typeName, typeSlug, cid string) string {
+func testAccCircuitDataSourceConfig(providerName, providerSlug, typeName, typeSlug, cid, providerAccountID string) string {
 	return fmt.Sprintf(`
 resource "netbox_provider" "test" {
   name = "%s"
   slug = "%s"
+}
+
+resource "netbox_provider_account" "test" {
+	account          = "%s"
+	circuit_provider = netbox_provider.test.id
 }
 
 resource "netbox_circuit_type" "test" {
@@ -128,6 +139,7 @@ resource "netbox_circuit_type" "test" {
 resource "netbox_circuit" "test" {
   cid              = "%s"
   circuit_provider = netbox_provider.test.id
+	provider_account = netbox_provider_account.test.account
   type             = netbox_circuit_type.test.id
   status           = "active"
 }
@@ -139,5 +151,5 @@ data "netbox_circuit" "by_cid" {
 data "netbox_circuit" "by_id" {
   id = netbox_circuit.test.id
 }
-`, providerName, providerSlug, typeName, typeSlug, cid)
+`, providerName, providerSlug, providerAccountID, typeName, typeSlug, cid)
 }

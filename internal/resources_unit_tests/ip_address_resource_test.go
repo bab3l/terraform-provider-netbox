@@ -34,7 +34,7 @@ func TestIPAddressResourceSchema(t *testing.T) {
 
 	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
 		Required: []string{"address"},
-		Optional: []string{"vrf", "tenant", "status", "role", "assigned_object_type", "assigned_object_id", "dns_name", "description", "comments"},
+		Optional: []string{"vrf", "tenant", "status", "role", "assigned_object_type", "assigned_object_id", "nat_inside", "dns_name", "description", "comments"},
 		Computed: []string{"id"},
 	})
 }

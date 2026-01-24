@@ -53,6 +53,11 @@ func TestAccSiteResource_full(t *testing.T) {
 	tagSlug1 := testutil.RandomSlug("tag1")
 	tagName2 := testutil.RandomName("tag2")
 	tagSlug2 := testutil.RandomSlug("tag2")
+	physicalAddress := "123 Terraform Ave, Example City"
+	shippingAddress := "PO Box 123, Example City"
+	timeZone := "America/Los_Angeles"
+	latitude := 37.7749
+	longitude := -122.4194
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(slug)
@@ -65,28 +70,33 @@ func TestAccSiteResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckSiteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, physicalAddress, shippingAddress, timeZone, latitude, longitude),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site.test", "id"),
 					resource.TestCheckResourceAttr("netbox_site.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_site.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_site.test", "status", "active"),
 					resource.TestCheckResourceAttr("netbox_site.test", "description", description),
+					resource.TestCheckResourceAttr("netbox_site.test", "time_zone", timeZone),
+					resource.TestCheckResourceAttr("netbox_site.test", "physical_address", physicalAddress),
+					resource.TestCheckResourceAttr("netbox_site.test", "shipping_address", shippingAddress),
+					resource.TestCheckResourceAttr("netbox_site.test", "latitude", fmt.Sprintf("%g", latitude)),
+					resource.TestCheckResourceAttr("netbox_site.test", "longitude", fmt.Sprintf("%g", longitude)),
 					resource.TestCheckResourceAttr("netbox_site.test", "tags.#", "2"),
 				),
 			},
 			{
-				Config:   testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config:   testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, physicalAddress, shippingAddress, timeZone, latitude, longitude),
 				PlanOnly: true,
 			},
 			{
-				Config: testAccSiteResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccSiteResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, physicalAddress, shippingAddress, timeZone, latitude, longitude),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_site.test", "description", updatedDescription),
 				),
 			},
 			{
-				Config:   testAccSiteResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config:   testAccSiteResourceConfig_fullUpdate(name, slug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2, physicalAddress, shippingAddress, timeZone, latitude, longitude),
 				PlanOnly: true,
 			},
 		},
@@ -335,7 +345,7 @@ resource "netbox_site" "test" {
 `, name, slug)
 }
 
-func testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+func testAccSiteResourceConfig_full(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, physicalAddress, shippingAddress, timeZone string, latitude, longitude float64) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[4]q
@@ -352,16 +362,21 @@ resource "netbox_site" "test" {
 	slug        = %[2]q
 	status      = "active"
 	description = %[3]q
+	physical_address = %[8]q
+	shipping_address = %[9]q
+	time_zone = %[10]q
+	latitude  = %[11]f
+	longitude = %[12]f
 
 	tags = [
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
 }
-`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2)
+`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, physicalAddress, shippingAddress, timeZone, latitude, longitude)
 }
 
-func testAccSiteResourceConfig_fullUpdate(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+func testAccSiteResourceConfig_fullUpdate(name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, physicalAddress, shippingAddress, timeZone string, latitude, longitude float64) string {
 	return fmt.Sprintf(`
 resource "netbox_tag" "tag1" {
 	name = %[4]q
@@ -379,13 +394,18 @@ resource "netbox_site" "test" {
 	status      = "active"
 	description = %[3]q
 	comments    = "Updated comments"
+	physical_address = %[8]q
+	shipping_address = %[9]q
+	time_zone = %[10]q
+	latitude  = %[11]f
+	longitude = %[12]f
 
 	tags = [
 		netbox_tag.tag1.slug,
 		netbox_tag.tag2.slug
 	]
 }
-`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2)
+`, name, slug, description, tagName1, tagSlug1, tagName2, tagSlug2, physicalAddress, shippingAddress, timeZone, latitude, longitude)
 }
 
 func testAccSiteResourceConfig_import(name, slug string) string {

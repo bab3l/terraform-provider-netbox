@@ -573,7 +573,7 @@ func (r *ProviderAccountResource) mapResponseToModel(ctx context.Context, provid
 	// Map Provider
 
 	if provider := providerAccount.GetProvider(); provider.Id != 0 {
-		data.CircuitProvider = types.StringValue(fmt.Sprintf("%d", provider.Id))
+		data.CircuitProvider = utils.UpdateReferenceAttribute(data.CircuitProvider, provider.GetName(), provider.GetSlug(), provider.GetId())
 	}
 
 	// Map name

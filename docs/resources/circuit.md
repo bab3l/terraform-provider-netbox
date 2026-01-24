@@ -22,9 +22,15 @@ resource "netbox_circuit_type" "test" {
   slug = "internet-transit"
 }
 
+resource "netbox_provider_account" "test" {
+  account          = "ACCT-100"
+  circuit_provider = netbox_provider.test.slug
+}
+
 resource "netbox_circuit" "test" {
   cid              = "CID-12345"
   circuit_provider = netbox_provider.test.name
+  provider_account = netbox_provider_account.test.account
   type             = netbox_circuit_type.test.name
   status           = "active"
   description      = "Main Internet Circuit"
@@ -84,6 +90,7 @@ import {
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the circuit.
 - `install_date` (String) The date when the circuit was installed, in YYYY-MM-DD format.
+- `provider_account` (String) The provider account for this circuit. Can be specified by account or ID (scoped to the provider).
 - `status` (String) The operational status of the circuit. Valid values are: `planned`, `provisioning`, `active`, `offline`, `deprovisioning`, `decommissioned`. Defaults to `active`.
 - `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) The tenant that owns this circuit. Can be specified by name, slug, or ID.

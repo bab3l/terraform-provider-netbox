@@ -29,6 +29,7 @@ resource "netbox_rack" "test" {
   site        = netbox_site.test.name
   status      = "active"
   role        = netbox_rack_role.test.name
+  facility_id = "FAC-01"
   u_height    = 42
   width       = 19
   description = "Primary datacenter rack"
@@ -93,6 +94,7 @@ import {
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `desc_units` (Boolean) If true, rack units are numbered in descending order (top to bottom).
 - `description` (String) Description of the rack.
+- `facility_id` (String) Local facility ID or descriptor for the rack.
 - `form_factor` (String) Physical form factor of the rack. Valid values: `2-post-frame`, `4-post-frame`, `4-post-cabinet`, `wall-frame`, `wall-frame-vertical`, `wall-cabinet`, `wall-cabinet-vertical`.
 - `location` (String) ID or slug of the location within the site (e.g., building, floor, room).
 - `max_weight` (String) Maximum weight capacity of the rack.

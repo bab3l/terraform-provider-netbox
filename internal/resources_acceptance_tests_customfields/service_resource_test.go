@@ -347,7 +347,7 @@ resource "netbox_custom_field" "owner" {
 
 resource "netbox_service" "test" {
 
-  device   = netbox_device.test.name
+  device   = netbox_device.test.id
 
   name     = %[1]q
 
@@ -553,7 +553,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_service" "test" {
 
-  device   = netbox_device.test.name
+  device   = netbox_device.test.id
 
   name     = %[1]q
 
@@ -635,7 +635,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_service" "test" {
 
-  device   = netbox_device.test.name
+  device   = netbox_device.test.id
 
   name     = %[1]q
 
@@ -863,7 +863,7 @@ resource "netbox_custom_field" "test_field" {
 
 resource "netbox_service" "test" {
 
-  device   = netbox_device.test.name
+  device   = netbox_device.test.id
 
   name     = "http"
 

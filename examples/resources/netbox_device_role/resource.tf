@@ -1,9 +1,15 @@
+resource "netbox_config_template" "test" {
+  name          = "Test Config Template"
+  template_code = "{{ device_role.name }}"
+}
+
 resource "netbox_device_role" "test" {
-  name        = "Test Role"
-  slug        = "test-role"
-  color       = "ff0000"
-  vm_role     = false
-  description = "Network switch role"
+  name            = "Test Role"
+  slug            = "test-role"
+  color           = "ff0000"
+  vm_role         = false
+  description     = "Network switch role"
+  config_template = netbox_config_template.test.name
 
   # Partial custom fields management
   # Only specified custom fields are managed, others preserved

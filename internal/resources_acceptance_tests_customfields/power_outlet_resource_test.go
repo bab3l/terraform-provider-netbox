@@ -167,7 +167,7 @@ resource "netbox_tag" "test_2" {
 
 # Power outlet with custom fields and tags
 resource "netbox_power_outlet" "test" {
-  device = netbox_device.test.name
+  device = netbox_device.test.id
   name = %q
   type = "iec-60320-c13"
 

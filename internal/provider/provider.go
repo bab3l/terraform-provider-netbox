@@ -227,6 +227,8 @@ func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resour
 
 		resources.NewSiteResource,
 
+		resources.NewSiteASNAssignmentResource,
+
 		resources.NewSiteGroupResource,
 
 		resources.NewTenantGroupResource,

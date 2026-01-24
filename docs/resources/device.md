@@ -36,6 +36,21 @@ resource "netbox_device_role" "test" {
   color = "ff0000"
 }
 
+resource "netbox_cluster_type" "test" {
+  name = "Test Cluster Type"
+  slug = "test-cluster-type"
+}
+
+resource "netbox_cluster" "test" {
+  name = "Test Cluster"
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_config_template" "test" {
+  name          = "Test Config Template"
+  template_code = "{{ device.name }}"
+}
+
 resource "netbox_device" "test" {
   name        = "test-device-1"
   device_type = netbox_device_type.test.model
@@ -45,6 +60,9 @@ resource "netbox_device" "test" {
 
   serial    = "1234567890"
   asset_tag = "asset-123"
+
+  cluster         = netbox_cluster.test.name
+  config_template = netbox_config_template.test.name
 
   # Partial custom fields management (recommended pattern)
   # Only the custom fields specified here are managed by Terraform
@@ -93,7 +111,9 @@ import {
 
 - `airflow` (String) Direction of airflow through the device. Valid values: 'front-to-rear', 'rear-to-front', 'left-to-right', 'right-to-left', 'side-to-rear', 'passive', 'mixed'.
 - `asset_tag` (String) A unique tag used for asset tracking.
+- `cluster` (String) ID or name of the cluster this device belongs to.
 - `comments` (String) Additional comments or notes about the device. Supports Markdown formatting.
+- `config_template` (String) ID or name of the config template assigned to this device.
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the device.
 - `face` (String) Which face of the rack the device is mounted on. Valid values: 'front', 'rear'.

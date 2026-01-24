@@ -83,6 +83,7 @@ output "address_monitored" {
 - `description` (String) The description of the IP address.
 - `display_name` (String) The display name of the IP address.
 - `dns_name` (String) Hostname or FQDN.
+- `nat_inside` (String) The ID of the inside IP address for NAT (the IP for which this address is the outside IP).
 - `role` (String) The role of the IP address.
 - `status` (String) The status of the IP address.
 - `tags` (List of String) The tags assigned to this IP address.

@@ -85,6 +85,8 @@ output "vrf_customer_name" {
 - `description` (String) Brief description of the VRF.
 - `display_name` (String) Display name for the VRF.
 - `enforce_unique` (Boolean) Prevent duplicate prefixes/IP addresses within this VRF.
+- `export_targets` (List of Number) List of Route Target IDs exported from this VRF.
+- `import_targets` (List of Number) List of Route Target IDs imported into this VRF.
 - `rd` (String) Route distinguisher (RD) as defined in RFC 4364.
 - `tags` (List of String) Tags assigned to this VRF.
 - `tenant` (String) ID of the tenant this VRF belongs to.

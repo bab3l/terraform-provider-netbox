@@ -141,3 +141,12 @@ Required:
 - `name` (String) Name of the custom field.
 - `type` (String) Type of the custom field (text, longtext, integer, boolean, date, url, json, select, multiselect, object, multiobject).
 - `value` (String) Value of the custom field.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# Cluster groups can be imported by ID
+terraform import netbox_cluster_group.test 123
+```

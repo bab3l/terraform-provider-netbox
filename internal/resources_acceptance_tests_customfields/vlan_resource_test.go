@@ -144,7 +144,7 @@ resource "netbox_tag" "tag2" {
 resource "netbox_vlan" "test" {
   name   = %q
   vid    = %d
-  tenant = netbox_tenant.test.name
+  tenant = netbox_tenant.test.id
 
   custom_fields = [
     {

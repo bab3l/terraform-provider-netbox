@@ -2,9 +2,12 @@ package testutil
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 // ReferenceChangeTestConfig defines the configuration for testing reference attribute changes.
@@ -180,4 +183,36 @@ func RunMultiReferenceTest(t *testing.T, config MultiReferenceTestConfig) {
 	}
 
 	resource.Test(t, testCase)
+}
+
+// ReferenceListNumericCheck validates that all elements of a list/set attribute
+// are numeric IDs in state (e.g., for tagged_vlans).
+func ReferenceListNumericCheck(resourceRef, fieldName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs := s.RootModule().Resources[resourceRef]
+		if rs == nil {
+			return fmt.Errorf("resource %s not found in state", resourceRef)
+		}
+
+		countKey := fmt.Sprintf("%s.#", fieldName)
+		countStr, ok := rs.Primary.Attributes[countKey]
+		if !ok || countStr == "0" {
+			return fmt.Errorf("%s %s is empty", resourceRef, fieldName)
+		}
+
+		prefix := fieldName + "."
+		for key, value := range rs.Primary.Attributes {
+			if !strings.HasPrefix(key, prefix) || key == countKey {
+				continue
+			}
+			if value == "" {
+				return fmt.Errorf("%s %s contains empty value", resourceRef, fieldName)
+			}
+			if _, err := strconv.Atoi(value); err != nil {
+				return fmt.Errorf("%s %s value %q is not numeric", resourceRef, fieldName, value)
+			}
+		}
+
+		return nil
+	}
 }

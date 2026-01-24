@@ -121,3 +121,12 @@ resource "netbox_manufacturer" "example" {
 ### Read-Only
 
 - `id` (String) The unique identifier of the device bay template.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# Device bay templates can be imported by ID
+terraform import netbox_device_bay_template.basic 123
+```

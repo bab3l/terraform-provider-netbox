@@ -12,11 +12,21 @@ Manages a VRF (Virtual Routing and Forwarding) instance in Netbox. VRFs are used
 ## Example Usage
 
 ```terraform
+resource "netbox_route_target" "import" {
+  name = "65000:100"
+}
+
+resource "netbox_route_target" "export" {
+  name = "65000:200"
+}
+
 resource "netbox_vrf" "test" {
-  name        = "Test VRF"
-  rd          = "65000:1"
-  description = "Customer VRF for multi-tenant network"
-  comments    = "Isolated routing table for customer traffic"
+  name           = "Test VRF"
+  rd             = "65000:1"
+  description    = "Customer VRF for multi-tenant network"
+  comments       = "Isolated routing table for customer traffic"
+  import_targets = [netbox_route_target.import.id]
+  export_targets = [netbox_route_target.export.id]
 
   # Partial custom fields management
   # Only specified custom fields are managed, others in NetBox preserved
@@ -74,6 +84,8 @@ import {
 - `custom_fields` (Attributes Set) Custom fields assigned to this resource. Custom fields must be defined in Netbox before use. (see [below for nested schema](#nestedatt--custom_fields))
 - `description` (String) Description of the VRF.
 - `enforce_unique` (Boolean) Prevent duplicate prefixes/IP addresses within this VRF. Defaults to `true`.
+- `export_targets` (List of Number) List of Route Target IDs to export from this VRF.
+- `import_targets` (List of Number) List of Route Target IDs to import into this VRF.
 - `rd` (String) Route distinguisher (RD) as defined in RFC 4364. Format: `ASN:nn` or `IP:nn`. Example: `65000:1` or `192.168.1.1:1`.
 - `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) Name, Slug, or ID of the tenant this VRF belongs to.

@@ -13,12 +13,17 @@ Manages a site in Netbox. Sites represent physical locations such as data center
 
 ```terraform
 resource "netbox_site" "example" {
-  name        = "Example Site"
-  slug        = "example-site"
-  status      = "active"
-  description = "An example site created with Terraform"
-  facility    = "DC01"
-  comments    = "This is a sample site configuration"
+  name             = "Example Site"
+  slug             = "example-site"
+  status           = "active"
+  description      = "An example site created with Terraform"
+  facility         = "DC01"
+  time_zone        = "America/Los_Angeles"
+  physical_address = "123 Terraform Ave, Example City"
+  shipping_address = "PO Box 123, Example City"
+  latitude         = 37.7749
+  longitude        = -122.4194
+  comments         = "This is a sample site configuration"
 
   # Partial custom fields management
   # Only specified custom fields are managed, others in NetBox preserved
@@ -78,10 +83,15 @@ import {
 - `description` (String) Description of the site.
 - `facility` (String) Local facility identifier or description (e.g., building name, floor, room number).
 - `group` (String) ID or slug of the site group.
+- `latitude` (Number) GPS latitude coordinate in decimal format (xx.yyyyyy).
+- `longitude` (Number) GPS longitude coordinate in decimal format (xx.yyyyyy).
+- `physical_address` (String) Physical address of the site.
 - `region` (String) ID or slug of the region where this site is located.
+- `shipping_address` (String) Shipping address for the site (if different from physical address).
 - `status` (String) Operational status of the site.
 - `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
 - `tenant` (String) ID or slug of the tenant that owns this site.
+- `time_zone` (String) Time zone for this site (IANA name, e.g. 'America/Los_Angeles').
 
 ### Read-Only
 

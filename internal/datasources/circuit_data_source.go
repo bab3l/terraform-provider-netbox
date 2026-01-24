@@ -34,6 +34,7 @@ type CircuitDataSourceModel struct {
 	ID              types.String `tfsdk:"id"`
 	Cid             types.String `tfsdk:"cid"`
 	CircuitProvider types.String `tfsdk:"circuit_provider"`
+	ProviderAccount types.String `tfsdk:"provider_account"`
 	Type            types.String `tfsdk:"type"`
 	Status          types.String `tfsdk:"status"`
 	Tenant          types.String `tfsdk:"tenant"`
@@ -60,6 +61,7 @@ func (d *CircuitDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"id":               nbschema.DSIDAttribute("circuit"),
 			"cid":              nbschema.DSNameAttribute("circuit"), // Using DSNameAttribute since cid is similar to name
 			"circuit_provider": nbschema.DSComputedStringAttribute("The circuit provider (carrier or ISP) name."),
+			"provider_account": nbschema.DSComputedStringAttribute("The provider account for this circuit (account identifier)."),
 			"type":             nbschema.DSComputedStringAttribute("The type of circuit."),
 			"status":           nbschema.DSComputedStringAttribute("The operational status of the circuit."),
 			"tenant":           nbschema.DSComputedStringAttribute("The tenant that owns this circuit."),
@@ -174,6 +176,13 @@ func (d *CircuitDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	data.Cid = types.StringValue(circuit.GetCid())
 	data.CircuitProvider = types.StringValue(circuit.GetProvider().Name)
 	data.Type = types.StringValue(circuit.GetType().Name)
+
+	// Provider account
+	if circuit.ProviderAccount.IsSet() && circuit.ProviderAccount.Get() != nil {
+		data.ProviderAccount = types.StringValue(circuit.ProviderAccount.Get().GetAccount())
+	} else {
+		data.ProviderAccount = types.StringNull()
+	}
 
 	// Handle status
 	if circuit.HasStatus() {

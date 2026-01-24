@@ -50,22 +50,26 @@ func TestAccDeviceRoleResource_full(t *testing.T) {
 	name := testutil.RandomName("tf-test-device-role-full")
 	slug := testutil.RandomSlug("tf-test-dr-full")
 	description := testutil.RandomName("description")
+	configTemplateName := testutil.RandomName("tf-test-config-template")
+	configTemplateCode := "{{ device.name }}"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterDeviceRoleCleanup(slug)
+	cleanup.RegisterConfigTemplateCleanup(configTemplateName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDeviceRoleResourceConfig_full(name, slug, description, "aa1409", false),
+				Config: testAccDeviceRoleResourceConfig_full(name, slug, description, "aa1409", false, configTemplateName, configTemplateCode),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_device_role.test", "id"),
 					resource.TestCheckResourceAttr("netbox_device_role.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_device_role.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_device_role.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_device_role.test", "color", "aa1409"),
+					resource.TestCheckResourceAttrSet("netbox_device_role.test", "config_template"),
 				),
 			},
 		},
@@ -114,16 +118,37 @@ resource "netbox_device_role" "test" {
 `, name, slug)
 }
 
-func testAccDeviceRoleResourceConfig_full(name, slug, description, color string, vmRole bool) string {
+func testAccDeviceRoleResourceConfig_baseWithTemplate(name, slug, configTemplateName, configTemplateCode string) string {
 	return fmt.Sprintf(`
+resource "netbox_config_template" "test" {
+	name          = %q
+	template_code = %q
+}
+
+resource "netbox_device_role" "test" {
+	name  = %q
+	slug  = %q
+	color = "aa1409"
+}
+`, configTemplateName, configTemplateCode, name, slug)
+}
+
+func testAccDeviceRoleResourceConfig_full(name, slug, description, color string, vmRole bool, configTemplateName, configTemplateCode string) string {
+	return fmt.Sprintf(`
+resource "netbox_config_template" "test" {
+	name          = %q
+	template_code = %q
+}
+
 resource "netbox_device_role" "test" {
   name        = %q
   slug        = %q
   description = %q
   color       = %q
   vm_role     = %t
+	config_template = netbox_config_template.test.id
 }
-`, name, slug, description, color, vmRole)
+`, configTemplateName, configTemplateCode, name, slug, description, color, vmRole)
 }
 
 func TestAccConsistency_DeviceRole_LiteralNames(t *testing.T) {
@@ -222,24 +247,30 @@ func TestAccDeviceRoleResource_removeDescription(t *testing.T) {
 
 	name := testutil.RandomName("tf-test-devrole-optional")
 	slug := testutil.RandomSlug("tf-test-devrole-optional")
+	configTemplateName := testutil.RandomName("tf-test-config-template")
+	configTemplateCode := "{{ device_role.name }}"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterDeviceRoleCleanup(slug)
+	cleanup.RegisterConfigTemplateCleanup(configTemplateName)
 
 	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
 		ResourceName: "netbox_device_role",
 		BaseConfig: func() string {
-			return testAccDeviceRoleResourceConfig_basic(name, slug)
+			return testAccDeviceRoleResourceConfig_baseWithTemplate(name, slug, configTemplateName, configTemplateCode)
 		},
 		ConfigWithFields: func() string {
 			return testAccDeviceRoleResourceConfig_withDescription(
 				name,
 				slug,
 				"Test description",
+				configTemplateName,
+				configTemplateCode,
 			)
 		},
 		OptionalFields: map[string]string{
-			"description": "Test description",
+			"description":     "Test description",
+			"config_template": configTemplateName,
 		},
 		RequiredFields: map[string]string{
 			"name": name,
@@ -249,15 +280,21 @@ func TestAccDeviceRoleResource_removeDescription(t *testing.T) {
 	})
 }
 
-func testAccDeviceRoleResourceConfig_withDescription(name, slug, description string) string {
+func testAccDeviceRoleResourceConfig_withDescription(name, slug, description, configTemplateName, configTemplateCode string) string {
 	return fmt.Sprintf(`
-resource "netbox_device_role" "test" {
-  name        = %[1]q
-  slug        = %[2]q
-  color       = "aa1409"
-  description = %[3]q
+resource "netbox_config_template" "test" {
+	name          = %q
+	template_code = %q
 }
-`, name, slug, description)
+
+resource "netbox_device_role" "test" {
+	name            = %[3]q
+	slug            = %[4]q
+	color           = "aa1409"
+	description     = %[5]q
+	config_template = netbox_config_template.test.name
+}
+`, configTemplateName, configTemplateCode, name, slug, description)
 }
 
 // TestAccDeviceRoleResource_validationErrors tests validation error scenarios.

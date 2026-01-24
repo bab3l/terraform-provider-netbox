@@ -24,8 +24,8 @@ func TestVRFDataSourceSchema(t *testing.T) {
 	}
 
 	testutil.ValidateDataSourceSchema(t, resp.Schema.Attributes, testutil.DataSourceValidation{
-		LookupAttrs:   []string{},
-		ComputedAttrs: []string{},
+		LookupAttrs:   []string{"id", "name"},
+		ComputedAttrs: []string{"id", "name", "rd", "tenant", "enforce_unique", "import_targets", "export_targets", "description", "display_name", "comments", "tags", "custom_fields"},
 	})
 }
 
