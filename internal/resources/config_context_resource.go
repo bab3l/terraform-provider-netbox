@@ -490,7 +490,7 @@ func (r *ConfigContextResource) Delete(ctx context.Context, req resource.DeleteR
 }
 
 func (r *ConfigContextResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // Helper function to convert types.Set of Int64 to []int32.

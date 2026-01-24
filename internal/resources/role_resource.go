@@ -532,7 +532,7 @@ func (r *RoleResource) ImportState(ctx context.Context, req resource.ImportState
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // buildRoleRequest builds a RoleRequest from the Terraform model.

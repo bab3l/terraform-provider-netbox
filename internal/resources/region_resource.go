@@ -483,7 +483,7 @@ func (r *RegionResource) ImportState(ctx context.Context, req resource.ImportSta
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapRegionToState maps API response to Terraform state.

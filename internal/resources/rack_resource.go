@@ -1255,7 +1255,7 @@ func (r *RackResource) ImportState(ctx context.Context, req resource.ImportState
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapRackToState maps a Netbox Rack to the Terraform state model.

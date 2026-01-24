@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
@@ -362,16 +364,76 @@ func supportsIPv6(t *testing.T) bool {
 		t.Fatalf("Failed to get shared client: %v", err)
 	}
 
-	address := fmt.Sprintf("2001:db8:%d::1/64", acctest.RandIntRange(1, 65535))
-	req := netbox.NewWritableIPAddressRequest(address)
-	req.SetStatus("active")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-	ctx := context.Background()
-	ip, resp, err := client.IpamAPI.IpamIpAddressesCreate(ctx).WritableIPAddressRequest(*req).Execute()
-	if err != nil || ip == nil {
-		if resp != nil {
-			return false
+	statusInfo, _, statusErr := client.StatusAPI.StatusRetrieve(ctx).Execute()
+	if statusErr == nil && statusInfo != nil {
+		if versionValue, ok := statusInfo["netbox_version"]; ok {
+			if strings.HasPrefix(strings.TrimSpace(fmt.Sprint(versionValue)), "4.1.11") {
+				return false
+			}
+		} else if versionValue, ok := statusInfo["netbox-version"]; ok {
+			if strings.HasPrefix(strings.TrimSpace(fmt.Sprint(versionValue)), "4.1.11") {
+				return false
+			}
 		}
+	}
+
+	clusterTypeName := testutil.RandomName("tf-test-ct-ipv6")
+	clusterTypeSlug := testutil.RandomSlug("tf-test-ct-ipv6")
+	clusterName := testutil.RandomName("tf-test-cluster-ipv6")
+	vmName := testutil.RandomName("tf-test-vm-ipv6")
+	interfaceName := testutil.RandomName("eth")
+
+	clusterTypeReq := netbox.NewClusterTypeRequest(clusterTypeName, clusterTypeSlug)
+	clusterType, _, err := client.VirtualizationAPI.VirtualizationClusterTypesCreate(ctx).ClusterTypeRequest(*clusterTypeReq).Execute()
+	if err != nil || clusterType == nil {
+		return false
+	}
+	defer func() {
+		_, _ = client.VirtualizationAPI.VirtualizationClusterTypesDestroy(ctx, clusterType.GetId()).Execute()
+	}()
+
+	clusterReq := netbox.NewWritableClusterRequest(clusterName, *netbox.NewBriefClusterTypeRequest(clusterTypeName, clusterTypeSlug))
+	cluster, _, err := client.VirtualizationAPI.VirtualizationClustersCreate(ctx).WritableClusterRequest(*clusterReq).Execute()
+	if err != nil || cluster == nil {
+		return false
+	}
+	defer func() {
+		_, _ = client.VirtualizationAPI.VirtualizationClustersDestroy(ctx, cluster.GetId()).Execute()
+	}()
+
+	vmReq := netbox.NewWritableVirtualMachineWithConfigContextRequest(vmName)
+	status := netbox.MODULESTATUSVALUE_ACTIVE
+	vmReq.Status = &status
+	vmReq.Cluster = *netbox.NewNullableBriefClusterRequest(netbox.NewBriefClusterRequest(clusterName))
+	vm, _, err := client.VirtualizationAPI.VirtualizationVirtualMachinesCreate(ctx).WritableVirtualMachineWithConfigContextRequest(*vmReq).Execute()
+	if err != nil || vm == nil {
+		return false
+	}
+	defer func() {
+		_, _ = client.VirtualizationAPI.VirtualizationVirtualMachinesDestroy(ctx, vm.GetId()).Execute()
+	}()
+
+	ifaceReq := netbox.NewWritableVMInterfaceRequest(*netbox.NewBriefVirtualMachineRequest(vmName), interfaceName)
+	iface, _, err := client.VirtualizationAPI.VirtualizationInterfacesCreate(ctx).WritableVMInterfaceRequest(*ifaceReq).Execute()
+	if err != nil || iface == nil {
+		return false
+	}
+	defer func() {
+		_, _ = client.VirtualizationAPI.VirtualizationInterfacesDestroy(ctx, iface.GetId()).Execute()
+	}()
+
+	address := fmt.Sprintf("2001:db8:%d::1/64", acctest.RandIntRange(1, 65535))
+	ipReq := netbox.NewWritableIPAddressRequest(address)
+	ipStatus := netbox.PATCHEDWRITABLEIPADDRESSREQUESTSTATUS_ACTIVE
+	ipReq.Status = &ipStatus
+	ipReq.AssignedObjectType = *netbox.NewNullableString(netbox.PtrString("virtualization.vminterface"))
+	ipReq.AssignedObjectId = *netbox.NewNullableInt64(netbox.PtrInt64(int64(iface.GetId())))
+
+	ip, _, err := client.IpamAPI.IpamIpAddressesCreate(ctx).WritableIPAddressRequest(*ipReq).Execute()
+	if err != nil || ip == nil {
 		return false
 	}
 

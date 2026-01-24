@@ -355,7 +355,7 @@ func (r *CustomLinkResource) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 func (r *CustomLinkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapToState maps API response to Terraform state.

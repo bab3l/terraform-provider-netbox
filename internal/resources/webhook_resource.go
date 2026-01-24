@@ -480,7 +480,7 @@ func (r *WebhookResource) ImportState(ctx context.Context, req resource.ImportSt
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapWebhookToState maps a Netbox Webhook to the Terraform state model.

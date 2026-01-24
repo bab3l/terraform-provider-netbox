@@ -279,5 +279,5 @@ func (r *PlatformResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 func (r *PlatformResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }

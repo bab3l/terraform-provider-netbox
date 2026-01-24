@@ -20,7 +20,7 @@ func TestAccSiteASNAssignmentResource_basic(t *testing.T) {
 	siteSlug := testutil.RandomSlug("tf-test-site")
 	rirName := testutil.RandomName("tf-test-rir")
 	rirSlug := testutil.RandomSlug("tf-test-rir")
-	asn := int64(acctest.RandIntRange(64512, 64711))
+	asn := int64(acctest.RandIntRange(1000000000, 2000000000))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -59,7 +59,7 @@ func TestAccSiteASNAssignmentResource_full(t *testing.T) {
 	siteSlug := testutil.RandomSlug("tf-test-site-full")
 	rirName := testutil.RandomName("tf-test-rir-full")
 	rirSlug := testutil.RandomSlug("tf-test-rir-full")
-	asn := int64(acctest.RandIntRange(64512, 64711))
+	asn := int64(acctest.RandIntRange(1000000000, 2000000000))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -90,8 +90,8 @@ func TestAccSiteASNAssignmentResource_update(t *testing.T) {
 	siteSlug := testutil.RandomSlug("tf-test-site-update")
 	rirName := testutil.RandomName("tf-test-rir-update")
 	rirSlug := testutil.RandomSlug("tf-test-rir-update")
-	asn1 := int64(acctest.RandIntRange(64512, 64650))
-	asn2 := int64(acctest.RandIntRange(64651, 64711))
+	asn1 := int64(acctest.RandIntRange(1000000000, 1499999999))
+	asn2 := int64(acctest.RandIntRange(1500000000, 2000000000))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -127,7 +127,7 @@ func TestAccSiteASNAssignmentResource_import(t *testing.T) {
 	siteSlug := testutil.RandomSlug("tf-test-site-import")
 	rirName := testutil.RandomName("tf-test-rir-import")
 	rirSlug := testutil.RandomSlug("tf-test-rir-import")
-	asn := int64(acctest.RandIntRange(64512, 64711))
+	asn := int64(acctest.RandIntRange(1000000000, 2000000000))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -153,7 +153,7 @@ func TestAccSiteASNAssignmentResource_externalDeletion(t *testing.T) {
 	siteSlug := testutil.RandomSlug("tf-test-site-ext")
 	rirName := testutil.RandomName("tf-test-rir-ext")
 	rirSlug := testutil.RandomSlug("tf-test-rir-ext")
-	asn := int64(acctest.RandIntRange(64512, 64711))
+	asn := int64(acctest.RandIntRange(1000000000, 2000000000))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -218,7 +218,7 @@ func TestAccSiteASNAssignmentResource_removeOptionalFields(t *testing.T) {
 	siteSlug := testutil.RandomSlug("tf-test-site-remove")
 	rirName := testutil.RandomName("tf-test-rir-remove")
 	rirSlug := testutil.RandomSlug("tf-test-rir-remove")
-	asn := int64(acctest.RandIntRange(64512, 64711))
+	asn := int64(acctest.RandIntRange(1000000000, 2000000000))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)

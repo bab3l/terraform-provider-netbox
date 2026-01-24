@@ -609,7 +609,7 @@ func (r *TunnelTerminationResource) ImportState(ctx context.Context, req resourc
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapTunnelTerminationToState maps a TunnelTermination from the API to the Terraform state model.

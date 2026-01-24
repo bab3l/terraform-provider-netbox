@@ -440,7 +440,7 @@ func (r *IKEPolicyResource) ImportState(ctx context.Context, req resource.Import
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // setOptionalFields sets optional fields on the WritableIKEPolicyRequest.

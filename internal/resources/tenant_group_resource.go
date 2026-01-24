@@ -542,7 +542,7 @@ func (r *TenantGroupResource) ImportState(ctx context.Context, req resource.Impo
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapTenantGroupToState maps API response to Terraform state.

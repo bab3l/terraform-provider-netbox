@@ -549,7 +549,7 @@ func (r *ContactAssignmentResource) ImportState(ctx context.Context, req resourc
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapResponseToState maps a ContactAssignment API response to the Terraform state model.

@@ -584,7 +584,7 @@ func (r *PrefixResource) ImportState(ctx context.Context, req resource.ImportSta
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // setOptionalFields sets optional fields on the prefix request from the resource model.

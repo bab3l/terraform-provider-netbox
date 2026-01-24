@@ -349,7 +349,7 @@ func (r *ExportTemplateResource) Delete(ctx context.Context, req resource.Delete
 
 // ImportState imports an existing export template.
 func (r *ExportTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapResponseToState maps the API response to the Terraform state.

@@ -558,7 +558,7 @@ func (r *L2VPNResource) ImportState(ctx context.Context, req resource.ImportStat
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapResponseToState maps an L2VPN API response to the Terraform state model.

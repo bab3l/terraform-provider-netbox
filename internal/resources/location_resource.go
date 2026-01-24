@@ -494,7 +494,7 @@ func (r *LocationResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapLocationToState maps a Location API response to the Terraform state model.

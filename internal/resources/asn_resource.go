@@ -406,7 +406,7 @@ func (r *ASNResource) ImportState(ctx context.Context, req resource.ImportStateR
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // buildASNRequest builds an ASNRequest from the Terraform model.

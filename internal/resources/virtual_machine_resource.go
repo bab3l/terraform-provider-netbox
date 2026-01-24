@@ -1108,5 +1108,5 @@ func (r *VirtualMachineResource) ImportState(ctx context.Context, req resource.I
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }

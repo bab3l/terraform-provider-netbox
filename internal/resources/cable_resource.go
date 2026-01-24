@@ -543,7 +543,7 @@ func (r *CableResource) ImportState(ctx context.Context, req resource.ImportStat
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // parseTerminations converts Terraform termination list to API format.

@@ -342,7 +342,7 @@ func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.Del
 
 // ImportState imports the resource state from Terraform.
 func (r *DeviceBayTemplateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapTemplateToModel maps a Netbox DeviceBayTemplate to the Terraform resource model.

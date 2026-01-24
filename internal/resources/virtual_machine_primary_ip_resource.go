@@ -244,7 +244,7 @@ func (r *VirtualMachinePrimaryIPResource) Delete(ctx context.Context, req resour
 
 // ImportState imports an existing virtual machine primary IP assignment into Terraform.
 func (r *VirtualMachinePrimaryIPResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 func (r *VirtualMachinePrimaryIPResource) mapToState(vm *netbox.VirtualMachineWithConfigContext, data *VirtualMachinePrimaryIPResourceModel) {

@@ -250,7 +250,7 @@ func TestAccConsistency_VLAN(t *testing.T) {
 	t.Parallel()
 
 	vlanName := testutil.RandomName("vlan")
-	vlanVid := 100
+	vlanVid := int(testutil.RandomVID())
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	groupName := testutil.RandomName("group")

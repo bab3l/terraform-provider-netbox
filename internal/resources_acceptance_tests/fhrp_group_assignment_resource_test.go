@@ -100,7 +100,7 @@ resource "netbox_interface" "test" {
 
 resource "netbox_fhrp_group" "test" {
   protocol = "vrrp2"
-  group_id = 1
+	group_id = %[3]d
 }
 
 resource "netbox_fhrp_group_assignment" "test" {
@@ -109,7 +109,7 @@ resource "netbox_fhrp_group_assignment" "test" {
   interface_id   = netbox_interface.test.id
   priority       = 100
 }
-`, name, interfaceName)
+`, name, interfaceName, groupID)
 }
 
 func testAccFHRPGroupAssignmentResourceConfig_updated(name, interfaceName string, groupID int32) string {

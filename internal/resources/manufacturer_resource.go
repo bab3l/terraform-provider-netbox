@@ -355,7 +355,7 @@ func (r *ManufacturerResource) ImportState(ctx context.Context, req resource.Imp
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapManufacturerToState maps API response to Terraform state using state helpers.

@@ -580,7 +580,7 @@ func (r *RackRoleResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapRackRoleToState maps a RackRole API response to the Terraform state model.
