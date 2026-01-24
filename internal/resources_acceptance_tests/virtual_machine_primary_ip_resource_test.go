@@ -2,9 +2,11 @@ package resources_acceptance_tests
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -65,7 +67,8 @@ func TestAccVirtualMachinePrimaryIPResource_full(t *testing.T) {
 	vmName := testutil.RandomName("tf-test-vm")
 	interfaceName := testutil.RandomName("eth")
 	ip4 := fmt.Sprintf("192.0.2.%d/24", acctest.RandIntRange(1, 254))
-	ip6 := fmt.Sprintf("2001:db8:%d::1/64", acctest.RandIntRange(1, 65535))
+	// IPv6 groups must be 1-4 hex digits (0-ffff). Use %x to format as hex.
+	ip6 := fmt.Sprintf("2001:db8:%x::1/64", acctest.RandIntRange(1, 65535))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
@@ -110,7 +113,8 @@ func TestAccVirtualMachinePrimaryIPResource_update(t *testing.T) {
 	interfaceName := testutil.RandomName("eth")
 	ip4a := fmt.Sprintf("192.0.2.%d/24", acctest.RandIntRange(1, 254))
 	ip4b := fmt.Sprintf("192.0.2.%d/24", acctest.RandIntRange(1, 254))
-	ip6 := fmt.Sprintf("2001:db8:%d::1/64", acctest.RandIntRange(1, 65535))
+	// IPv6 groups must be 1-4 hex digits (0-ffff). Use %x to format as hex.
+	ip6 := fmt.Sprintf("2001:db8:%x::1/64", acctest.RandIntRange(1, 65535))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
@@ -257,7 +261,8 @@ func TestAccVirtualMachinePrimaryIPResource_removeOptionalFields(t *testing.T) {
 	vmName := testutil.RandomName("tf-test-vm")
 	interfaceName := testutil.RandomName("eth")
 	ip4 := fmt.Sprintf("192.0.2.%d/24", acctest.RandIntRange(1, 254))
-	ip6 := fmt.Sprintf("2001:db8:%d::1/64", acctest.RandIntRange(1, 65535))
+	// IPv6 groups must be 1-4 hex digits (0-ffff). Use %x to format as hex.
+	ip6 := fmt.Sprintf("2001:db8:%x::1/64", acctest.RandIntRange(1, 65535))
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
@@ -359,26 +364,22 @@ func requireIPv6Support(t *testing.T) {
 
 func supportsIPv6(t *testing.T) bool {
 	t.Helper()
-	client, err := testutil.GetSharedClient()
-	if err != nil {
-		t.Fatalf("Failed to get shared client: %v", err)
+
+	// Create a fresh client instead of using shared client
+	serverURL := os.Getenv("NETBOX_SERVER_URL")
+	apiToken := os.Getenv("NETBOX_API_TOKEN")
+	if serverURL == "" || apiToken == "" {
+		t.Log("supportsIPv6: Missing NETBOX_SERVER_URL or NETBOX_API_TOKEN")
+		return false
 	}
+
+	cfg := netbox.NewConfiguration()
+	cfg.Servers = netbox.ServerConfigurations{{URL: serverURL}}
+	cfg.DefaultHeader = map[string]string{"Authorization": "Token " + apiToken}
+	client := netbox.NewAPIClient(cfg)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-
-	statusInfo, _, statusErr := client.StatusAPI.StatusRetrieve(ctx).Execute()
-	if statusErr == nil && statusInfo != nil {
-		if versionValue, ok := statusInfo["netbox_version"]; ok {
-			if strings.HasPrefix(strings.TrimSpace(fmt.Sprint(versionValue)), "4.1.11") {
-				return false
-			}
-		} else if versionValue, ok := statusInfo["netbox-version"]; ok {
-			if strings.HasPrefix(strings.TrimSpace(fmt.Sprint(versionValue)), "4.1.11") {
-				return false
-			}
-		}
-	}
 
 	clusterTypeName := testutil.RandomName("tf-test-ct-ipv6")
 	clusterTypeSlug := testutil.RandomSlug("tf-test-ct-ipv6")
@@ -389,6 +390,7 @@ func supportsIPv6(t *testing.T) bool {
 	clusterTypeReq := netbox.NewClusterTypeRequest(clusterTypeName, clusterTypeSlug)
 	clusterType, _, err := client.VirtualizationAPI.VirtualizationClusterTypesCreate(ctx).ClusterTypeRequest(*clusterTypeReq).Execute()
 	if err != nil || clusterType == nil {
+		t.Logf("supportsIPv6: Failed to create cluster type: %v", err)
 		return false
 	}
 	defer func() {
@@ -398,6 +400,7 @@ func supportsIPv6(t *testing.T) bool {
 	clusterReq := netbox.NewWritableClusterRequest(clusterName, *netbox.NewBriefClusterTypeRequest(clusterTypeName, clusterTypeSlug))
 	cluster, _, err := client.VirtualizationAPI.VirtualizationClustersCreate(ctx).WritableClusterRequest(*clusterReq).Execute()
 	if err != nil || cluster == nil {
+		t.Logf("supportsIPv6: Failed to create cluster: %v", err)
 		return false
 	}
 	defer func() {
@@ -410,6 +413,7 @@ func supportsIPv6(t *testing.T) bool {
 	vmReq.Cluster = *netbox.NewNullableBriefClusterRequest(netbox.NewBriefClusterRequest(clusterName))
 	vm, _, err := client.VirtualizationAPI.VirtualizationVirtualMachinesCreate(ctx).WritableVirtualMachineWithConfigContextRequest(*vmReq).Execute()
 	if err != nil || vm == nil {
+		t.Logf("supportsIPv6: Failed to create VM: %v", err)
 		return false
 	}
 	defer func() {
@@ -419,21 +423,34 @@ func supportsIPv6(t *testing.T) bool {
 	ifaceReq := netbox.NewWritableVMInterfaceRequest(*netbox.NewBriefVirtualMachineRequest(vmName), interfaceName)
 	iface, _, err := client.VirtualizationAPI.VirtualizationInterfacesCreate(ctx).WritableVMInterfaceRequest(*ifaceReq).Execute()
 	if err != nil || iface == nil {
+		t.Logf("supportsIPv6: Failed to create interface: %v", err)
 		return false
 	}
 	defer func() {
 		_, _ = client.VirtualizationAPI.VirtualizationInterfacesDestroy(ctx, iface.GetId()).Execute()
 	}()
 
-	address := fmt.Sprintf("2001:db8:%d::1/64", acctest.RandIntRange(1, 65535))
+	// IPv6 groups must be 1-4 hex digits (0-ffff). Use %x to format as hex.
+	address := fmt.Sprintf("2001:db8:%x::1/64", acctest.RandIntRange(1, 65535))
+	t.Logf("supportsIPv6: Attempting to create IPv6 address %s assigned to interface ID %d", address, iface.GetId())
 	ipReq := netbox.NewWritableIPAddressRequest(address)
 	ipStatus := netbox.PATCHEDWRITABLEIPADDRESSREQUESTSTATUS_ACTIVE
 	ipReq.Status = &ipStatus
 	ipReq.AssignedObjectType = *netbox.NewNullableString(netbox.PtrString("virtualization.vminterface"))
 	ipReq.AssignedObjectId = *netbox.NewNullableInt64(netbox.PtrInt64(int64(iface.GetId())))
 
-	ip, _, err := client.IpamAPI.IpamIpAddressesCreate(ctx).WritableIPAddressRequest(*ipReq).Execute()
+	// Debug: marshal the request to see what's being sent
+	reqJSON, _ := json.Marshal(ipReq)
+	t.Logf("supportsIPv6: Request body: %s", string(reqJSON))
+
+	ip, httpResp, err := client.IpamAPI.IpamIpAddressesCreate(ctx).WritableIPAddressRequest(*ipReq).Execute()
 	if err != nil || ip == nil {
+		errMsg := fmt.Sprintf("%v", err)
+		if httpResp != nil {
+			body, _ := io.ReadAll(httpResp.Body)
+			errMsg = fmt.Sprintf("%v, HTTP %d, body: %s", err, httpResp.StatusCode, string(body))
+		}
+		t.Logf("supportsIPv6: Failed to create IPv6 address %s: %s", address, errMsg)
 		return false
 	}
 

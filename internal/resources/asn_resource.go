@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -74,6 +75,9 @@ func (r *ASNResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			"asn": schema.Int64Attribute{
 				MarkdownDescription: "The 16- or 32-bit autonomous system number.",
 				Required:            true,
+				Validators: []validator.Int64{
+					validators.ValidASNInt64(),
+				},
 			},
 			"rir": schema.StringAttribute{
 				MarkdownDescription: "The Regional Internet Registry (RIR) that manages this ASN. Can be specified by name, slug, or ID.",

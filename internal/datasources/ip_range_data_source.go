@@ -71,16 +71,8 @@ func (d *IPRangeDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				MarkdownDescription: "The display name of the IP range.",
 				Computed:            true,
 			},
-			"start_address": schema.StringAttribute{
-				MarkdownDescription: "The starting IP address of the range. Can be used with `end_address` to look up a range.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"end_address": schema.StringAttribute{
-				MarkdownDescription: "The ending IP address of the range. Can be used with `start_address` to look up a range.",
-				Optional:            true,
-				Computed:            true,
-			},
+			"start_address": nbschema.DSIPAddressAttribute("The starting IP address of the range. Can be used with `end_address` to look up a range."),
+			"end_address":   nbschema.DSIPAddressAttribute("The ending IP address of the range. Can be used with `start_address` to look up a range."),
 			"size": schema.Int64Attribute{
 				MarkdownDescription: "The number of IP addresses in the range.",
 				Computed:            true,

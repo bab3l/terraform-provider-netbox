@@ -4,6 +4,7 @@ package resources
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"maps"
 	"net/http"
@@ -77,12 +78,9 @@ func (r *IPAddressResource) Schema(ctx context.Context, req resource.SchemaReque
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"address": schema.StringAttribute{
-				MarkdownDescription: "The IP address with prefix length (e.g., 192.168.1.1/24).",
-				Required:            true,
-			},
-			"vrf":    nbschema.ReferenceAttributeWithDiffSuppress("VRF", "ID or name of the VRF this IP address is assigned to."),
-			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant this IP address is assigned to."),
+			"address": nbschema.IPAddressWithPrefixAttribute("The IP address with prefix length (e.g., 192.168.1.1/24)."),
+			"vrf":     nbschema.ReferenceAttributeWithDiffSuppress("VRF", "ID or name of the VRF this IP address is assigned to."),
+			"tenant":  nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant this IP address is assigned to."),
 			"status": schema.StringAttribute{
 				MarkdownDescription: "The status of the IP address. Valid values are: `active`, `reserved`, `deprecated`, `dhcp`, `slaac`. Defaults to `active`.",
 				Optional:            true,
@@ -162,8 +160,12 @@ func (r *IPAddressResource) Create(ctx context.Context, req resource.CreateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	tflog.Debug(ctx, "Creating IP address", map[string]interface{}{
+
+	// Debug: log the full request
+	reqJSON, _ := json.Marshal(ipRequest)
+	tflog.Debug(ctx, "Creating IP address - request body", map[string]interface{}{
 		"address": data.Address.ValueString(),
+		"request": string(reqJSON),
 	})
 
 	// Create the IP address
@@ -511,7 +513,7 @@ func (r *IPAddressResource) ImportState(ctx context.Context, req resource.Import
 
 // setOptionalFields sets optional fields on the IP address request from the resource model.
 func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *netbox.WritableIPAddressRequest, plan *IPAddressResourceModel, state *IPAddressResourceModel, diags *diag.Diagnostics) {
-	// VRF
+	// VRF - only set if explicitly provided, don't set nil for omitted values on Create
 	if utils.IsSet(plan.VRF) {
 		vrf, vrfDiags := netboxlookup.LookupVRF(ctx, r.client, plan.VRF.ValueString())
 		diags.Append(vrfDiags...)
@@ -519,11 +521,12 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 			return
 		}
 		ipRequest.Vrf = *netbox.NewNullableBriefVRFRequest(vrf)
-	} else if plan.VRF.IsNull() {
+	} else if plan.VRF.IsNull() && state != nil && utils.IsSet(state.VRF) {
+		// Only set nil during Update to clear an existing value
 		ipRequest.SetVrfNil()
 	}
 
-	// Tenant
+	// Tenant - only set if explicitly provided, don't set nil for omitted values on Create
 	if utils.IsSet(plan.Tenant) {
 		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, plan.Tenant.ValueString())
 		diags.Append(tenantDiags...)
@@ -531,7 +534,8 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 			return
 		}
 		ipRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
-	} else if plan.Tenant.IsNull() {
+	} else if plan.Tenant.IsNull() && state != nil && utils.IsSet(state.Tenant) {
+		// Only set nil during Update to clear an existing value
 		ipRequest.SetTenantNil()
 	}
 
@@ -597,16 +601,18 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
 		desc := plan.Description.ValueString()
 		ipRequest.Description = &desc
-	} else if plan.Description.IsNull() {
-		ipRequest.SetDescription("")
+	} else if plan.Description.IsNull() && state != nil && utils.IsSet(state.Description) {
+		emptyDesc := ""
+		ipRequest.Description = &emptyDesc
 	}
 
 	// Comments
 	if !plan.Comments.IsNull() && !plan.Comments.IsUnknown() {
 		comments := plan.Comments.ValueString()
 		ipRequest.Comments = &comments
-	} else if plan.Comments.IsNull() {
-		ipRequest.SetComments("")
+	} else if plan.Comments.IsNull() && state != nil && utils.IsSet(state.Comments) {
+		emptyComments := ""
+		ipRequest.Comments = &emptyComments
 	}
 
 	// Handle tags

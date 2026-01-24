@@ -9,9 +9,11 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -37,7 +39,9 @@ type ASNDataSourceModel struct {
 	ID            types.String `tfsdk:"id"`
 	ASN           types.Int64  `tfsdk:"asn"`
 	RIR           types.String `tfsdk:"rir"`
+	RIRID         types.String `tfsdk:"rir_id"`
 	Tenant        types.String `tfsdk:"tenant"`
+	TenantID      types.String `tfsdk:"tenant_id"`
 	Description   types.String `tfsdk:"description"`
 	Comments      types.String `tfsdk:"comments"`
 	DisplayName   types.String `tfsdk:"display_name"`
@@ -66,15 +70,20 @@ func (d *ASNDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 				MarkdownDescription: "The 16- or 32-bit autonomous system number. Use this to look up by ASN.",
 				Optional:            true,
 				Computed:            true,
+				Validators: []validator.Int64{
+					validators.ValidASNInt64(),
+				},
 			},
 			"rir": schema.StringAttribute{
 				MarkdownDescription: "The Regional Internet Registry (RIR) that manages this ASN.",
 				Computed:            true,
 			},
+			"rir_id": nbschema.DSComputedStringAttribute("ID of the Regional Internet Registry (RIR) that manages this ASN."),
 			"tenant": schema.StringAttribute{
 				MarkdownDescription: "The tenant this ASN is assigned to.",
 				Computed:            true,
 			},
+			"tenant_id": nbschema.DSComputedStringAttribute("ID of the tenant this ASN is assigned to."),
 			"description": schema.StringAttribute{
 				MarkdownDescription: "A description of this ASN.",
 				Computed:            true,
@@ -208,15 +217,19 @@ func (d *ASNDataSource) mapResponseToModel(ctx context.Context, asn *netbox.ASN,
 	// Map RIR
 	if asn.Rir.IsSet() && asn.Rir.Get() != nil {
 		data.RIR = types.StringValue(asn.Rir.Get().GetName())
+		data.RIRID = types.StringValue(fmt.Sprintf("%d", asn.Rir.Get().GetId()))
 	} else {
 		data.RIR = types.StringNull()
+		data.RIRID = types.StringNull()
 	}
 
 	// Map Tenant
 	if asn.Tenant.IsSet() && asn.Tenant.Get() != nil {
 		data.Tenant = types.StringValue(asn.Tenant.Get().GetName())
+		data.TenantID = types.StringValue(fmt.Sprintf("%d", asn.Tenant.Get().GetId()))
 	} else {
 		data.Tenant = types.StringNull()
+		data.TenantID = types.StringNull()
 	}
 
 	// Map description

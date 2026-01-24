@@ -295,6 +295,51 @@ func ColorAttribute(resourceName string) schema.StringAttribute {
 	}
 }
 
+// IPAddressAttribute returns a required IP address attribute (no prefix).
+func IPAddressAttribute(description string) schema.StringAttribute {
+	if description == "" {
+		description = "IP address (IPv4 or IPv6)."
+	}
+
+	return schema.StringAttribute{
+		MarkdownDescription: description,
+		Required:            true,
+		Validators: []validator.String{
+			validators.ValidIPAddress(),
+		},
+	}
+}
+
+// IPAddressWithPrefixAttribute returns a required IP address attribute with prefix length (CIDR).
+func IPAddressWithPrefixAttribute(description string) schema.StringAttribute {
+	if description == "" {
+		description = "IP address with prefix length (e.g., 192.168.1.1/24)."
+	}
+
+	return schema.StringAttribute{
+		MarkdownDescription: description,
+		Required:            true,
+		Validators: []validator.String{
+			validators.ValidIPAddressWithPrefix(),
+		},
+	}
+}
+
+// PrefixAttribute returns a required network prefix attribute (CIDR).
+func PrefixAttribute(description string) schema.StringAttribute {
+	if description == "" {
+		description = "Network prefix in CIDR notation (e.g., 192.168.0.0/16)."
+	}
+
+	return schema.StringAttribute{
+		MarkdownDescription: description,
+		Required:            true,
+		Validators: []validator.String{
+			validators.ValidIPPrefix(),
+		},
+	}
+}
+
 // ComputedColorAttribute returns a computed color attribute (API assigns default).
 
 func ComputedColorAttribute(resourceName string) schema.StringAttribute {
@@ -523,6 +568,54 @@ func DSIDAttribute(resourceName string) dsschema.StringAttribute {
 
 		Validators: []validator.String{
 			stringvalidator.LengthAtMost(50),
+		},
+	}
+}
+
+// DSIPAddressAttribute returns an optional/computed IP address attribute (no prefix).
+func DSIPAddressAttribute(description string) dsschema.StringAttribute {
+	if description == "" {
+		description = "IP address (IPv4 or IPv6)."
+	}
+
+	return dsschema.StringAttribute{
+		MarkdownDescription: description,
+		Optional:            true,
+		Computed:            true,
+		Validators: []validator.String{
+			validators.ValidIPAddress(),
+		},
+	}
+}
+
+// DSIPAddressWithPrefixAttribute returns an optional/computed IP address attribute with prefix length.
+func DSIPAddressWithPrefixAttribute(description string) dsschema.StringAttribute {
+	if description == "" {
+		description = "IP address with prefix length (e.g., 192.168.1.1/24)."
+	}
+
+	return dsschema.StringAttribute{
+		MarkdownDescription: description,
+		Optional:            true,
+		Computed:            true,
+		Validators: []validator.String{
+			validators.ValidIPAddressWithPrefix(),
+		},
+	}
+}
+
+// DSPrefixAttribute returns an optional/computed network prefix attribute.
+func DSPrefixAttribute(description string) dsschema.StringAttribute {
+	if description == "" {
+		description = "Network prefix in CIDR notation (e.g., 192.168.0.0/16)."
+	}
+
+	return dsschema.StringAttribute{
+		MarkdownDescription: description,
+		Optional:            true,
+		Computed:            true,
+		Validators: []validator.String{
+			validators.ValidIPPrefix(),
 		},
 	}
 }

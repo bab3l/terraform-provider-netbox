@@ -2,10 +2,12 @@ package datasources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
@@ -24,9 +26,33 @@ func TestPrefixDataSourceSchema(t *testing.T) {
 	}
 
 	testutil.ValidateDataSourceSchema(t, resp.Schema.Attributes, testutil.DataSourceValidation{
-		LookupAttrs:   []string{},
-		ComputedAttrs: []string{},
+		LookupAttrs: []string{"id", "prefix"},
+		ComputedAttrs: []string{
+			"id",
+			"prefix",
+			"site",
+			"site_id",
+			"vrf",
+			"vrf_id",
+			"tenant",
+			"tenant_id",
+			"vlan",
+			"vlan_id",
+			"status",
+			"role",
+			"description",
+			"comments",
+			"tags",
+			"custom_fields",
+		},
 	})
+
+	testutil.ValidateDataSourceStringAttributeHasValidatorType(
+		t,
+		resp.Schema.Attributes["prefix"],
+		"prefix",
+		reflect.TypeOf(validators.IPPrefixValidator{}),
+	)
 }
 
 func TestPrefixDataSourceMetadata(t *testing.T) {

@@ -2,10 +2,12 @@ package datasources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
@@ -24,9 +26,33 @@ func TestVLANDataSourceSchema(t *testing.T) {
 	}
 
 	testutil.ValidateDataSourceSchema(t, resp.Schema.Attributes, testutil.DataSourceValidation{
-		LookupAttrs:   []string{},
-		ComputedAttrs: []string{},
+		LookupAttrs: []string{"id", "vid", "name"},
+		ComputedAttrs: []string{
+			"id",
+			"vid",
+			"name",
+			"site",
+			"site_id",
+			"group",
+			"group_id",
+			"tenant",
+			"tenant_id",
+			"status",
+			"role",
+			"description",
+			"comments",
+			"display_name",
+			"tags",
+			"custom_fields",
+		},
 	})
+
+	testutil.ValidateDataSourceInt32AttributeHasValidatorType(
+		t,
+		resp.Schema.Attributes["vid"],
+		"vid",
+		reflect.TypeOf(validators.VLANIDInt32Validator{}),
+	)
 }
 
 func TestVLANDataSourceMetadata(t *testing.T) {

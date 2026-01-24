@@ -2,10 +2,12 @@ package datasources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
@@ -27,6 +29,13 @@ func TestIPAddressDataSourceSchema(t *testing.T) {
 		LookupAttrs:   []string{"id", "address"},
 		ComputedAttrs: []string{"id", "address", "display_name", "vrf", "vrf_id", "tenant", "tenant_id", "status", "role", "assigned_object_type", "assigned_object_id", "nat_inside", "dns_name", "description", "comments", "tags", "custom_fields"},
 	})
+
+	testutil.ValidateDataSourceStringAttributeHasValidatorType(
+		t,
+		resp.Schema.Attributes["address"],
+		"address",
+		reflect.TypeOf(validators.IPAddressWithPrefixValidator{}),
+	)
 }
 
 func TestIPAddressDataSourceMetadata(t *testing.T) {

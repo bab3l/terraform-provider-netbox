@@ -11,12 +11,14 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -82,6 +84,9 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				MarkdownDescription: "VLAN ID (1-4094). This is the numeric identifier used on network devices. Required.",
 
 				Required: true,
+				Validators: []validator.Int64{
+					validators.ValidVLANIDInt64(),
+				},
 			},
 
 			"name": nbschema.NameAttribute("VLAN", 64),

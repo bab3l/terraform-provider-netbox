@@ -71,11 +71,8 @@ func (r *AggregateResource) Schema(ctx context.Context, req resource.SchemaReque
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"prefix": schema.StringAttribute{
-				MarkdownDescription: "The IP prefix in CIDR notation (e.g., 10.0.0.0/8, 2001:db8::/32).",
-				Required:            true,
-			},
-			"rir": nbschema.RequiredReferenceAttributeWithDiffSuppress("RIR", "ID, name, or slug of the Regional Internet Registry (RIR) this aggregate belongs to. Required."),
+			"prefix": nbschema.PrefixAttribute("The IP prefix in CIDR notation (e.g., 10.0.0.0/8, 2001:db8::/32)."),
+			"rir":    nbschema.RequiredReferenceAttributeWithDiffSuppress("RIR", "ID, name, or slug of the Regional Internet Registry (RIR) this aggregate belongs to. Required."),
 
 			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant this aggregate is assigned to."),
 			"date_added": schema.StringAttribute{

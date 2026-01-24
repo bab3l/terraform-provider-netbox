@@ -14,7 +14,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -117,14 +117,14 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				MarkdownDescription: "GPS latitude coordinate in decimal format (xx.yyyyyy).",
 				Optional:            true,
 				Validators: []validator.Float64{
-					float64validator.Between(-90, 90),
+					validators.ValidLatitude(),
 				},
 			},
 			"longitude": schema.Float64Attribute{
 				MarkdownDescription: "GPS longitude coordinate in decimal format (xx.yyyyyy).",
 				Optional:            true,
 				Validators: []validator.Float64{
-					float64validator.Between(-180, 180),
+					validators.ValidLongitude(),
 				},
 			},
 		},

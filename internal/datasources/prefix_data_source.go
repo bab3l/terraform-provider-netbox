@@ -70,11 +70,7 @@ func (d *PrefixDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Optional:            true,
 				Computed:            true,
 			},
-			"prefix": schema.StringAttribute{
-				MarkdownDescription: "The IP prefix in CIDR notation (e.g., 192.168.1.0/24).",
-				Optional:            true,
-				Computed:            true,
-			},
+			"prefix": nbschema.DSPrefixAttribute("The IP prefix in CIDR notation (e.g., 192.168.1.0/24)."),
 			"site": schema.StringAttribute{
 				MarkdownDescription: "The name of the site this prefix is assigned to.",
 				Computed:            true,

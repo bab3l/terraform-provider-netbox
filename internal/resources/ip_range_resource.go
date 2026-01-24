@@ -79,14 +79,8 @@ func (r *IPRangeResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"start_address": schema.StringAttribute{
-				MarkdownDescription: "The starting IP address of the range (e.g., 192.168.1.10/24).",
-				Required:            true,
-			},
-			"end_address": schema.StringAttribute{
-				MarkdownDescription: "The ending IP address of the range (e.g., 192.168.1.20/24).",
-				Required:            true,
-			},
+			"start_address": nbschema.IPAddressAttribute("The starting IP address of the range (e.g., 192.168.1.10)."),
+			"end_address":   nbschema.IPAddressAttribute("The ending IP address of the range (e.g., 192.168.1.20)."),
 			"size": schema.Int64Attribute{
 				MarkdownDescription: "The number of IP addresses in the range (computed).",
 				Computed:            true,

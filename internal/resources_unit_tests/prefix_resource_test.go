@@ -2,10 +2,12 @@ package resources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -36,10 +38,18 @@ func TestPrefixResourceSchema(t *testing.T) {
 	}
 
 	testutil.ValidateResourceSchema(t, schemaResponse.Schema.Attributes, testutil.SchemaValidation{
-		Required: []string{"prefix"},
-		Optional: []string{"status", "site", "vrf", "tenant", "vlan", "role", "is_pool", "mark_utilized", "description", "comments"},
-		Computed: []string{"id"},
+		Required:         []string{"prefix"},
+		Optional:         []string{"site", "vrf", "tenant", "vlan", "role", "description", "comments"},
+		Computed:         []string{"id"},
+		OptionalComputed: []string{"status", "is_pool", "mark_utilized"},
 	})
+
+	testutil.ValidateStringAttributeHasValidatorType(
+		t,
+		schemaResponse.Schema.Attributes["prefix"],
+		"prefix",
+		reflect.TypeOf(validators.IPPrefixValidator{}),
+	)
 }
 
 func TestPrefixResourceMetadata(t *testing.T) {

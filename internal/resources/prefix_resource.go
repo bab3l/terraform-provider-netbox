@@ -102,11 +102,7 @@ func (r *PrefixResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 
-			"prefix": schema.StringAttribute{
-				MarkdownDescription: "The IP prefix in CIDR notation (e.g., 192.168.1.0/24).",
-
-				Required: true,
-			},
+			"prefix": nbschema.PrefixAttribute("The IP prefix in CIDR notation (e.g., 192.168.1.0/24)."),
 
 			"site": nbschema.ReferenceAttributeWithDiffSuppress("site", "ID or slug of the site this prefix is assigned to."),
 

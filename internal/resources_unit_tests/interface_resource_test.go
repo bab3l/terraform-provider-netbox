@@ -2,10 +2,12 @@ package resources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -37,6 +39,13 @@ func TestInterfaceResourceSchema(t *testing.T) {
 		Optional: []string{"label", "enabled", "parent", "bridge", "lag", "mtu", "mac_address", "speed", "duplex", "wwn", "mgmt_only", "description", "mode", "mark_connected", "tags", "custom_fields"},
 		Computed: []string{"id"},
 	})
+
+	testutil.ValidateStringAttributeHasValidatorType(
+		t,
+		schemaResponse.Schema.Attributes["mac_address"],
+		"mac_address",
+		reflect.TypeOf(validators.MACAddressValidator{}),
+	)
 }
 
 func TestInterfaceResourceMetadata(t *testing.T) {

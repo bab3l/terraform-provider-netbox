@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -110,6 +111,9 @@ func (r *InterfaceResource) Schema(ctx context.Context, req resource.SchemaReque
 			"mac_address": schema.StringAttribute{
 				MarkdownDescription: "MAC address of the interface in format `AA:BB:CC:DD:EE:FF`.",
 				Optional:            true,
+				Validators: []validator.String{
+					validators.ValidMACAddress(),
+				},
 			},
 			"speed": schema.Int64Attribute{
 				MarkdownDescription: "Interface speed in Kbps (e.g., 1000000 for 1Gbps, 10000000 for 10Gbps).",

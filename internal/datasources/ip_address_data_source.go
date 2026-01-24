@@ -67,11 +67,7 @@ func (d *IPAddressDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				Optional:            true,
 				Computed:            true,
 			},
-			"address": schema.StringAttribute{
-				MarkdownDescription: "The IP address with prefix length (e.g., 192.168.1.1/24).",
-				Optional:            true,
-				Computed:            true,
-			},
+			"address": nbschema.DSIPAddressWithPrefixAttribute("The IP address with prefix length (e.g., 192.168.1.1/24)."),
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "The display name of the IP address.",
 				Computed:            true,

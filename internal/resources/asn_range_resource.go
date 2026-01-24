@@ -13,7 +13,6 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -82,20 +81,14 @@ func (r *ASNRangeResource) Schema(ctx context.Context, req resource.SchemaReques
 				MarkdownDescription: "The starting ASN in this range. Required.",
 				Required:            true,
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						validators.IntegerRegex(),
-						"must be a valid integer",
-					),
+					validators.ValidASNString(),
 				},
 			},
 			"end": schema.StringAttribute{
 				MarkdownDescription: "The ending ASN in this range. Required.",
 				Required:            true,
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						validators.IntegerRegex(),
-						"must be a valid integer",
-					),
+					validators.ValidASNString(),
 				},
 			},
 			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this ASN range."),

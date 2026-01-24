@@ -4,6 +4,7 @@ package testutil
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/go-netbox"
@@ -272,6 +273,139 @@ func ValidateStringAttributeAllowsNull(t *testing.T, attr schema.Attribute, fiel
 
 	}
 
+}
+
+// ValidateStringAttributeHasValidatorType checks that a resource string attribute includes a validator of the specified type.
+func ValidateStringAttributeHasValidatorType(t *testing.T, attr schema.Attribute, fieldName string, expectedType reflect.Type) {
+	t.Helper()
+
+	stringAttr, ok := attr.(schema.StringAttribute)
+	if !ok {
+		t.Errorf("Field %s should be a StringAttribute", fieldName)
+		return
+	}
+
+	for _, v := range stringAttr.Validators {
+		if reflect.TypeOf(v) == expectedType {
+			return
+		}
+	}
+
+	t.Errorf("Field %s is missing validator of type %s", fieldName, expectedType.String())
+}
+
+// ValidateDataSourceStringAttributeHasValidatorType checks that a data source string attribute includes a validator of the specified type.
+func ValidateDataSourceStringAttributeHasValidatorType(t *testing.T, attr dsschemapkg.Attribute, fieldName string, expectedType reflect.Type) {
+	t.Helper()
+
+	stringAttr, ok := attr.(dsschemapkg.StringAttribute)
+	if !ok {
+		t.Errorf("Field %s should be a StringAttribute", fieldName)
+		return
+	}
+
+	for _, v := range stringAttr.Validators {
+		if reflect.TypeOf(v) == expectedType {
+			return
+		}
+	}
+
+	t.Errorf("Field %s is missing validator of type %s", fieldName, expectedType.String())
+}
+
+// ValidateFloat64AttributeHasValidatorType checks that a resource float64 attribute includes a validator of the specified type.
+func ValidateFloat64AttributeHasValidatorType(t *testing.T, attr schema.Attribute, fieldName string, expectedType reflect.Type) {
+	t.Helper()
+
+	floatAttr, ok := attr.(schema.Float64Attribute)
+	if !ok {
+		t.Errorf("Field %s should be a Float64Attribute", fieldName)
+		return
+	}
+
+	for _, v := range floatAttr.Validators {
+		if reflect.TypeOf(v) == expectedType {
+			return
+		}
+	}
+
+	t.Errorf("Field %s is missing validator of type %s", fieldName, expectedType.String())
+}
+
+// ValidateInt64AttributeHasValidatorType checks that a resource int64 attribute includes a validator of the specified type.
+func ValidateInt64AttributeHasValidatorType(t *testing.T, attr schema.Attribute, fieldName string, expectedType reflect.Type) {
+	t.Helper()
+
+	intAttr, ok := attr.(schema.Int64Attribute)
+	if !ok {
+		t.Errorf("Field %s should be an Int64Attribute", fieldName)
+		return
+	}
+
+	for _, v := range intAttr.Validators {
+		if reflect.TypeOf(v) == expectedType {
+			return
+		}
+	}
+
+	t.Errorf("Field %s is missing validator of type %s", fieldName, expectedType.String())
+}
+
+// ValidateInt32AttributeHasValidatorType checks that a resource int32 attribute includes a validator of the specified type.
+func ValidateInt32AttributeHasValidatorType(t *testing.T, attr schema.Attribute, fieldName string, expectedType reflect.Type) {
+	t.Helper()
+
+	intAttr, ok := attr.(schema.Int32Attribute)
+	if !ok {
+		t.Errorf("Field %s should be an Int32Attribute", fieldName)
+		return
+	}
+
+	for _, v := range intAttr.Validators {
+		if reflect.TypeOf(v) == expectedType {
+			return
+		}
+	}
+
+	t.Errorf("Field %s is missing validator of type %s", fieldName, expectedType.String())
+}
+
+// ValidateDataSourceInt32AttributeHasValidatorType checks that a data source int32 attribute includes a validator of the specified type.
+func ValidateDataSourceInt32AttributeHasValidatorType(t *testing.T, attr dsschemapkg.Attribute, fieldName string, expectedType reflect.Type) {
+	t.Helper()
+
+	intAttr, ok := attr.(dsschemapkg.Int32Attribute)
+	if !ok {
+		t.Errorf("Field %s should be an Int32Attribute", fieldName)
+		return
+	}
+
+	for _, v := range intAttr.Validators {
+		if reflect.TypeOf(v) == expectedType {
+			return
+		}
+	}
+
+	t.Errorf("Field %s is missing validator of type %s", fieldName, expectedType.String())
+}
+
+// ValidateDataSourceInt64AttributeHasValidatorType checks that a data source int64 attribute includes a validator of the specified type.
+func ValidateDataSourceInt64AttributeHasValidatorType(t *testing.T, attr dsschemapkg.Attribute, fieldName string, expectedType reflect.Type) {
+	t.Helper()
+
+	intAttr, ok := attr.(dsschemapkg.Int64Attribute)
+	if !ok {
+		t.Errorf("Field %s should be an Int64Attribute", fieldName)
+		return
+	}
+
+	for _, v := range intAttr.Validators {
+		if reflect.TypeOf(v) == expectedType {
+			return
+		}
+	}
+
+	t.Errorf("Field %s is missing validator of type %s", fieldName, expectedType.String())
 }
 
 // ValidateResourceMetadata checks that a resource's metadata is correctly configured.

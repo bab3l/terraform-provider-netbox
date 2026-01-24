@@ -2,11 +2,13 @@ package resources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -83,6 +85,13 @@ func TestVMInterfaceResourceSchema(t *testing.T) {
 		}
 
 	}
+
+	testutil.ValidateStringAttributeHasValidatorType(
+		t,
+		schemaResponse.Schema.Attributes["mac_address"],
+		"mac_address",
+		reflect.TypeOf(validators.MACAddressValidator{}),
+	)
 
 }
 

@@ -659,7 +659,7 @@ resource "netbox_ip_address" "test" {
 }
 `
 				},
-				ExpectedError: testutil.ErrPatternInconsistent,
+				ExpectedError: testutil.ErrPatternInvalidFormat,
 			},
 			"invalid_status": {
 				Config: func() string {

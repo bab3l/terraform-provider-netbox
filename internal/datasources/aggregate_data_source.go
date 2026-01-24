@@ -62,11 +62,7 @@ func (d *AggregateDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				Optional:            true,
 				Computed:            true,
 			},
-			"prefix": schema.StringAttribute{
-				MarkdownDescription: "The IP prefix in CIDR notation. Use this to look up an aggregate by prefix.",
-				Optional:            true,
-				Computed:            true,
-			},
+			"prefix": nbschema.DSPrefixAttribute("The IP prefix in CIDR notation. Use this to look up an aggregate by prefix."),
 			"rir": schema.StringAttribute{
 				MarkdownDescription: "The ID of the Regional Internet Registry (RIR) this aggregate belongs to.",
 				Computed:            true,
