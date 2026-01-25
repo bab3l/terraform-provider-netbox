@@ -356,15 +356,7 @@ func (r *RIRResource) ImportState(ctx context.Context, req resource.ImportStateR
 		}
 
 		var data RIRResourceModel
-		if len(rir.Tags) > 0 {
-			tagSlugs := make([]string, 0, len(rir.Tags))
-			for _, tag := range rir.Tags {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(rir.Tags) > 0, rir.Tags, data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -464,20 +456,7 @@ func (r *RIRResource) mapRIRToState(ctx context.Context, rir *netbox.RIR, data *
 	}
 
 	// Tags - filter to owned slugs only
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	case len(rir.Tags) > 0:
-		var tagSlugs []string
-		for _, tag := range rir.Tags {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, len(rir.Tags) > 0, rir.Tags, data.Tags)
 	// Custom Fields - filter to owned fields only
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, rir.CustomFields, diags)
 }

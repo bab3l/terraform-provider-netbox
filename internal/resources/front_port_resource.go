@@ -422,15 +422,7 @@ func (r *FrontPortResource) ImportState(ctx context.Context, req resource.Import
 		if rearPort := response.GetRearPort(); rearPort.Id != 0 {
 			data.RearPort = types.StringValue(fmt.Sprintf("%d", rearPort.GetId()))
 		}
-		if response.HasTags() && len(response.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(response.GetTags()))
-			for _, tag := range response.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, response.HasTags(), response.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -557,19 +549,7 @@ func (r *FrontPortResource) mapResponseToModel(ctx context.Context, port *netbox
 
 	// Handle tags with filter-to-owned pattern
 	planTags := data.Tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case port.HasTags() && len(port.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(port.GetTags()))
-		for _, tag := range port.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, port.HasTags(), port.GetTags(), planTags)
 
 	// Handle custom fields with filter-to-owned pattern
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, port.GetCustomFields(), diags)

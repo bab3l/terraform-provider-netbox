@@ -318,20 +318,7 @@ func (d *VirtualMachineDataSource) Read(ctx context.Context, req datasource.Read
 	}
 
 	// Handle tags (slug list)
-	if vm.HasTags() && len(vm.GetTags()) > 0 {
-		tagSlugs := make([]string, 0, len(vm.GetTags()))
-		for _, tag := range vm.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		resp.Diagnostics.Append(tagDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, vm.HasTags(), vm.GetTags(), &resp.Diagnostics)
 
 	// Handle custom fields
 	if vm.HasCustomFields() {

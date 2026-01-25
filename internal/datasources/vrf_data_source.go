@@ -278,20 +278,7 @@ func (d *VRFDataSource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data
 	}
 
 	// Tags (slug list)
-	if vrf.HasTags() && len(vrf.GetTags()) > 0 {
-		tagSlugs := make([]string, 0, len(vrf.GetTags()))
-		for _, tag := range vrf.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, vrf.HasTags(), vrf.GetTags(), diags)
 
 	// Custom fields - datasources return ALL fields
 	if vrf.HasCustomFields() {

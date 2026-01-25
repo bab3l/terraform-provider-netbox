@@ -282,19 +282,7 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case deviceType.HasTags() && len(deviceType.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(deviceType.GetTags()))
-		for _, tag := range deviceType.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, deviceType.HasTags(), deviceType.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, deviceType.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -351,19 +339,7 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
-	switch {
-	case deviceType.HasTags() && len(deviceType.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(deviceType.GetTags()))
-		for _, tag := range deviceType.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, deviceType.HasTags(), deviceType.GetTags(), stateTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, deviceType.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -512,19 +488,7 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case deviceType.HasTags() && len(deviceType.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(deviceType.GetTags()))
-		for _, tag := range deviceType.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, deviceType.HasTags(), deviceType.GetTags(), data.Tags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, deviceType.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -609,15 +573,7 @@ func (r *DeviceTypeResource) ImportState(ctx context.Context, req resource.Impor
 		if deviceType.HasDefaultPlatform() && deviceType.DefaultPlatform.Get() != nil {
 			data.DefaultPlatform = types.StringValue(fmt.Sprintf("%d", deviceType.DefaultPlatform.Get().GetId()))
 		}
-		if deviceType.HasTags() && len(deviceType.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(deviceType.GetTags()))
-			for _, tag := range deviceType.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, deviceType.HasTags(), deviceType.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})

@@ -540,15 +540,7 @@ func (r *PowerPortResource) ImportState(ctx context.Context, req resource.Import
 		}
 
 		var data PowerPortResourceModel
-		if response.HasTags() {
-			var tagSlugs []string
-			for _, tag := range response.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, response.HasTags(), response.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -658,21 +650,7 @@ func (r *PowerPortResource) mapResponseToModel(ctx context.Context, powerPort *n
 	}
 
 	// Handle tags - filter to owned slugs
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	case powerPort.HasTags():
-		// Extract slugs from API tags
-		var tagSlugs []string
-		for _, tag := range powerPort.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, powerPort.HasTags(), powerPort.GetTags(), data.Tags)
 
 	// Handle custom fields
 	if powerPort.HasCustomFields() {

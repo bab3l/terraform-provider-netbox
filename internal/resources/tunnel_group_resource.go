@@ -502,20 +502,7 @@ func (r *TunnelGroupResource) mapTunnelGroupToState(ctx context.Context, tunnelG
 	}
 
 	// Handle tags using consolidated helper
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case len(tunnelGroup.Tags) > 0:
-		for _, tag := range tunnelGroup.Tags {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, len(tunnelGroup.Tags) > 0, tunnelGroup.Tags, data.Tags)
 	if diags.HasError() {
 		return
 	}

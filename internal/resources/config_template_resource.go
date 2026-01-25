@@ -11,7 +11,6 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -271,17 +270,5 @@ func (r *ConfigTemplateResource) mapResponseToModel(template *netbox.ConfigTempl
 	data.DataPath = types.StringValue(template.GetDataPath())
 
 	// Tags (slug list)
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case template.HasTags() && len(template.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(template.GetTags()))
-		for _, tag := range template.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(context.Background(), tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(context.Background(), template.HasTags(), template.GetTags(), data.Tags)
 }

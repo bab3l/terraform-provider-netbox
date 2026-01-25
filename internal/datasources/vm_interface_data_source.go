@@ -291,20 +291,7 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	// Handle tags (slug list)
-	if iface.HasTags() && len(iface.GetTags()) > 0 {
-		tagSlugs := make([]string, 0, len(iface.GetTags()))
-		for _, tag := range iface.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		resp.Diagnostics.Append(tagDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, iface.HasTags(), iface.GetTags(), &resp.Diagnostics)
 
 	// Handle custom fields
 	if iface.HasCustomFields() {

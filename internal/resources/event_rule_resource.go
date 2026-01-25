@@ -247,19 +247,7 @@ func (r *EventRuleResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case result.HasTags() && len(result.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(result.GetTags()))
-		for _, tag := range result.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, result.HasTags(), result.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	tflog.Debug(ctx, "Created event rule", map[string]interface{}{
@@ -303,19 +291,7 @@ func (r *EventRuleResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !originalTags.IsNull() && !originalTags.IsUnknown() && len(originalTags.Elements()) == 0
-	switch {
-	case result.HasTags() && len(result.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(result.GetTags()))
-		for _, tag := range result.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, result.HasTags(), result.GetTags(), originalTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, originalCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 
 	// If custom_fields was null or empty before (not managed or explicitly cleared),
@@ -446,19 +422,7 @@ func (r *EventRuleResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case result.HasTags() && len(result.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(result.GetTags()))
-		for _, tag := range result.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, result.HasTags(), result.GetTags(), planTags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 
@@ -535,15 +499,7 @@ func (r *EventRuleResource) ImportState(ctx context.Context, req resource.Import
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		if result.HasTags() && len(result.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(result.GetTags()))
-			for _, tag := range result.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, result.GetCustomFields(), &resp.Diagnostics)
 		} else {

@@ -429,15 +429,7 @@ func (r *SiteGroupResource) ImportState(ctx context.Context, req resource.Import
 			parent := siteGroup.GetParent()
 			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.Id))
 		}
-		if siteGroup.HasTags() {
-			tagSlugs := make([]string, 0, len(siteGroup.GetTags()))
-			for _, tag := range siteGroup.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, siteGroup.HasTags(), siteGroup.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -518,20 +510,7 @@ func (r *SiteGroupResource) mapSiteGroupToState(ctx context.Context, siteGroup *
 	// Handle display_name
 	// Handle tags
 	var diags diag.Diagnostics
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case siteGroup.HasTags():
-		for _, tag := range siteGroup.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, siteGroup.HasTags(), siteGroup.GetTags(), data.Tags)
 
 	// Handle custom fields - preserve state structure
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, siteGroup.GetCustomFields(), &diags)

@@ -214,19 +214,7 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case deviceRole.HasTags() && len(deviceRole.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(deviceRole.GetTags()))
-		for _, tag := range deviceRole.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, deviceRole.HasTags(), deviceRole.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, deviceRole.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -282,19 +270,11 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !originalTags.IsNull() && !originalTags.IsUnknown() && len(originalTags.Elements()) == 0
-	switch {
-	case deviceRole.HasTags() && len(deviceRole.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(deviceRole.GetTags()))
-		for _, tag := range deviceRole.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
+	// Apply filter-to-owned pattern for tags; on import, populate from API
+	if originalTags.IsUnknown() {
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, deviceRole.HasTags(), deviceRole.GetTags(), originalTags)
+	} else {
+		data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, deviceRole.HasTags(), deviceRole.GetTags(), originalTags)
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, originalCustomFields, deviceRole.GetCustomFields(), &resp.Diagnostics)
 
@@ -407,19 +387,7 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
-	switch {
-	case deviceRole.HasTags() && len(deviceRole.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(deviceRole.GetTags()))
-		for _, tag := range deviceRole.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, deviceRole.HasTags(), deviceRole.GetTags(), plan.Tags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, deviceRole.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -504,7 +472,7 @@ func (r *DeviceRoleResource) ImportState(ctx context.Context, req resource.Impor
 			return
 		}
 
-		data.Tags = types.SetNull(types.StringType)
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(deviceRole.GetTags()) > 0, deviceRole.GetTags(), types.SetNull(types.StringType))
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})

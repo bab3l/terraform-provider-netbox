@@ -260,17 +260,7 @@ func (d *VirtualDeviceContextDataSource) mapToState(ctx context.Context, result 
 	}
 
 	// Map tags (slug list)
-	if result.HasTags() && len(result.GetTags()) > 0 {
-		tagSlugs := make([]string, 0, len(result.GetTags()))
-		for _, tag := range result.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		diags.Append(tagDiags...)
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, result.HasTags(), result.GetTags(), diags)
 
 	// Map custom fields
 	if result.HasCustomFields() && len(result.GetCustomFields()) > 0 {

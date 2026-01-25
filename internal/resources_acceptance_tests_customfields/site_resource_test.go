@@ -123,6 +123,7 @@ resource "netbox_custom_field" "site_longtext" {
   type         = "longtext"
   object_types = ["dcim.site"]
   required     = false
+	depends_on   = [netbox_custom_field.site_text]
 }
 
 resource "netbox_custom_field" "site_integer" {
@@ -130,6 +131,7 @@ resource "netbox_custom_field" "site_integer" {
   type         = "integer"
   object_types = ["dcim.site"]
   required     = false
+	depends_on   = [netbox_custom_field.site_longtext]
 }
 
 resource "netbox_custom_field" "site_boolean" {
@@ -137,6 +139,7 @@ resource "netbox_custom_field" "site_boolean" {
   type         = "boolean"
   object_types = ["dcim.site"]
   required     = false
+	depends_on   = [netbox_custom_field.site_integer]
 }
 
 resource "netbox_custom_field" "site_date" {
@@ -144,6 +147,7 @@ resource "netbox_custom_field" "site_date" {
   type         = "date"
   object_types = ["dcim.site"]
   required     = false
+	depends_on   = [netbox_custom_field.site_boolean]
 }
 
 resource "netbox_custom_field" "site_url" {
@@ -151,6 +155,7 @@ resource "netbox_custom_field" "site_url" {
   type         = "url"
   object_types = ["dcim.site"]
   required     = false
+	depends_on   = [netbox_custom_field.site_date]
 }
 
 resource "netbox_custom_field" "site_json" {
@@ -158,6 +163,7 @@ resource "netbox_custom_field" "site_json" {
   type         = "json"
   object_types = ["dcim.site"]
   required     = false
+	depends_on   = [netbox_custom_field.site_url]
 }
 
 # Create site with all custom fields and tags

@@ -203,20 +203,7 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	var tagSlugs []string
-	switch {
-	case planTags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(planTags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case tenantGroup.HasTags():
-		for _, tag := range tenantGroup.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, tenantGroup.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Trace(ctx, "created a tenant group resource")
@@ -280,20 +267,7 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	var stateTagSlugs []string
-	switch {
-	case stateTags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(stateTags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case tenantGroup.HasTags():
-		for _, tag := range tenantGroup.GetTags() {
-			stateTagSlugs = append(stateTagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, stateTagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), stateTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, tenantGroup.GetCustomFields(), &resp.Diagnostics)
 
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
@@ -394,20 +368,7 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	var updateTagSlugs []string
-	switch {
-	case plan.Tags.IsNull():
-		plan.Tags = types.SetNull(types.StringType)
-	case len(plan.Tags.Elements()) == 0:
-		plan.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case tenantGroup.HasTags():
-		for _, tag := range tenantGroup.GetTags() {
-			updateTagSlugs = append(updateTagSlugs, tag.GetSlug())
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, updateTagSlugs)
-	default:
-		plan.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), plan.Tags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, tenantGroup.GetCustomFields(), &resp.Diagnostics)
 
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
@@ -489,15 +450,7 @@ func (r *TenantGroupResource) ImportState(ctx context.Context, req resource.Impo
 			parent := tenantGroup.GetParent()
 			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.Id))
 		}
-		if tenantGroup.HasTags() {
-			tagSlugs := make([]string, 0, len(tenantGroup.GetTags()))
-			for _, tag := range tenantGroup.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})

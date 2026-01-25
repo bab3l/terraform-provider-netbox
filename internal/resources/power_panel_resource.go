@@ -474,15 +474,7 @@ func (r *PowerPanelResource) ImportState(ctx context.Context, req resource.Impor
 		}
 
 		var data PowerPanelResourceModel
-		if response.HasTags() {
-			var tagSlugs []string
-			for _, tag := range response.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, response.HasTags(), response.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -570,21 +562,7 @@ func (r *PowerPanelResource) mapResponseToModel(ctx context.Context, pp *netbox.
 	}
 
 	// Handle tags - filter to owned slugs
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	case pp.HasTags():
-		// Extract slugs from API tags
-		var tagSlugs []string
-		for _, tag := range pp.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, pp.HasTags(), pp.GetTags(), data.Tags)
 
 	// Handle custom fields (filter to owned)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, pp.GetCustomFields(), diags)

@@ -348,15 +348,7 @@ func (r *InventoryItemRoleResource) ImportState(ctx context.Context, req resourc
 		}
 
 		var data InventoryItemRoleResourceModel
-		if response.HasTags() {
-			tagSlugs := make([]string, 0, len(response.GetTags()))
-			for _, tag := range response.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, response.HasTags(), response.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -426,19 +418,7 @@ func (r *InventoryItemRoleResource) mapResponseToModel(ctx context.Context, role
 
 	// Handle tags (filter-to-owned)
 	planTags := data.Tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case role.HasTags() && len(role.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(role.GetTags()))
-		for _, tag := range role.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, role.HasTags(), role.GetTags(), planTags)
 
 	// Handle custom fields using filter-to-owned helper
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, role.GetCustomFields(), diags)

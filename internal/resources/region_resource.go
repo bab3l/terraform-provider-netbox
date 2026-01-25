@@ -430,15 +430,7 @@ func (r *RegionResource) ImportState(ctx context.Context, req resource.ImportSta
 			parent := region.GetParent()
 			data.Parent = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
 		}
-		if region.HasTags() {
-			tagSlugs := make([]string, 0, len(region.GetTags()))
-			for _, tag := range region.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, region.HasTags(), region.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -509,20 +501,7 @@ func (r *RegionResource) mapRegionToState(ctx context.Context, region *netbox.Re
 	data.Description = utils.StringFromAPI(region.HasDescription(), region.GetDescription, data.Description)
 
 	// Handle tags - filter to owned slugs only
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	case region.HasTags():
-		var tagSlugs []string
-		for _, tag := range region.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, region.HasTags(), region.GetTags(), data.Tags)
 
 	// Handle custom fields - use filtered-to-owned for partial management
 	if region.HasCustomFields() {

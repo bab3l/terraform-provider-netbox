@@ -173,19 +173,7 @@ func (r *ModuleBayResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case response.HasTags() && len(response.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(response.GetTags()))
-		for _, tag := range response.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, response.HasTags(), response.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -241,19 +229,7 @@ func (r *ModuleBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	// Preserve null/empty state values for tags and custom_fields
-	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
-	switch {
-	case response.HasTags() && len(response.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(response.GetTags()))
-		for _, tag := range response.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, response.HasTags(), response.GetTags(), stateTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -340,19 +316,7 @@ func (r *ModuleBayResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case response.HasTags() && len(response.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(response.GetTags()))
-		for _, tag := range response.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, response.HasTags(), response.GetTags(), planTags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 
@@ -423,15 +387,7 @@ func (r *ModuleBayResource) ImportState(ctx context.Context, req resource.Import
 		if device := response.GetDevice(); device.Id != 0 {
 			data.Device = types.StringValue(device.GetName())
 		}
-		if response.HasTags() && len(response.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(response.GetTags()))
-			for _, tag := range response.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, response.HasTags(), response.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -500,15 +456,7 @@ func (r *ModuleBayResource) ImportState(ctx context.Context, req resource.Import
 	}
 
 	// Ensure tags/custom_fields have concrete types for import
-	if response.HasTags() && len(response.GetTags()) > 0 {
-		tagSlugs := make([]string, 0, len(response.GetTags()))
-		for _, tag := range response.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	} else {
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, response.HasTags(), response.GetTags(), data.Tags)
 	if response.HasCustomFields() {
 		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	} else {

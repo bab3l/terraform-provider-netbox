@@ -119,6 +119,7 @@ resource "netbox_custom_field" "dt_longtext" {
   type         = "longtext"
   object_types = ["dcim.devicetype"]
   required     = false
+	depends_on   = [netbox_custom_field.dt_text]
 }
 
 resource "netbox_custom_field" "dt_integer" {
@@ -126,6 +127,7 @@ resource "netbox_custom_field" "dt_integer" {
   type         = "integer"
   object_types = ["dcim.devicetype"]
   required     = false
+	depends_on   = [netbox_custom_field.dt_longtext]
 }
 
 resource "netbox_custom_field" "dt_boolean" {
@@ -133,6 +135,7 @@ resource "netbox_custom_field" "dt_boolean" {
   type         = "boolean"
   object_types = ["dcim.devicetype"]
   required     = false
+	depends_on   = [netbox_custom_field.dt_integer]
 }
 
 resource "netbox_custom_field" "dt_date" {
@@ -140,6 +143,7 @@ resource "netbox_custom_field" "dt_date" {
   type         = "date"
   object_types = ["dcim.devicetype"]
   required     = false
+	depends_on   = [netbox_custom_field.dt_boolean]
 }
 
 resource "netbox_custom_field" "dt_url" {
@@ -147,6 +151,7 @@ resource "netbox_custom_field" "dt_url" {
   type         = "url"
   object_types = ["dcim.devicetype"]
   required     = false
+	depends_on   = [netbox_custom_field.dt_date]
 }
 
 resource "netbox_custom_field" "dt_json" {
@@ -154,6 +159,7 @@ resource "netbox_custom_field" "dt_json" {
   type         = "json"
   object_types = ["dcim.devicetype"]
   required     = false
+	depends_on   = [netbox_custom_field.dt_url]
 }
 
 # Create manufacturer dependency

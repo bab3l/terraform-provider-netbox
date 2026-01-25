@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -234,7 +235,7 @@ func (d *VirtualDiskDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	// Map response to model
-	d.mapVirtualDiskToDataSourceModel(ctx, vd, &data)
+	d.mapVirtualDiskToDataSourceModel(ctx, vd, &data, &resp.Diagnostics)
 	tflog.Debug(ctx, "Read VirtualDisk", map[string]interface{}{
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
@@ -245,7 +246,7 @@ func (d *VirtualDiskDataSource) Read(ctx context.Context, req datasource.ReadReq
 }
 
 // mapVirtualDiskToDataSourceModel maps a Netbox VirtualDisk to the Terraform data source model.
-func (d *VirtualDiskDataSource) mapVirtualDiskToDataSourceModel(ctx context.Context, vd *netbox.VirtualDisk, data *VirtualDiskDataSourceModel) {
+func (d *VirtualDiskDataSource) mapVirtualDiskToDataSourceModel(ctx context.Context, vd *netbox.VirtualDisk, data *VirtualDiskDataSourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", vd.Id))
 	data.Name = types.StringValue(vd.Name)
 	data.VirtualMachine = types.StringValue(fmt.Sprintf("%d", vd.VirtualMachine.GetId()))
@@ -260,16 +261,7 @@ func (d *VirtualDiskDataSource) mapVirtualDiskToDataSourceModel(ctx context.Cont
 	}
 
 	// Tags - convert to list of strings (tag slugs)
-	if len(vd.Tags) > 0 {
-		tagSlugs := make([]string, len(vd.Tags))
-		for i, tag := range vd.Tags {
-			tagSlugs[i] = tag.Slug
-		}
-		tagsList, _ := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		data.Tags = tagsList
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, len(vd.Tags) > 0, vd.Tags, diags)
 
 	// Handle custom fields
 	if vd.CustomFields != nil && len(vd.CustomFields) > 0 {

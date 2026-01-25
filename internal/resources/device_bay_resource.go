@@ -443,19 +443,7 @@ func (r *DeviceBayResource) mapResponseToModel(ctx context.Context, db *netbox.D
 	}
 
 	// Tags (slug list)
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case db.HasTags() && len(db.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(db.GetTags()))
-		for _, tag := range db.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, db.HasTags(), db.GetTags(), data.Tags)
 
 	// Handle custom fields - use filtered-to-owned for partial management
 	if db.HasCustomFields() {

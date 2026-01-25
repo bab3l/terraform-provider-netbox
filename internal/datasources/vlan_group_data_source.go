@@ -246,20 +246,7 @@ func (d *VLANGroupDataSource) mapVLANGroupToState(ctx context.Context, vlanGroup
 	}
 
 	// Tags (slug list)
-	if vlanGroup.HasTags() && len(vlanGroup.GetTags()) > 0 {
-		tagSlugs := make([]string, 0, len(vlanGroup.GetTags()))
-		for _, tag := range vlanGroup.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, vlanGroup.HasTags(), vlanGroup.GetTags(), diags)
 
 	// Custom fields - datasources return ALL fields
 	if vlanGroup.HasCustomFields() {

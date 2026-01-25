@@ -335,7 +335,8 @@ func (r *ConfigContextResource) Read(ctx context.Context, req resource.ReadReque
 	mapConfigContextResponseToModel(ctx, result, &data)
 
 	// Populate tags filtered to owned fields only (preserves null/empty distinction)
-	// ConfigContext uses []string tags, so we handle manually instead of using PopulateTagsFromAPI
+	// ConfigContext exposes tags as []string (slugs) via go-netbox, not nested tag objects.
+	// The helpers expect []netbox.NestedTag, so we map the slug slice directly here.
 	if utils.IsSet(stateTags) {
 		// Tags are in state (owned) - populate from API
 		if len(result.Tags) > 0 {

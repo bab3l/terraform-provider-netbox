@@ -368,19 +368,7 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case device.HasTags() && len(device.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(device.GetTags()))
-		for _, tag := range device.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, device.HasTags(), device.GetTags(), planTags)
 
 	// Apply filter-to-owned pattern for custom fields:
 	// Only return custom fields that the user declared in their config.
@@ -445,19 +433,7 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !originalTags.IsNull() && !originalTags.IsUnknown() && len(originalTags.Elements()) == 0
-	switch {
-	case device.HasTags() && len(device.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(device.GetTags()))
-		for _, tag := range device.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, device.HasTags(), device.GetTags(), originalTags)
 
 	// If custom_fields was null or empty before (not managed or explicitly cleared),
 	// restore that state after mapping.
@@ -689,19 +665,7 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case device.HasTags() && len(device.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(device.GetTags()))
-		for _, tag := range device.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, device.HasTags(), device.GetTags(), planTags)
 
 	// Apply filter-to-owned pattern for custom fields:
 	// Only return custom fields that the user declared in their config.
@@ -826,15 +790,7 @@ func (r *DeviceResource) ImportState(ctx context.Context, req resource.ImportSta
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		if device.HasTags() && len(device.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(device.GetTags()))
-			for _, tag := range device.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, device.HasTags(), device.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, device.GetCustomFields(), &resp.Diagnostics)
 		} else {

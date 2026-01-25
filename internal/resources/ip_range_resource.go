@@ -438,15 +438,7 @@ func (r *IPRangeResource) ImportState(ctx context.Context, req resource.ImportSt
 				data.Role = types.StringValue(fmt.Sprintf("%d", role.GetId()))
 			}
 		}
-		if len(ipRange.Tags) > 0 {
-			tagSlugs := make([]string, 0, len(ipRange.Tags))
-			for _, tag := range ipRange.Tags {
-				tagSlugs = append(tagSlugs, tag.Slug)
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(ipRange.Tags) > 0, ipRange.Tags, data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -670,19 +662,7 @@ func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox
 
 	// Handle tags with filter-to-owned pattern
 	planTags := data.Tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case len(ipRange.Tags) > 0:
-		tagSlugs := make([]string, 0, len(ipRange.Tags))
-		for _, tag := range ipRange.Tags {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, len(ipRange.Tags) > 0, ipRange.Tags, planTags)
 	if diags.HasError() {
 		return
 	}

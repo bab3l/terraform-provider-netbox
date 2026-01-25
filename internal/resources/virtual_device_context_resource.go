@@ -762,19 +762,7 @@ func (r *VirtualDeviceContextResource) mapToState(ctx context.Context, result *n
 	}
 
 	// Handle tags (slug list) with empty-set preservation
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case result.HasTags() && len(result.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(result.GetTags()))
-		for _, tag := range result.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags)
 
 	// Handle custom fields using consolidated helper
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, result.GetCustomFields(), diags)

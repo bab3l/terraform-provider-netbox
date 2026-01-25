@@ -527,15 +527,7 @@ func (r *RackRoleResource) ImportState(ctx context.Context, req resource.ImportS
 		}
 
 		var data RackRoleResourceModel
-		if rackRole.HasTags() {
-			tagSlugs := make([]string, 0, len(rackRole.GetTags()))
-			for _, tag := range rackRole.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, rackRole.HasTags(), rackRole.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -613,20 +605,7 @@ func (r *RackRoleResource) mapRackRoleToState(ctx context.Context, rackRole *net
 	}
 
 	// Handle tags (filter to owned, slug list format)
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	case rackRole.HasTags():
-		var tagSlugs []string
-		for _, tag := range rackRole.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, rackRole.HasTags(), rackRole.GetTags(), data.Tags)
 
 	// Handle custom fields (filter to owned)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, rackRole.GetCustomFields(), diags)

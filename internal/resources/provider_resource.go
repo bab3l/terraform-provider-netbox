@@ -142,20 +142,7 @@ func (r *ProviderResource) mapProviderToState(ctx context.Context, provider *net
 	}
 
 	// Filter tags to owned (slug list format)
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	case provider.HasTags():
-		var tagSlugs []string
-		for _, tag := range provider.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, provider.HasTags(), provider.GetTags(), data.Tags)
 
 	// Populate custom fields
 	if provider.HasCustomFields() {
@@ -487,15 +474,7 @@ func (r *ProviderResource) ImportState(ctx context.Context, req resource.ImportS
 		}
 
 		var data ProviderResourceModel
-		if provider.HasTags() {
-			tagSlugs := make([]string, 0, len(provider.GetTags()))
-			for _, tag := range provider.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, provider.HasTags(), provider.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})

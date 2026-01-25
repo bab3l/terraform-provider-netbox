@@ -308,15 +308,7 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	// Handle tags (slug list)
-	if wlan.HasTags() && len(wlan.GetTags()) > 0 {
-		tagSlugs := make([]string, 0, len(wlan.GetTags()))
-		for _, tag := range wlan.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	} else {
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, wlan.HasTags(), wlan.GetTags(), data.Tags)
 
 	// Handle custom fields - datasources return ALL fields
 	if wlan.HasCustomFields() {

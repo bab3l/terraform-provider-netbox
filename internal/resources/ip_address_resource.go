@@ -186,19 +186,7 @@ func (r *IPAddressResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case len(ipAddress.Tags) > 0:
-		tagSlugs := make([]string, 0, len(ipAddress.Tags))
-		for _, tag := range ipAddress.Tags {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, ipAddress.HasTags(), ipAddress.GetTags(), planTags)
 
 	// Apply filter-to-owned pattern for custom fields
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, ipAddress.CustomFields, &resp.Diagnostics)
@@ -261,19 +249,7 @@ func (r *IPAddressResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !originalTags.IsNull() && !originalTags.IsUnknown() && len(originalTags.Elements()) == 0
-	switch {
-	case len(ipAddress.Tags) > 0:
-		tagSlugs := make([]string, 0, len(ipAddress.Tags))
-		for _, tag := range ipAddress.Tags {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, ipAddress.HasTags(), ipAddress.GetTags(), originalTags)
 
 	// Apply filter-to-owned pattern for custom fields
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, originalCustomFields, ipAddress.CustomFields, &resp.Diagnostics)
@@ -346,19 +322,7 @@ func (r *IPAddressResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
-	switch {
-	case len(ipAddress.Tags) > 0:
-		tagSlugs := make([]string, 0, len(ipAddress.Tags))
-		for _, tag := range ipAddress.Tags {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, ipAddress.HasTags(), ipAddress.GetTags(), plan.Tags)
 
 	// Apply filter-to-owned pattern for custom fields
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, ipAddress.CustomFields, &resp.Diagnostics)
@@ -455,15 +419,7 @@ func (r *IPAddressResource) ImportState(ctx context.Context, req resource.Import
 			tenant := ipAddress.Tenant.Get()
 			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 		}
-		if len(ipAddress.Tags) > 0 {
-			tagSlugs := make([]string, 0, len(ipAddress.Tags))
-			for _, tag := range ipAddress.Tags {
-				tagSlugs = append(tagSlugs, tag.Slug)
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(ipAddress.Tags) > 0, ipAddress.Tags, data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})

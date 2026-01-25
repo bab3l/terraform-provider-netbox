@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -229,7 +230,7 @@ func (d *IPAddressDataSource) Read(ctx context.Context, req datasource.ReadReque
 	}
 
 	// Map the IP address to our model
-	d.mapIPAddressToState(ctx, ipAddress, &data)
+	d.mapIPAddressToState(ctx, ipAddress, &data, &resp.Diagnostics)
 	tflog.Debug(ctx, "Read IP address", map[string]interface{}{
 		"id":      data.ID.ValueString(),
 		"address": data.Address.ValueString(),
@@ -240,7 +241,7 @@ func (d *IPAddressDataSource) Read(ctx context.Context, req datasource.ReadReque
 }
 
 // mapIPAddressToState maps a Netbox IPAddress to the Terraform state model.
-func (d *IPAddressDataSource) mapIPAddressToState(ctx context.Context, ipAddress *netbox.IPAddress, data *IPAddressDataSourceModel) {
+func (d *IPAddressDataSource) mapIPAddressToState(ctx context.Context, ipAddress *netbox.IPAddress, data *IPAddressDataSourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipAddress.Id))
 	data.Address = types.StringValue(ipAddress.Address)
 
@@ -327,16 +328,7 @@ func (d *IPAddressDataSource) mapIPAddressToState(ctx context.Context, ipAddress
 	}
 
 	// Tags (slug list)
-	if len(ipAddress.Tags) > 0 {
-		tagSlugs := make([]string, 0, len(ipAddress.Tags))
-		for _, tag := range ipAddress.Tags {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		tagList, _ := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		data.Tags = tagList
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, len(ipAddress.Tags) > 0, ipAddress.Tags, diags)
 
 	// Handle custom fields - datasources return ALL fields
 	if ipAddress.HasCustomFields() {

@@ -380,14 +380,7 @@ func (r *CircuitResource) ImportState(ctx context.Context, req resource.ImportSt
 		}
 
 		var data CircuitResourceModel
-		data.Tags = types.SetNull(types.StringType)
-		if circuit.HasTags() {
-			var tagSlugs []string
-			for _, tag := range circuit.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, circuit.HasTags(), circuit.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -675,20 +668,7 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 	}
 
 	// Tags (slug list)
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case circuit.HasTags():
-		for _, tag := range circuit.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, circuit.HasTags(), circuit.GetTags(), data.Tags)
 	if diags.HasError() {
 		return
 	}

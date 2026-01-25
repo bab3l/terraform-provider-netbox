@@ -441,15 +441,7 @@ func (r *LocationResource) ImportState(ctx context.Context, req resource.ImportS
 			tenant := location.GetTenant()
 			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 		}
-		if location.HasTags() {
-			tagSlugs := make([]string, 0, len(location.GetTags()))
-			for _, tag := range location.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, location.HasTags(), location.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -561,22 +553,7 @@ func (r *LocationResource) mapLocationToState(ctx context.Context, location *net
 
 	// Handle tags using filter-to-owned approach
 	planTags := data.Tags
-	switch {
-	case planTags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(planTags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		if location.HasTags() {
-			var tagSlugs []string
-			for _, tag := range location.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-		}
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, location.HasTags(), location.GetTags(), planTags)
 
 	// Handle custom fields - only populate fields that are in plan (owned by this resource)
 	if location.HasCustomFields() {

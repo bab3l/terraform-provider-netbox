@@ -792,15 +792,7 @@ func (r *WirelessLinkResource) ImportState(ctx context.Context, req resource.Imp
 			return
 		}
 
-		if result.HasTags() && len(result.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(result.GetTags()))
-			for _, tag := range result.GetTags() {
-				tagSlugs = append(tagSlugs, tag.Slug)
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags)
 
 		if parsed.HasCustomFields {
 			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, result.GetCustomFields(), &resp.Diagnostics)

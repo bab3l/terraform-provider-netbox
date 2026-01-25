@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -136,13 +137,13 @@ func (d *WebhookDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Map API response to state
-	d.mapWebhookToState(ctx, webhook, &data)
+	d.mapWebhookToState(ctx, webhook, &data, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // mapWebhookToState maps API response to Terraform state.
-func (d *WebhookDataSource) mapWebhookToState(ctx context.Context, webhook *netbox.Webhook, data *WebhookDataSourceModel) {
+func (d *WebhookDataSource) mapWebhookToState(ctx context.Context, webhook *netbox.Webhook, data *WebhookDataSourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", webhook.GetId()))
 	data.Name = types.StringValue(webhook.GetName())
 	data.PayloadURL = types.StringValue(webhook.GetPayloadUrl())
@@ -204,18 +205,7 @@ func (d *WebhookDataSource) mapWebhookToState(ctx context.Context, webhook *netb
 	}
 
 	// Handle tags (slug list)
-	if webhook.HasTags() && len(webhook.GetTags()) > 0 {
-		tagSlugs := make([]string, 0, len(webhook.GetTags()))
-		for _, tag := range webhook.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		tagsValue, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		if !tagDiags.HasError() {
-			data.Tags = tagsValue
-		}
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, webhook.HasTags(), webhook.GetTags(), diags)
 
 	// Map custom fields
 	if webhook.HasCustomFields() {

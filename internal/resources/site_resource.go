@@ -544,15 +544,7 @@ func (r *SiteResource) ImportState(ctx context.Context, req resource.ImportState
 			tenant := site.GetTenant()
 			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 		}
-		if site.HasTags() {
-			tagSlugs := make([]string, 0, len(site.GetTags()))
-			for _, tag := range site.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, site.HasTags(), site.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -671,20 +663,7 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 	}
 
 	// Handle tags
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case site.HasTags():
-		for _, tag := range site.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, site.HasTags(), site.GetTags(), data.Tags)
 
 	// Handle custom fields - use filtered-to-owned for partial management
 	if site.HasCustomFields() {

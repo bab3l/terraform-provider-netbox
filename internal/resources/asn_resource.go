@@ -358,13 +358,7 @@ func (r *ASNResource) ImportState(ctx context.Context, req resource.ImportStateR
 				data.Tenant = types.StringValue(tenant.GetSlug())
 			}
 		}
-		var tagSlugs []string
-		if asn.HasTags() {
-			for _, tag := range asn.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, asn.HasTags(), asn.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -520,20 +514,7 @@ func (r *ASNResource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, d
 	}
 
 	// Tags (slug list)
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case asn.HasTags():
-		for _, tag := range asn.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, asn.HasTags(), asn.GetTags(), data.Tags)
 	if diags.HasError() {
 		return
 	}

@@ -169,19 +169,7 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case contactGroup.HasTags() && len(contactGroup.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(contactGroup.GetTags()))
-		for _, tag := range contactGroup.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, contactGroup.HasTags(), contactGroup.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, contactGroup.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
@@ -228,19 +216,7 @@ func (r *ContactGroupResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
-	switch {
-	case contactGroup.HasTags() && len(contactGroup.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(contactGroup.GetTags()))
-		for _, tag := range contactGroup.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, contactGroup.HasTags(), contactGroup.GetTags(), stateTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, contactGroup.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
@@ -313,19 +289,7 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
-	switch {
-	case contactGroup.HasTags() && len(contactGroup.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(contactGroup.GetTags()))
-		for _, tag := range contactGroup.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, contactGroup.HasTags(), contactGroup.GetTags(), plan.Tags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, contactGroup.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 
@@ -416,19 +380,7 @@ func (r *ContactGroupResource) ImportState(ctx context.Context, req resource.Imp
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-		switch {
-		case contactGroup.HasTags() && len(contactGroup.GetTags()) > 0:
-			tagSlugs := make([]string, 0, len(contactGroup.GetTags()))
-			for _, tag := range contactGroup.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		case wasExplicitlyEmpty:
-			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-		default:
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, contactGroup.HasTags(), contactGroup.GetTags(), data.Tags)
 
 		if parsed.HasCustomFields {
 			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, contactGroup.GetCustomFields(), &resp.Diagnostics)

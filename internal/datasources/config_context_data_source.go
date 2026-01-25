@@ -291,6 +291,7 @@ func mapConfigContextDataSourceResponse(ctx context.Context, result *netbox.Conf
 	data.Clusters = dsClustersToSet(ctx, result.Clusters)
 	data.TenantGroups = dsTenantGroupsToSet(ctx, result.TenantGroups)
 	data.Tenants = dsTenantsToSet(ctx, result.Tenants)
+	// ConfigContext tags are returned as []string (slugs) by go-netbox, so map directly.
 	data.Tags = utils.TagsSlugToSet(ctx, result.Tags)
 }
 

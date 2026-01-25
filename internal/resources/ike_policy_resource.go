@@ -387,15 +387,7 @@ func (r *IKEPolicyResource) ImportState(ctx context.Context, req resource.Import
 		}
 
 		var data IKEPolicyResourceModel
-		if ike.HasTags() {
-			tagSlugs := make([]string, 0, len(ike.GetTags()))
-			for _, tag := range ike.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, ike.HasTags(), ike.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -592,19 +584,7 @@ func (r *IKEPolicyResource) mapIKEPolicyToState(ctx context.Context, ike *netbox
 
 	// Handle tags with filter-to-owned pattern
 	planTags := data.Tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case ike.HasTags() && len(ike.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(ike.GetTags()))
-		for _, tag := range ike.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, ike.HasTags(), ike.GetTags(), planTags)
 
 	// Handle custom fields using filter-to-owned pattern
 	// Only populate fields that are declared in the config

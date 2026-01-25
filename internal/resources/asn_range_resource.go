@@ -436,15 +436,7 @@ func (r *ASNRangeResource) ImportState(ctx context.Context, req resource.ImportS
 				data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 			}
 		}
-		if len(asnRange.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(asnRange.GetTags()))
-			for _, tag := range asnRange.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, asnRange.HasTags(), asnRange.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -557,20 +549,7 @@ func (r *ASNRangeResource) mapASNRangeToState(ctx context.Context, asnRange *net
 	}
 
 	// Tags
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case len(asnRange.GetTags()) > 0:
-		for _, tag := range asnRange.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, asnRange.HasTags(), asnRange.GetTags(), data.Tags)
 	if diags.HasError() {
 		return
 	}

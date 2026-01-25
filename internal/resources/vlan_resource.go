@@ -725,19 +725,7 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 	}
 
 	// Handle tags (slug list) with empty-set preservation
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case vlan.HasTags() && len(vlan.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(vlan.GetTags()))
-		for _, tag := range vlan.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, vlan.HasTags(), vlan.GetTags(), data.Tags)
 
 	// Handle custom fields using filter-to-owned pattern
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vlan.GetCustomFields(), diags)

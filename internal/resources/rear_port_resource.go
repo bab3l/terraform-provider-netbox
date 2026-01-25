@@ -517,15 +517,7 @@ func (r *RearPortResource) ImportState(ctx context.Context, req resource.ImportS
 		}
 
 		var data RearPortResourceModel
-		if response.HasTags() {
-			var tagSlugs []string
-			for _, tag := range response.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, response.HasTags(), response.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -628,20 +620,7 @@ func (r *RearPortResource) mapResponseToModel(ctx context.Context, port *netbox.
 	}
 
 	// Handle tags - filter to owned slugs only
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	case port.HasTags():
-		var tagSlugs []string
-		for _, tag := range port.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, port.HasTags(), port.GetTags(), data.Tags)
 
 	// Handle custom fields with filter-to-owned pattern
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, port.GetCustomFields(), diags)

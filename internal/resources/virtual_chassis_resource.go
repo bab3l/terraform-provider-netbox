@@ -558,19 +558,7 @@ func (r *VirtualChassisResource) mapResponseToModel(ctx context.Context, vc *net
 	data.MemberCount = types.Int64Value(int64(vc.GetMemberCount()))
 
 	// Handle tags (slug list) with empty-set preservation
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case vc.HasTags() && len(vc.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(vc.GetTags()))
-		for _, tag := range vc.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, vc.HasTags(), vc.GetTags(), data.Tags)
 
 	// Handle custom fields using consolidated helper
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vc.GetCustomFields(), diags)
