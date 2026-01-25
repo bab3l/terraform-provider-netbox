@@ -256,13 +256,5 @@ func (d *PowerPortDataSource) mapResponseToModel(powerPort *netbox.PowerPort, da
 		data.DisplayName = types.StringNull()
 	}
 	// Map custom fields - datasources return ALL fields
-	if powerPort.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(powerPort.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(context.Background(), powerPort.HasCustomFields(), powerPort.GetCustomFields(), nil)
 }

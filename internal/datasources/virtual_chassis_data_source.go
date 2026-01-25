@@ -240,15 +240,5 @@ func (d *VirtualChassisDataSource) mapResponseToModel(ctx context.Context, vc *n
 	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, vc.HasTags(), vc.GetTags(), diags)
 
 	// Handle custom fields
-	if vc.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(vc.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, vc.HasCustomFields(), vc.GetCustomFields(), diags)
 }

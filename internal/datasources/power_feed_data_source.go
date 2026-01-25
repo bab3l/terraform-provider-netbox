@@ -357,13 +357,5 @@ func (d *PowerFeedDataSource) mapResponseToModel(ctx context.Context, pf *netbox
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if pf.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(pf.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, pf.HasCustomFields(), pf.GetCustomFields(), diags)
 }

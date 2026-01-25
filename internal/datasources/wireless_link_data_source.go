@@ -252,13 +252,5 @@ func (d *WirelessLinkDataSource) mapToState(ctx context.Context, result *netbox.
 	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags)
 
 	// Handle custom fields - datasources return ALL fields
-	if result.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(result.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, result.HasCustomFields(), result.GetCustomFields(), nil)
 }

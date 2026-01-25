@@ -368,17 +368,7 @@ func (d *DeviceDataSource) mapDeviceToDataSource(ctx context.Context, device *ne
 	}
 
 	// Handle custom fields
-	if device.HasCustomFields() && len(device.GetCustomFields()) > 0 {
-		customFields := utils.MapAllCustomFieldsToModels(device.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(cfDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, device.HasCustomFields(), device.GetCustomFields(), &resp.Diagnostics)
 
 	// Map display_name
 	if device.GetDisplay() != "" {

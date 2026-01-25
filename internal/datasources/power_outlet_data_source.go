@@ -255,13 +255,5 @@ func (d *PowerOutletDataSource) mapResponseToModel(powerOutlet *netbox.PowerOutl
 		data.MarkConnected = types.BoolValue(false)
 	}
 	// Map custom fields - datasources return ALL fields
-	if powerOutlet.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(powerOutlet.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(context.Background(), powerOutlet.HasCustomFields(), powerOutlet.GetCustomFields(), nil)
 }

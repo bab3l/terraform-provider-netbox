@@ -397,17 +397,7 @@ func (d *RackTypeDataSource) mapResponseToModel(ctx context.Context, rackType *n
 	}
 
 	// Handle custom fields
-	if rackType.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(rackType.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, rackType.HasCustomFields(), rackType.GetCustomFields(), diags)
 
 	// Map display_name
 	if rackType.GetDisplay() != "" {

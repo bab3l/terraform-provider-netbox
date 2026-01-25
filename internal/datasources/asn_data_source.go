@@ -260,18 +260,7 @@ func (d *ASNDataSource) mapResponseToModel(ctx context.Context, asn *netbox.ASN,
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if asn.HasCustomFields() {
-		apiCustomFields := asn.GetCustomFields()
-		customFields := utils.MapAllCustomFieldsToModels(apiCustomFields)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, asn.HasCustomFields(), asn.GetCustomFields(), diags)
 
 	// Map display name
 	if asn.GetDisplay() != "" {

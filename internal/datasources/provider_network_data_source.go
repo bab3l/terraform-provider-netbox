@@ -231,18 +231,7 @@ func (d *ProviderNetworkDataSource) mapResponseToModel(ctx context.Context, pn *
 	}
 
 	// Handle custom fields
-	if pn.HasCustomFields() {
-		apiCustomFields := pn.GetCustomFields()
-		customFields := utils.MapAllCustomFieldsToModels(apiCustomFields)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, pn.HasCustomFields(), pn.GetCustomFields(), diags)
 
 	// Map display_name
 	if pn.GetDisplay() != "" {

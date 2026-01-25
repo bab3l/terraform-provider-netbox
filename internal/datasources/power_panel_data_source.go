@@ -249,13 +249,5 @@ func (d *PowerPanelDataSource) mapResponseToModel(ctx context.Context, pp *netbo
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if pp.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(pp.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, pp.HasCustomFields(), pp.GetCustomFields(), diags)
 }

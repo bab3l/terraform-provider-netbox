@@ -445,17 +445,7 @@ func mapRackDataSourceToState(ctx context.Context, rack *netbox.Rack, data *Rack
 	}
 
 	// Handle custom fields
-	if rack.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(rack.GetCustomFields())
-		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !diags.HasError() {
-			data.CustomFields = customFieldsValue
-		} else {
-			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, rack.HasCustomFields(), rack.GetCustomFields(), nil)
 
 	// Map display_name
 	if rack.GetDisplay() != "" {

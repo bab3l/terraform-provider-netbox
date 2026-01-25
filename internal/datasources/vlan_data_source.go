@@ -362,13 +362,5 @@ func (d *VLANDataSource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, 
 	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, len(vlan.Tags) > 0, vlan.Tags, diags)
 
 	// Handle custom fields - datasources return ALL fields
-	if vlan.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(vlan.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, vlan.HasCustomFields(), vlan.GetCustomFields(), diags)
 }

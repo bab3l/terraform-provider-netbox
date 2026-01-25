@@ -284,17 +284,7 @@ func (d *CableDataSource) mapResponseToState(ctx context.Context, result *netbox
 	}
 
 	// Handle custom fields
-	if result.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(result.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		} else {
-			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, result.HasCustomFields(), result.GetCustomFields(), &diags)
 	return diags
 }
 

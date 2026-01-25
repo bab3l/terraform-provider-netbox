@@ -241,13 +241,5 @@ func (d *ConsoleServerPortDataSource) mapResponseToModel(consoleServerPort *netb
 	}
 
 	// Map custom fields - datasources return ALL fields
-	if consoleServerPort.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(consoleServerPort.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(context.Background(), consoleServerPort.HasCustomFields(), consoleServerPort.GetCustomFields(), nil)
 }

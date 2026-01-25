@@ -242,18 +242,7 @@ func (d *TunnelGroupDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	// Handle custom fields
-	if tunnelGroup.HasCustomFields() {
-		// For data sources, we extract all available custom fields
-		customFields := utils.MapAllCustomFieldsToModels(tunnelGroup.GetCustomFields())
-		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, tunnelGroup.HasCustomFields(), tunnelGroup.GetCustomFields(), &resp.Diagnostics)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

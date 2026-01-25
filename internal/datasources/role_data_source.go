@@ -252,15 +252,7 @@ func (d *RoleDataSource) mapResponseToModel(ctx context.Context, role *netbox.Ro
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if role.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(role.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, role.HasCustomFields(), role.GetCustomFields(), diags)
 
 	// Map display_name
 	if role.GetDisplay() != "" {

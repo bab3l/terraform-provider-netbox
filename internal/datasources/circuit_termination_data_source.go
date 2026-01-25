@@ -292,13 +292,5 @@ func (d *CircuitTerminationDataSource) mapResponseToModel(ctx context.Context, t
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if termination.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(termination.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, termination.HasCustomFields(), termination.GetCustomFields(), nil)
 }

@@ -242,18 +242,7 @@ func (d *RackRoleDataSource) Read(ctx context.Context, req datasource.ReadReques
 	}
 
 	// Handle custom fields
-	if rackRole.HasCustomFields() {
-		// For data sources, we extract all available custom fields
-		customFields := utils.MapAllCustomFieldsToModels(rackRole.GetCustomFields())
-		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, rackRole.HasCustomFields(), rackRole.GetCustomFields(), &resp.Diagnostics)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

@@ -262,13 +262,5 @@ func (d *AggregateDataSource) mapResponseToModel(ctx context.Context, aggregate 
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if aggregate.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(aggregate.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, aggregate.HasCustomFields(), aggregate.GetCustomFields(), nil)
 }

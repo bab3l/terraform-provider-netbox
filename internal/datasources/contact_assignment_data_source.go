@@ -188,13 +188,5 @@ func (d *ContactAssignmentDataSource) mapResponseToState(ctx context.Context, as
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if assignment.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(assignment.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, assignment.HasCustomFields(), assignment.GetCustomFields(), nil)
 }

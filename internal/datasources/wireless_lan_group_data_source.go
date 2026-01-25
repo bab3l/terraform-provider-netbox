@@ -222,15 +222,7 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, group.HasTags(), group.GetTags(), &resp.Diagnostics)
 
 	// Handle custom fields - datasources return ALL fields
-	if group.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(group.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, group.HasCustomFields(), group.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

@@ -238,18 +238,7 @@ func (d *DeviceBayDataSource) mapResponseToModel(ctx context.Context, db *netbox
 	}
 
 	// Handle custom fields
-	if db.HasCustomFields() {
-		apiCustomFields := db.GetCustomFields()
-		customFields := utils.MapAllCustomFieldsToModels(apiCustomFields)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, db.HasCustomFields(), db.GetCustomFields(), diags)
 
 	// Map display_name
 	if db.GetDisplay() != "" {

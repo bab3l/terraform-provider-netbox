@@ -285,15 +285,5 @@ func (d *VRFDataSource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data
 	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, vrf.HasTags(), vrf.GetTags(), diags)
 
 	// Custom fields - datasources return ALL fields
-	if vrf.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(vrf.GetCustomFields())
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfValueDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, vrf.HasCustomFields(), vrf.GetCustomFields(), diags)
 }

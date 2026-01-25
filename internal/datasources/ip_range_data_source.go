@@ -326,13 +326,5 @@ func (d *IPRangeDataSource) mapIPRangeToDataSourceModel(ctx context.Context, ipR
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if ipRange.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(ipRange.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, ipRange.HasCustomFields(), ipRange.GetCustomFields(), nil)
 }

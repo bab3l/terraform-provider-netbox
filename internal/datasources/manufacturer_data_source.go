@@ -10,6 +10,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -128,13 +129,13 @@ func (d *ManufacturerDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 
 	// Map API response to model using helpers
-	d.mapManufacturerToState(manufacturer, &data)
+	d.mapManufacturerToState(ctx, manufacturer, &data, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // mapManufacturerToState maps API response to Terraform state using state helpers.
-func (d *ManufacturerDataSource) mapManufacturerToState(manufacturer *netbox.Manufacturer, data *ManufacturerDataSourceModel) {
+func (d *ManufacturerDataSource) mapManufacturerToState(ctx context.Context, manufacturer *netbox.Manufacturer, data *ManufacturerDataSourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", manufacturer.GetId()))
 
 	// Display Name
@@ -149,15 +150,5 @@ func (d *ManufacturerDataSource) mapManufacturerToState(manufacturer *netbox.Man
 	data.Description = utils.StringFromAPI(manufacturer.HasDescription(), manufacturer.GetDescription, data.Description)
 
 	// Handle custom fields
-	if manufacturer.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(manufacturer.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		} else {
-			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, manufacturer.HasCustomFields(), manufacturer.GetCustomFields(), diags)
 }

@@ -343,18 +343,7 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 
 	// Handle custom fields
-	if deviceType.HasCustomFields() {
-		// For data sources, we extract all available custom fields
-		customFields := utils.MapAllCustomFieldsToModels(deviceType.GetCustomFields())
-		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, deviceType.HasCustomFields(), deviceType.GetCustomFields(), &resp.Diagnostics)
 
 	// Handle device_count (read-only, always present)
 	data.DeviceCount = types.Int64Value(deviceType.GetDeviceCount())

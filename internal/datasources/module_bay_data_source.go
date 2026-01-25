@@ -230,13 +230,5 @@ func (d *ModuleBayDataSource) mapResponseToModel(moduleBay *netbox.ModuleBay, da
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if moduleBay.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(moduleBay.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(context.Background(), moduleBay.HasCustomFields(), moduleBay.GetCustomFields(), nil)
 }

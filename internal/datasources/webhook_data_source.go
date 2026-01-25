@@ -208,13 +208,5 @@ func (d *WebhookDataSource) mapWebhookToState(ctx context.Context, webhook *netb
 	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, webhook.HasTags(), webhook.GetTags(), diags)
 
 	// Map custom fields
-	if webhook.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(webhook.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, webhook.HasCustomFields(), webhook.GetCustomFields(), diags)
 }

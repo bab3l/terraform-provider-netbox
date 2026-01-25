@@ -201,13 +201,5 @@ func (d *SiteGroupDataSource) mapSiteGroupToState(ctx context.Context, siteGroup
 	}
 
 	// Handle custom fields
-	if siteGroup.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(siteGroup.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, siteGroup.HasCustomFields(), siteGroup.GetCustomFields(), nil)
 }

@@ -308,15 +308,7 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, wlan.HasTags(), wlan.GetTags(), data.Tags)
 
 	// Handle custom fields - datasources return ALL fields
-	if wlan.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(wlan.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, wlan.HasCustomFields(), wlan.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

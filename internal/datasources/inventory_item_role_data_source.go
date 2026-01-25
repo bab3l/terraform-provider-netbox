@@ -228,15 +228,7 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if role.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(role.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, role.HasCustomFields(), role.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

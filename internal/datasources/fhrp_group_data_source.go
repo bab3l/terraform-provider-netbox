@@ -223,15 +223,7 @@ func (d *FHRPGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if fhrpGroup.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(fhrpGroup.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, fhrpGroup.HasCustomFields(), fhrpGroup.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Read FHRP group", map[string]interface{}{
 		"id":       data.ID.ValueInt32(),

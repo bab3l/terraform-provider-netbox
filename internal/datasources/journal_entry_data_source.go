@@ -143,16 +143,7 @@ func (d *JournalEntryDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 
 	// Map custom fields
-	if journalEntry.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(journalEntry.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-		resp.Diagnostics.Append(cfDiags...)
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, journalEntry.HasCustomFields(), journalEntry.GetCustomFields(), &resp.Diagnostics)
 
 	tflog.Debug(ctx, "Read journal entry", map[string]interface{}{
 		"id":                   data.ID.ValueInt32(),

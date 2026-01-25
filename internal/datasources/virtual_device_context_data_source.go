@@ -263,12 +263,5 @@ func (d *VirtualDeviceContextDataSource) mapToState(ctx context.Context, result 
 	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, result.HasTags(), result.GetTags(), diags)
 
 	// Map custom fields
-	if result.HasCustomFields() && len(result.GetCustomFields()) > 0 {
-		customFields := utils.MapAllCustomFieldsToModels(result.GetCustomFields())
-		cfValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		data.CustomFields = cfValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, result.HasCustomFields(), result.GetCustomFields(), diags)
 }

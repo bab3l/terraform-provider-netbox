@@ -253,13 +253,5 @@ func (d *IPSecProfileDataSource) mapIPSecProfileToState(ipsec *netbox.IPSecProfi
 	}
 
 	// Custom fields - datasources return ALL fields
-	if ipsec.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(ipsec.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(context.Background(), ipsec.HasCustomFields(), ipsec.GetCustomFields(), nil)
 }

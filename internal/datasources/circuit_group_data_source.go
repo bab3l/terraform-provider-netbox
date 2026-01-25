@@ -220,14 +220,7 @@ func (d *CircuitGroupDataSource) mapResponseToState(ctx context.Context, group *
 	}
 
 	// Custom fields
-	if group.HasCustomFields() && len(group.GetCustomFields()) > 0 {
-		customFields := utils.MapAllCustomFieldsToModels(group.GetCustomFields())
-		customFieldsValue, diags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(diags...)
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, group.HasCustomFields(), group.GetCustomFields(), &resp.Diagnostics)
 
 	// Map display name
 	if group.GetDisplay() != "" {

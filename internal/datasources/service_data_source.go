@@ -318,13 +318,5 @@ func (d *ServiceDataSource) mapResponseToModel(ctx context.Context, svc *netbox.
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if svc.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(svc.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, svc.HasCustomFields(), svc.GetCustomFields(), diags)
 }

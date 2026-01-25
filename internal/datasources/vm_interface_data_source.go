@@ -294,17 +294,7 @@ func (d *VMInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, iface.HasTags(), iface.GetTags(), &resp.Diagnostics)
 
 	// Handle custom fields
-	if iface.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(iface.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(cfDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, iface.HasCustomFields(), iface.GetCustomFields(), &resp.Diagnostics)
 	tflog.Debug(ctx, "Read VM interface", map[string]interface{}{
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),

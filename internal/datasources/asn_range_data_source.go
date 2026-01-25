@@ -300,15 +300,7 @@ func (d *ASNRangeDataSource) mapASNRangeToDataSourceModel(ctx context.Context, a
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if asnRange.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(asnRange.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, asnRange.HasCustomFields(), asnRange.GetCustomFields(), nil)
 
 	// Map display name
 	if asnRange.GetDisplay() != "" {
