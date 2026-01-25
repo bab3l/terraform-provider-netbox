@@ -130,7 +130,7 @@ func (r *ClusterResource) Configure(ctx context.Context, req resource.ConfigureR
 }
 
 // mapClusterToState maps a Cluster from the API to the Terraform state model.
-func (r *ClusterResource) mapClusterToState(ctx context.Context, cluster *netbox.Cluster, data *ClusterResourceModel, diags *diag.Diagnostics) {
+func (r *ClusterResource) mapClusterToState(cluster *netbox.Cluster, data *ClusterResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", cluster.GetId()))
 	data.Name = types.StringValue(cluster.GetName())
 
@@ -329,7 +329,7 @@ func (r *ClusterResource) Create(ctx context.Context, req resource.CreateRequest
 	planCustomFields := data.CustomFields
 
 	// Map response to state
-	r.mapClusterToState(ctx, cluster, &data, &resp.Diagnostics)
+	r.mapClusterToState(cluster, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -388,7 +388,7 @@ func (r *ClusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 	stateCustomFields := data.CustomFields
 
 	// Map response to state
-	r.mapClusterToState(ctx, cluster, &data, &resp.Diagnostics)
+	r.mapClusterToState(cluster, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -453,7 +453,7 @@ func (r *ClusterResource) Update(ctx context.Context, req resource.UpdateRequest
 	planCustomFields := plan.CustomFields
 
 	// Map response to state
-	r.mapClusterToState(ctx, cluster, &plan, &resp.Diagnostics)
+	r.mapClusterToState(cluster, &plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -568,7 +568,7 @@ func (r *ClusterResource) ImportState(ctx context.Context, req resource.ImportSt
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapClusterToState(ctx, cluster, &data, &resp.Diagnostics)
+		r.mapClusterToState(cluster, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}

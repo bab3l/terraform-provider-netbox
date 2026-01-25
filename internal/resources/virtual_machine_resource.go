@@ -208,7 +208,7 @@ func (r *VirtualMachineResource) Configure(ctx context.Context, req resource.Con
 
 // mapVirtualMachineToState maps a VirtualMachine from the API to the Terraform state model.
 
-func (r *VirtualMachineResource) mapVirtualMachineToState(ctx context.Context, vm *netbox.VirtualMachineWithConfigContext, data *VirtualMachineResourceModel, diags *diag.Diagnostics) {
+func (r *VirtualMachineResource) mapVirtualMachineToState(vm *netbox.VirtualMachineWithConfigContext, data *VirtualMachineResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", vm.GetId()))
 
 	data.Name = types.StringValue(vm.GetName())
@@ -729,7 +729,7 @@ func (r *VirtualMachineResource) Create(ctx context.Context, req resource.Create
 
 	// Map response to state
 
-	r.mapVirtualMachineToState(ctx, vm, &data, &resp.Diagnostics)
+	r.mapVirtualMachineToState(vm, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -817,7 +817,7 @@ func (r *VirtualMachineResource) Read(ctx context.Context, req resource.ReadRequ
 
 	// Map response to state
 
-	r.mapVirtualMachineToState(ctx, vm, &data, &resp.Diagnostics)
+	r.mapVirtualMachineToState(vm, &data, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -917,7 +917,7 @@ func (r *VirtualMachineResource) Update(ctx context.Context, req resource.Update
 
 	// Map response to state
 
-	r.mapVirtualMachineToState(ctx, vm, &plan, &resp.Diagnostics)
+	r.mapVirtualMachineToState(vm, &plan, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -1045,7 +1045,7 @@ func (r *VirtualMachineResource) ImportState(ctx context.Context, req resource.I
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapVirtualMachineToState(ctx, vm, &data, &resp.Diagnostics)
+		r.mapVirtualMachineToState(vm, &data, &resp.Diagnostics)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -1093,7 +1093,7 @@ func (r *VirtualMachineResource) ImportState(ctx context.Context, req resource.I
 	var data VirtualMachineResourceModel
 	data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 
-	r.mapVirtualMachineToState(ctx, vm, &data, &resp.Diagnostics)
+	r.mapVirtualMachineToState(vm, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}

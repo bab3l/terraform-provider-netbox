@@ -172,14 +172,5 @@ func (d *TenantGroupDataSource) mapTenantGroupToState(ctx context.Context, tenan
 		data.Tags = types.SetNull(utils.GetTagsAttributeType().ElemType)
 	}
 
-	if tenantGroup.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(tenantGroup.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if !diags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, tenantGroup.HasCustomFields(), tenantGroup.GetCustomFields(), diags)
 }

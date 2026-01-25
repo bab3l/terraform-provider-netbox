@@ -171,21 +171,18 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 			)
 			return
 		}
-		if response.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"No inventory item role found",
-				"No inventory item role matching the specified criteria was found.",
-			)
+		result, ok := utils.ExpectSingleResult(
+			response.GetResults(),
+			"No inventory item role found",
+			"No inventory item role matching the specified criteria was found.",
+			"Multiple inventory item roles found",
+			fmt.Sprintf("Found %d inventory item roles matching the specified criteria. Please provide more specific filters.", response.GetCount()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if response.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple inventory item roles found",
-				fmt.Sprintf("Found %d inventory item roles matching the specified criteria. Please provide more specific filters.", response.GetCount()),
-			)
-			return
-		}
-		role = &response.GetResults()[0]
+		role = result
 	}
 
 	// Map response to model
@@ -231,15 +228,7 @@ func (d *InventoryItemRoleDataSource) Read(ctx context.Context, req datasource.R
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if role.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(role.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, role.HasCustomFields(), role.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

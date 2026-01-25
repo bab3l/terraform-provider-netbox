@@ -134,6 +134,8 @@ resource "netbox_custom_field" "test_longtext" {
   label        = "Test Longtext CF"
   type         = "longtext"
   object_types = ["dcim.powerfeed"]
+
+  depends_on = [netbox_custom_field.test_text]
 }
 
 resource "netbox_custom_field" "test_integer" {
@@ -141,6 +143,8 @@ resource "netbox_custom_field" "test_integer" {
   label        = "Test Integer CF"
   type         = "integer"
   object_types = ["dcim.powerfeed"]
+
+  depends_on = [netbox_custom_field.test_longtext]
 }
 
 resource "netbox_custom_field" "test_boolean" {
@@ -148,6 +152,8 @@ resource "netbox_custom_field" "test_boolean" {
   label        = "Test Boolean CF"
   type         = "boolean"
   object_types = ["dcim.powerfeed"]
+
+  depends_on = [netbox_custom_field.test_integer]
 }
 
 resource "netbox_custom_field" "test_date" {
@@ -155,6 +161,8 @@ resource "netbox_custom_field" "test_date" {
   label        = "Test Date CF"
   type         = "date"
   object_types = ["dcim.powerfeed"]
+
+  depends_on = [netbox_custom_field.test_boolean]
 }
 
 resource "netbox_custom_field" "test_url" {
@@ -162,6 +170,8 @@ resource "netbox_custom_field" "test_url" {
   label        = "Test URL CF"
   type         = "url"
   object_types = ["dcim.powerfeed"]
+
+  depends_on = [netbox_custom_field.test_date]
 }
 
 resource "netbox_custom_field" "test_json" {
@@ -169,6 +179,8 @@ resource "netbox_custom_field" "test_json" {
   label        = "Test JSON CF"
   type         = "json"
   object_types = ["dcim.powerfeed"]
+
+  depends_on = [netbox_custom_field.test_url]
 }
 
 # Power Feed with comprehensive custom fields and tags

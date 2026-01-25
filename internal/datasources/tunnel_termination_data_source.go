@@ -157,14 +157,18 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 			)
 			return
 		}
-		if len(tunnelList.Results) == 0 {
-			resp.Diagnostics.AddError(
-				"Tunnel not found",
-				fmt.Sprintf("No tunnel found with name '%s'", data.TunnelName.ValueString()),
-			)
+		tunnelResult, ok := utils.ExpectSingleResult(
+			tunnelList.Results,
+			"Tunnel not found",
+			fmt.Sprintf("No tunnel found with name '%s'", data.TunnelName.ValueString()),
+			"Multiple tunnels found",
+			fmt.Sprintf("Found %d tunnels with name '%s'. Please use 'tunnel' (ID) for a unique lookup.", len(tunnelList.Results), data.TunnelName.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		tunnelID = tunnelList.Results[0].GetId()
+		tunnelID = tunnelResult.GetId()
 		lookupByTunnel = true
 		tflog.Debug(ctx, "Reading tunnel termination by tunnel ID", map[string]interface{}{
 			"tunnel_id": tunnelID,
@@ -278,17 +282,7 @@ func (d *TunnelTerminationDataSource) Read(ctx context.Context, req datasource.R
 	}
 
 	// Handle custom fields
-	if tunnelTermination.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(tunnelTermination.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(cfDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, tunnelTermination.HasCustomFields(), tunnelTermination.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

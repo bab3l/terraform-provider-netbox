@@ -16,7 +16,6 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -211,7 +210,7 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 	planTags := data.Tags
 	planCustomFields := data.CustomFields
 
-	r.mapTenantToState(ctx, tenant, &data, &resp.Diagnostics)
+	r.mapTenantToState(tenant, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -266,13 +265,11 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 		}
 
 		resp.Diagnostics.AddError("Error reading tenant", utils.FormatAPIError(fmt.Sprintf("read tenant ID %s", tenantID), err, httpResp))
-
 		return
 	}
 
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError("Error reading tenant", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
-
 		return
 	}
 
@@ -280,7 +277,7 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 	stateTags := data.Tags
 	stateCustomFields := data.CustomFields
 
-	r.mapTenantToState(ctx, tenant, &data, &resp.Diagnostics)
+	r.mapTenantToState(tenant, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -374,7 +371,7 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 	planCustomFields := plan.CustomFields
 
 	// Map response to state using helper
-	r.mapTenantToState(ctx, tenant, &plan, &resp.Diagnostics)
+	r.mapTenantToState(tenant, &plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -476,7 +473,7 @@ func (r *TenantResource) ImportState(ctx context.Context, req resource.ImportSta
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapTenantToState(ctx, tenant, &data, &resp.Diagnostics)
+		r.mapTenantToState(tenant, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -500,21 +497,17 @@ func (r *TenantResource) ImportState(ctx context.Context, req resource.ImportSta
 				CustomFields: listValue,
 			})...)
 		}
-
 		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 		return
 	}
-
 	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // mapTenantToState maps API response to Terraform state using state helpers.
 
-func (r *TenantResource) mapTenantToState(ctx context.Context, tenant *netbox.Tenant, data *TenantResourceModel, diags *diag.Diagnostics) {
+func (r *TenantResource) mapTenantToState(tenant *netbox.Tenant, data *TenantResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
-
 	data.Name = types.StringValue(tenant.GetName())
-
 	data.Slug = types.StringValue(tenant.GetSlug())
 
 	// Handle group reference

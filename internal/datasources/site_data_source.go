@@ -270,13 +270,5 @@ func (d *SiteDataSource) mapSiteToState(ctx context.Context, site *netbox.Site, 
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if site.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(site.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, site.HasCustomFields(), site.GetCustomFields(), nil)
 }

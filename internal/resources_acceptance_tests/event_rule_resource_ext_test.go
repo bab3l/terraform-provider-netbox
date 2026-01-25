@@ -31,7 +31,7 @@ func TestAccEventRuleResource_removeOptionalFields_extended(t *testing.T) {
 			return testAccEventRuleResourceConfig_removeOptionalFields_base(eventRuleName, webhookName)
 		},
 		ConfigWithFields: func() string {
-			return testAccEventRuleResourceConfig_removeOptionalFields_withFields(eventRuleName, webhookName, testFields)
+			return testAccEventRuleResourceConfig_removeOptionalFields_withFields(eventRuleName, webhookName)
 		},
 		OptionalFields: testFields,
 		RequiredFields: map[string]string{
@@ -61,7 +61,7 @@ resource "netbox_event_rule" "test" {
 
 // testAccEventRuleResourceConfig_removeOptionalFields_withFields creates an event rule
 // with action_object_id set. (conditions excluded due to provider bug).
-func testAccEventRuleResourceConfig_removeOptionalFields_withFields(eventRuleName, webhookName string, fields map[string]string) string {
+func testAccEventRuleResourceConfig_removeOptionalFields_withFields(eventRuleName, webhookName string) string {
 	return fmt.Sprintf(`
 resource "netbox_webhook" "test" {
   name        = %[2]q

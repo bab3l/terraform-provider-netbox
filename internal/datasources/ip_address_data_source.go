@@ -331,13 +331,5 @@ func (d *IPAddressDataSource) mapIPAddressToState(ctx context.Context, ipAddress
 	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, len(ipAddress.Tags) > 0, ipAddress.Tags, diags)
 
 	// Handle custom fields - datasources return ALL fields
-	if ipAddress.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(ipAddress.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, ipAddress.HasCustomFields(), ipAddress.GetCustomFields(), diags)
 }

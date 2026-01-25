@@ -35,7 +35,6 @@ func TestAccWirelessLinkResource_CustomFieldsAndTagsPreservation(t *testing.T) {
 	deviceNameA := testutil.RandomName("tf-test-device-a")
 	deviceNameB := testutil.RandomName("tf-test-device-b")
 	interfaceNameA := testutil.RandomName("wlan0")
-	interfaceNameB := testutil.RandomName("wlan0")
 	tagName := testutil.RandomName("tf-test-tag")
 	tagSlug := testutil.RandomSlug("tf-test-tag")
 
@@ -52,7 +51,7 @@ func TestAccWirelessLinkResource_CustomFieldsAndTagsPreservation(t *testing.T) {
 				Config: testAccWirelessLinkConfig_preservation_step1(
 					wirelessLinkSSID, siteName, siteSlug, manufacturerName, manufacturerSlug,
 					deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug,
-					deviceNameA, deviceNameB, interfaceNameA, interfaceNameB,
+					deviceNameA, deviceNameB, interfaceNameA,
 					tagName, tagSlug, cfText, cfInteger, "initial value", 42,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -71,7 +70,7 @@ func TestAccWirelessLinkResource_CustomFieldsAndTagsPreservation(t *testing.T) {
 				Config: testAccWirelessLinkConfig_preservation_step2(
 					wirelessLinkSSID, siteName, siteSlug, manufacturerName, manufacturerSlug,
 					deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug,
-					deviceNameA, deviceNameB, interfaceNameA, interfaceNameB,
+					deviceNameA, deviceNameB, interfaceNameA,
 					tagName, tagSlug, cfText, cfInteger, "Updated description",
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -86,7 +85,6 @@ func TestAccWirelessLinkResource_CustomFieldsAndTagsPreservation(t *testing.T) {
 				// Step 3: Import to verify custom fields and tags still exist in NetBox
 				ResourceName:            "netbox_wireless_link.test",
 				ImportState:             true,
-				ImportStateKind:         resource.ImportCommandWithID,
 				ImportStateVerify:       false,                                       // Can't verify - config has no custom_fields/tags
 				ImportStateVerifyIgnore: []string{"custom_fields", "tags", "status"}, // Different because filter-to-owned
 			},
@@ -95,7 +93,7 @@ func TestAccWirelessLinkResource_CustomFieldsAndTagsPreservation(t *testing.T) {
 				Config: testAccWirelessLinkConfig_preservation_step1(
 					wirelessLinkSSID, siteName, siteSlug, manufacturerName, manufacturerSlug,
 					deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug,
-					deviceNameA, deviceNameB, interfaceNameA, interfaceNameB,
+					deviceNameA, deviceNameB, interfaceNameA,
 					tagName, tagSlug, cfText, cfInteger, "initial value", 42,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -113,7 +111,7 @@ func TestAccWirelessLinkResource_CustomFieldsAndTagsPreservation(t *testing.T) {
 func testAccWirelessLinkConfig_preservation_step1(
 	wirelessLinkSSID, siteName, siteSlug, manufacturerName, manufacturerSlug,
 	deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug,
-	deviceNameA, deviceNameB, interfaceNameA, interfaceNameB,
+	deviceNameA, deviceNameB, interfaceNameA,
 	tagName, tagSlug, cfTextName, cfIntName, cfTextValue string, cfIntValue int,
 ) string {
 	return fmt.Sprintf(`
@@ -127,6 +125,8 @@ resource "netbox_custom_field" "integer" {
   name         = %[16]q
   type         = "integer"
   object_types = ["wireless.wirelesslink"]
+
+	depends_on = [netbox_custom_field.text]
 }
 
 resource "netbox_tag" "test" {
@@ -214,7 +214,7 @@ resource "netbox_wireless_link" "test" {
 func testAccWirelessLinkConfig_preservation_step2(
 	wirelessLinkSSID, siteName, siteSlug, manufacturerName, manufacturerSlug,
 	deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug,
-	deviceNameA, deviceNameB, interfaceNameA, interfaceNameB,
+	deviceNameA, deviceNameB, interfaceNameA,
 	tagName, tagSlug, cfTextName, cfIntName, description string,
 ) string {
 	return fmt.Sprintf(`
@@ -228,6 +228,8 @@ resource "netbox_custom_field" "integer" {
   name         = %[16]q
   type         = "integer"
   object_types = ["wireless.wirelesslink"]
+
+	depends_on = [netbox_custom_field.text]
 }
 
 resource "netbox_tag" "test" {

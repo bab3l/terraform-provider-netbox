@@ -108,21 +108,18 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		err = listErr
 		if err == nil {
 			results := list.GetResults()
-			if len(results) == 0 {
-				resp.Diagnostics.AddError(
-					"Not Found",
-					fmt.Sprintf("No script found with name: %s", data.Name.ValueString()),
-				)
+			scriptResult, ok := utils.ExpectSingleResult(
+				results,
+				"Not Found",
+				fmt.Sprintf("No script found with name: %s", data.Name.ValueString()),
+				"Multiple Found",
+				fmt.Sprintf("Multiple scripts found with name: %s. Please use id for a more specific lookup.", data.Name.ValueString()),
+				&resp.Diagnostics,
+			)
+			if !ok {
 				return
 			}
-			if len(results) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple Found",
-					fmt.Sprintf("Multiple scripts found with name: %s. Please use id for a more specific lookup.", data.Name.ValueString()),
-				)
-				return
-			}
-			script = &results[0]
+			script = scriptResult
 		}
 
 	default:
@@ -141,12 +138,12 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	// Map response to state
-	d.mapResponseToState(ctx, script, &data)
+	d.mapResponseToState(script, &data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // mapResponseToState maps the API response to the Terraform state.
-func (d *ScriptDataSource) mapResponseToState(ctx context.Context, script *netbox.Script, data *ScriptDataSourceModel) {
+func (d *ScriptDataSource) mapResponseToState(script *netbox.Script, data *ScriptDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", script.GetId()))
 	data.Name = types.StringValue(script.GetName())
 	data.Module = types.Int64Value(int64(script.GetModule()))

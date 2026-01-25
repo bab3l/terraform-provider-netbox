@@ -145,22 +145,18 @@ func (d *ServiceTemplateDataSource) Read(ctx context.Context, req datasource.Rea
 		defer utils.CloseResponseBody(httpResp)
 		err = listErr
 		if err == nil {
-			results := list.GetResults()
-			if len(results) == 0 {
-				resp.Diagnostics.AddError(
-					"Not Found",
-					fmt.Sprintf("No service template found with name: %s", data.Name.ValueString()),
-				)
+			result, ok := utils.ExpectSingleResult(
+				list.GetResults(),
+				"Not Found",
+				fmt.Sprintf("No service template found with name: %s", data.Name.ValueString()),
+				"Multiple Found",
+				fmt.Sprintf("Multiple service templates found with name: %s. Please use id for a more specific lookup.", data.Name.ValueString()),
+				&resp.Diagnostics,
+			)
+			if !ok {
 				return
 			}
-			if len(results) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple Found",
-					fmt.Sprintf("Multiple service templates found with name: %s. Please use id for a more specific lookup.", data.Name.ValueString()),
-				)
-				return
-			}
-			serviceTemplate = &results[0]
+			serviceTemplate = result
 		}
 
 	default:
@@ -241,13 +237,5 @@ func (d *ServiceTemplateDataSource) mapResponseToState(ctx context.Context, serv
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if serviceTemplate.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(serviceTemplate.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, serviceTemplate.HasCustomFields(), serviceTemplate.GetCustomFields(), diags)
 }

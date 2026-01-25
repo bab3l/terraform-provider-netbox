@@ -263,13 +263,5 @@ func (d *RIRDataSource) mapRIRToDataSourceModel(ctx context.Context, rir *netbox
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if rir.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(rir.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, rir.HasCustomFields(), rir.GetCustomFields(), nil)
 }

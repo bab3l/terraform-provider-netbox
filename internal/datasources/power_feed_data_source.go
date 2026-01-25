@@ -215,21 +215,18 @@ func (d *PowerFeedDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Power feed not found",
-				fmt.Sprintf("No power feed found with name: %s", data.Name.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Power feed not found",
+			fmt.Sprintf("No power feed found with name: %s", data.Name.ValueString()),
+			"Multiple power feeds found",
+			fmt.Sprintf("Found %d power feeds with name: %s. Please specify the power_panel to narrow results.", listResp.GetCount(), data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple power feeds found",
-				fmt.Sprintf("Found %d power feeds with name: %s. Please specify the power_panel to narrow results.", listResp.GetCount(), data.Name.ValueString()),
-			)
-			return
-		}
-		pf = &listResp.GetResults()[0]
+		pf = result
 
 	default:
 		resp.Diagnostics.AddError(
@@ -360,13 +357,5 @@ func (d *PowerFeedDataSource) mapResponseToModel(ctx context.Context, pf *netbox
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if pf.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(pf.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, pf.HasCustomFields(), pf.GetCustomFields(), diags)
 }

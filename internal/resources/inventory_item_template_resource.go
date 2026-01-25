@@ -12,7 +12,6 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -222,7 +221,7 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 	}
 
 	// Map response to state
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	r.mapToState(result, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -264,7 +263,7 @@ func (r *InventoryItemTemplateResource) Read(ctx context.Context, req resource.R
 	}
 
 	// Map response to state
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	r.mapToState(result, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -418,7 +417,7 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 
 	// Preserve display_name since it's computed but might change when other attributes update
 	// Map response to state
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	r.mapToState(result, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -466,7 +465,7 @@ func (r *InventoryItemTemplateResource) ImportState(ctx context.Context, req res
 }
 
 // mapToState maps the API response to the Terraform state.
-func (r *InventoryItemTemplateResource) mapToState(ctx context.Context, result *netbox.InventoryItemTemplate, data *InventoryItemTemplateResourceModel, diags *diag.Diagnostics) {
+func (r *InventoryItemTemplateResource) mapToState(result *netbox.InventoryItemTemplate, data *InventoryItemTemplateResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 	data.Name = types.StringValue(result.GetName())
 

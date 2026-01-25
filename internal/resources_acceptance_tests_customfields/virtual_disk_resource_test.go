@@ -123,36 +123,48 @@ resource "netbox_custom_field" "cf_longtext" {
   name        = %q
   type        = "longtext"
   object_types = ["virtualization.virtualdisk"]
+
+	depends_on = [netbox_custom_field.cf_text]
 }
 
 resource "netbox_custom_field" "cf_integer" {
   name        = %q
   type        = "integer"
   object_types = ["virtualization.virtualdisk"]
+
+	depends_on = [netbox_custom_field.cf_longtext]
 }
 
 resource "netbox_custom_field" "cf_boolean" {
   name        = %q
   type        = "boolean"
   object_types = ["virtualization.virtualdisk"]
+
+	depends_on = [netbox_custom_field.cf_integer]
 }
 
 resource "netbox_custom_field" "cf_date" {
   name        = %q
   type        = "date"
   object_types = ["virtualization.virtualdisk"]
+
+	depends_on = [netbox_custom_field.cf_boolean]
 }
 
 resource "netbox_custom_field" "cf_url" {
   name        = %q
   type        = "url"
   object_types = ["virtualization.virtualdisk"]
+
+	depends_on = [netbox_custom_field.cf_date]
 }
 
 resource "netbox_custom_field" "cf_json" {
   name        = %q
   type        = "json"
   object_types = ["virtualization.virtualdisk"]
+
+	depends_on = [netbox_custom_field.cf_url]
 }
 
 # Tags

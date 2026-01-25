@@ -210,17 +210,7 @@ func (d *ProviderDataSource) Read(ctx context.Context, req datasource.ReadReques
 	}
 
 	// Handle custom fields
-	if provider.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(provider.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		resp.Diagnostics.Append(cfDiags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, provider.HasCustomFields(), provider.GetCustomFields(), &resp.Diagnostics)
 
 	// Map display_name
 	if provider.GetDisplay() != "" {

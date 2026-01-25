@@ -197,15 +197,7 @@ func (d *ModuleTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	d.mapResponseToModel(moduleType, &data)
 
 	// Handle custom fields - datasources return ALL fields
-	if moduleType.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(moduleType.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, moduleType.HasCustomFields(), moduleType.GetCustomFields(), &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

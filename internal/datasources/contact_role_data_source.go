@@ -97,11 +97,19 @@ func (d *ContactRoleDataSource) Read(ctx context.Context, req datasource.ReadReq
 		defer utils.CloseResponseBody(listResp)
 		httpResp = listResp
 		err = listErr
-		if err == nil && list != nil && len(list.Results) > 0 {
-			contactRole = &list.Results[0]
-		} else if err == nil {
-			resp.Diagnostics.AddError("Contact role not found", fmt.Sprintf("No contact role found with slug: %s", slug))
-			return
+		if err == nil && list != nil {
+			contactRoleResult, ok := utils.ExpectSingleResult(
+				list.Results,
+				"Contact role not found",
+				fmt.Sprintf("No contact role found with slug: %s", slug),
+				"Multiple contact roles found",
+				fmt.Sprintf("Found %d contact roles with slug: %s. Use ID for unique lookup.", len(list.Results), slug),
+				&resp.Diagnostics,
+			)
+			if !ok {
+				return
+			}
+			contactRole = contactRoleResult
 		}
 	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Lookup by name
@@ -112,15 +120,18 @@ func (d *ContactRoleDataSource) Read(ctx context.Context, req datasource.ReadReq
 		httpResp = listResp
 		err = listErr
 		if err == nil && list != nil {
-			if len(list.Results) == 0 {
-				resp.Diagnostics.AddError("Contact role not found", fmt.Sprintf("No contact role found with name: %s", name))
+			contactRoleResult, ok := utils.ExpectSingleResult(
+				list.Results,
+				"Contact role not found",
+				fmt.Sprintf("No contact role found with name: %s", name),
+				"Multiple contact roles found",
+				fmt.Sprintf("Found %d contact roles with name: %s. Use slug or ID for unique lookup.", len(list.Results), name),
+				&resp.Diagnostics,
+			)
+			if !ok {
 				return
 			}
-			if len(list.Results) > 1 {
-				resp.Diagnostics.AddError("Multiple contact roles found", fmt.Sprintf("Found %d contact roles with name: %s. Use slug or ID for unique lookup.", len(list.Results), name))
-				return
-			}
-			contactRole = &list.Results[0]
+			contactRole = contactRoleResult
 		}
 	default:
 		resp.Diagnostics.AddError("Missing identifier", "Either 'id', 'slug', or 'name' must be specified")

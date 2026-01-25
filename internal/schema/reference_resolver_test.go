@@ -60,9 +60,10 @@ func TestReferenceResolver_ResolveToID(t *testing.T) {
 				require.Error(t, err, tt.description)
 			} else {
 				require.NoError(t, err, tt.description)
-				if tt.value == "" {
+				switch tt.value {
+				case "":
 					assert.Equal(t, int32(0), id, "Empty value should resolve to 0")
-				} else if tt.value == "123" {
+				case "123":
 					assert.Equal(t, int32(123), id, "Numeric value should parse directly")
 				}
 			}

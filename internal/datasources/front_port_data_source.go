@@ -270,13 +270,5 @@ func (d *FrontPortDataSource) mapResponseToModel(port *netbox.FrontPort, data *F
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if port.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(port.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(context.Background(), port.HasCustomFields(), port.GetCustomFields(), nil)
 }

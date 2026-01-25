@@ -141,12 +141,13 @@ resource "netbox_custom_field" "owner" {
   name         = %[3]q
   type         = "text"
   object_types = ["ipam.asn"]
+
+  depends_on = [netbox_custom_field.environment]
 }
 
 resource "netbox_asn" "test" {
   asn = %[1]d
   rir = netbox_rir.test.slug
-
   custom_fields = [
     {
       name  = netbox_custom_field.environment.name
@@ -180,6 +181,8 @@ resource "netbox_custom_field" "owner" {
   name         = %[3]q
   type         = "text"
   object_types = ["ipam.asn"]
+
+  depends_on = [netbox_custom_field.environment]
 }
 
 resource "netbox_asn" "test" {
@@ -207,6 +210,8 @@ resource "netbox_custom_field" "owner" {
   name         = %[3]q
   type         = "text"
   object_types = ["ipam.asn"]
+
+  depends_on = [netbox_custom_field.environment]
 }
 
 resource "netbox_asn" "test" {
@@ -251,12 +256,16 @@ resource "netbox_custom_field" "owner" {
   name         = %[3]q
   type         = "text"
   object_types = ["ipam.asn"]
+
+  depends_on = [netbox_custom_field.env]
 }
 
 resource "netbox_custom_field" "cost" {
   name         = %[4]q
   type         = "text"
   object_types = ["ipam.asn"]
+
+  depends_on = [netbox_custom_field.owner]
 }
 
 resource "netbox_asn" "test" {
@@ -296,12 +305,16 @@ resource "netbox_custom_field" "owner" {
   name         = %[3]q
   type         = "text"
   object_types = ["ipam.asn"]
+
+  depends_on = [netbox_custom_field.env]
 }
 
 resource "netbox_custom_field" "cost" {
   name         = %[4]q
   type         = "text"
   object_types = ["ipam.asn"]
+
+  depends_on = [netbox_custom_field.owner]
 }
 
 resource "netbox_asn" "test" {
@@ -336,12 +349,16 @@ resource "netbox_custom_field" "owner" {
   name         = %[3]q
   type         = "text"
   object_types = ["ipam.asn"]
+
+  depends_on = [netbox_custom_field.env]
 }
 
 resource "netbox_custom_field" "cost" {
   name         = %[4]q
   type         = "text"
   object_types = ["ipam.asn"]
+
+  depends_on = [netbox_custom_field.owner]
 }
 
 resource "netbox_asn" "test" {
@@ -381,12 +398,16 @@ resource "netbox_custom_field" "owner" {
   name         = %[3]q
   type         = "text"
   object_types = ["ipam.asn"]
+
+  depends_on = [netbox_custom_field.env]
 }
 
 resource "netbox_custom_field" "cost" {
   name         = %[4]q
   type         = "text"
   object_types = ["ipam.asn"]
+
+  depends_on = [netbox_custom_field.owner]
 }
 
 resource "netbox_asn" "test" {

@@ -11,7 +11,6 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -185,7 +184,7 @@ func (d *InventoryItemTemplateDataSource) Read(ctx context.Context, req datasour
 	}
 
 	// Map response to state
-	d.mapToState(ctx, result, &data, &resp.Diagnostics)
+	d.mapToState(result, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -193,7 +192,7 @@ func (d *InventoryItemTemplateDataSource) Read(ctx context.Context, req datasour
 }
 
 // mapToState maps the API response to the Terraform state.
-func (d *InventoryItemTemplateDataSource) mapToState(ctx context.Context, result *netbox.InventoryItemTemplate, data *InventoryItemTemplateDataSourceModel, diags *diag.Diagnostics) {
+func (d *InventoryItemTemplateDataSource) mapToState(result *netbox.InventoryItemTemplate, data *InventoryItemTemplateDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 	data.Name = types.StringValue(result.GetName())
 

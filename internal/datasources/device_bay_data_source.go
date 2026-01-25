@@ -166,14 +166,18 @@ func (d *DeviceBayDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Device bay not found",
-				fmt.Sprintf("No device bay found with name: %s on device: %s", data.Name.ValueString(), data.Device.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Device bay not found",
+			fmt.Sprintf("No device bay found with name: %s on device: %s", data.Name.ValueString(), data.Device.ValueString()),
+			"Multiple device bays found",
+			fmt.Sprintf("Found %d device bays with name: %s on device: %s", listResp.GetCount(), data.Name.ValueString(), data.Device.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		db = &listResp.GetResults()[0]
+		db = result
 
 	default:
 		resp.Diagnostics.AddError(
@@ -234,18 +238,7 @@ func (d *DeviceBayDataSource) mapResponseToModel(ctx context.Context, db *netbox
 	}
 
 	// Handle custom fields
-	if db.HasCustomFields() {
-		apiCustomFields := db.GetCustomFields()
-		customFields := utils.MapAllCustomFieldsToModels(apiCustomFields)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, db.HasCustomFields(), db.GetCustomFields(), diags)
 
 	// Map display_name
 	if db.GetDisplay() != "" {

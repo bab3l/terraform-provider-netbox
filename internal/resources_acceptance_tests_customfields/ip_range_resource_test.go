@@ -136,12 +136,13 @@ resource "netbox_custom_field" "purpose" {
   name         = %[2]q
   type         = "text"
   object_types = ["ipam.iprange"]
+
+  depends_on = [netbox_custom_field.environment]
 }
 
 resource "netbox_ip_range" "test" {
   start_address = "192.168.1.10"
   end_address   = "192.168.1.20"
-
   custom_fields = [
     {
       name  = netbox_custom_field.environment.name
@@ -170,6 +171,8 @@ resource "netbox_custom_field" "purpose" {
   name         = %[2]q
   type         = "text"
   object_types = ["ipam.iprange"]
+
+  depends_on = [netbox_custom_field.environment]
 }
 
 resource "netbox_ip_range" "test" {
@@ -192,6 +195,8 @@ resource "netbox_custom_field" "purpose" {
   name         = %[2]q
   type         = "text"
   object_types = ["ipam.iprange"]
+
+  depends_on = [netbox_custom_field.environment]
 }
 
 resource "netbox_ip_range" "test" {
@@ -231,12 +236,16 @@ resource "netbox_custom_field" "purpose" {
   name         = %[2]q
   type         = "text"
   object_types = ["ipam.iprange"]
+
+  depends_on = [netbox_custom_field.env]
 }
 
 resource "netbox_custom_field" "team" {
   name         = %[3]q
   type         = "text"
   object_types = ["ipam.iprange"]
+
+  depends_on = [netbox_custom_field.purpose]
 }
 
 resource "netbox_ip_range" "test" {
@@ -271,12 +280,16 @@ resource "netbox_custom_field" "purpose" {
   name         = %[2]q
   type         = "text"
   object_types = ["ipam.iprange"]
+
+  depends_on = [netbox_custom_field.env]
 }
 
 resource "netbox_custom_field" "team" {
   name         = %[3]q
   type         = "text"
   object_types = ["ipam.iprange"]
+
+  depends_on = [netbox_custom_field.purpose]
 }
 
 resource "netbox_ip_range" "test" {
@@ -306,12 +319,16 @@ resource "netbox_custom_field" "purpose" {
   name         = %[2]q
   type         = "text"
   object_types = ["ipam.iprange"]
+
+  depends_on = [netbox_custom_field.env]
 }
 
 resource "netbox_custom_field" "team" {
   name         = %[3]q
   type         = "text"
   object_types = ["ipam.iprange"]
+
+  depends_on = [netbox_custom_field.purpose]
 }
 
 resource "netbox_ip_range" "test" {
@@ -346,12 +363,16 @@ resource "netbox_custom_field" "purpose" {
   name         = %[2]q
   type         = "text"
   object_types = ["ipam.iprange"]
+
+  depends_on = [netbox_custom_field.env]
 }
 
 resource "netbox_custom_field" "team" {
   name         = %[3]q
   type         = "text"
   object_types = ["ipam.iprange"]
+
+  depends_on = [netbox_custom_field.purpose]
 }
 
 resource "netbox_ip_range" "test" {

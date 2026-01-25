@@ -170,21 +170,18 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Power panel not found",
-				fmt.Sprintf("No power panel found with name: %s", data.Name.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Power panel not found",
+			fmt.Sprintf("No power panel found with name: %s", data.Name.ValueString()),
+			"Multiple power panels found",
+			fmt.Sprintf("Found %d power panels with name: %s. Please specify the site to narrow results.", listResp.GetCount(), data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple power panels found",
-				fmt.Sprintf("Found %d power panels with name: %s. Please specify the site to narrow results.", listResp.GetCount(), data.Name.ValueString()),
-			)
-			return
-		}
-		pp = &listResp.GetResults()[0]
+		pp = result
 
 	default:
 		resp.Diagnostics.AddError(
@@ -252,13 +249,5 @@ func (d *PowerPanelDataSource) mapResponseToModel(ctx context.Context, pp *netbo
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if pp.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(pp.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, pp.HasCustomFields(), pp.GetCustomFields(), diags)
 }

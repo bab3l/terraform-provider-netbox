@@ -264,7 +264,7 @@ func (d *VirtualDiskDataSource) mapVirtualDiskToDataSourceModel(ctx context.Cont
 	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, len(vd.Tags) > 0, vd.Tags, diags)
 
 	// Handle custom fields
-	if vd.CustomFields != nil && len(vd.CustomFields) > 0 {
+	if len(vd.CustomFields) > 0 {
 		data.CustomFields = utils.MapAllCustomFieldsToModels(vd.CustomFields)
 	} else {
 		data.CustomFields = nil

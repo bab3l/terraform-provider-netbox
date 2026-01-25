@@ -285,15 +285,5 @@ func (d *ModuleDataSource) mapResponseToModel(module *netbox.Module, data *Modul
 	}
 
 	// Handle custom fields
-	if module.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(module.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(context.Background(), utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		} else {
-			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(context.Background(), module.HasCustomFields(), module.GetCustomFields(), nil)
 }

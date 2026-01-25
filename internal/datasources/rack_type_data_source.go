@@ -220,21 +220,18 @@ func (d *RackTypeDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Rack type not found",
-				fmt.Sprintf("No rack type found with model: %s", data.Model.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Rack type not found",
+			fmt.Sprintf("No rack type found with model: %s", data.Model.ValueString()),
+			"Multiple rack types found",
+			fmt.Sprintf("Found %d rack types with model: %s. Consider filtering by manufacturer as well.", listResp.GetCount(), data.Model.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple rack types found",
-				fmt.Sprintf("Found %d rack types with model: %s. Consider filtering by manufacturer as well.", listResp.GetCount(), data.Model.ValueString()),
-			)
-			return
-		}
-		rackType = &listResp.GetResults()[0]
+		rackType = result
 
 	case !data.Slug.IsNull() && !data.Slug.IsUnknown():
 		// Look up by slug
@@ -250,14 +247,18 @@ func (d *RackTypeDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Rack type not found",
-				fmt.Sprintf("No rack type found with slug: %s", data.Slug.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Rack type not found",
+			fmt.Sprintf("No rack type found with slug: %s", data.Slug.ValueString()),
+			"Multiple rack types found",
+			fmt.Sprintf("Found %d rack types with slug: %s", listResp.GetCount(), data.Slug.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		rackType = &listResp.GetResults()[0]
+		rackType = result
 
 	default:
 		resp.Diagnostics.AddError(
@@ -396,17 +397,7 @@ func (d *RackTypeDataSource) mapResponseToModel(ctx context.Context, rackType *n
 	}
 
 	// Handle custom fields
-	if rackType.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(rackType.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, rackType.HasCustomFields(), rackType.GetCustomFields(), diags)
 
 	// Map display_name
 	if rackType.GetDisplay() != "" {

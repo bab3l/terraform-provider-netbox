@@ -245,15 +245,7 @@ func (d *RouteTargetDataSource) mapRouteTargetToDataSourceModel(ctx context.Cont
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if rt.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(rt.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, rt.HasCustomFields(), rt.GetCustomFields(), nil)
 
 	// Map display_name
 	if rt.Display != "" {

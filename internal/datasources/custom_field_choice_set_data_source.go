@@ -137,17 +137,18 @@ func (d *CustomFieldChoiceSetDataSource) Read(ctx context.Context, req datasourc
 		err = listErr
 		if err == nil && list != nil {
 			results := list.GetResults()
-			if len(results) == 0 {
-				resp.Diagnostics.AddError("Not Found",
-					fmt.Sprintf("No custom field choice set found with name: %s", data.Name.ValueString()))
+			choiceSetResult, ok := utils.ExpectSingleResult(
+				results,
+				"Not Found",
+				fmt.Sprintf("No custom field choice set found with name: %s", data.Name.ValueString()),
+				"Multiple Found",
+				fmt.Sprintf("Multiple custom field choice sets found with name: %s. Please use ID instead.", data.Name.ValueString()),
+				&resp.Diagnostics,
+			)
+			if !ok {
 				return
 			}
-			if len(results) > 1 {
-				resp.Diagnostics.AddError("Multiple Found",
-					fmt.Sprintf("Multiple custom field choice sets found with name: %s. Please use ID instead.", data.Name.ValueString()))
-				return
-			}
-			result = &results[0]
+			result = choiceSetResult
 		}
 
 	default:
@@ -160,7 +161,7 @@ func (d *CustomFieldChoiceSetDataSource) Read(ctx context.Context, req datasourc
 			utils.FormatAPIError("read custom field choice set", err, httpResp))
 		return
 	}
-	d.mapToState(ctx, result, &data)
+	d.mapToState(result, &data)
 	tflog.Debug(ctx, "Read custom field choice set", map[string]interface{}{
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
@@ -169,7 +170,7 @@ func (d *CustomFieldChoiceSetDataSource) Read(ctx context.Context, req datasourc
 }
 
 // mapToState maps API response to Terraform state.
-func (d *CustomFieldChoiceSetDataSource) mapToState(ctx context.Context, result *netbox.CustomFieldChoiceSet, data *CustomFieldChoiceSetDataSourceModel) {
+func (d *CustomFieldChoiceSetDataSource) mapToState(result *netbox.CustomFieldChoiceSet, data *CustomFieldChoiceSetDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 	data.Name = types.StringValue(result.GetName())
 

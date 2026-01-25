@@ -205,7 +205,7 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Map response to state
-	r.mapContactToState(ctx, contact, &data)
+	r.mapContactToState(contact, &data)
 
 	// Apply filter-to-owned pattern for tags
 	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, contact.HasTags(), contact.GetTags(), planTags)
@@ -240,7 +240,7 @@ func (r *ContactResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 	// Store state tags before mapping
 	stateTags := data.Tags
-	r.mapContactToState(ctx, contact, &data)
+	r.mapContactToState(contact, &data)
 	// Apply filter-to-owned pattern for tags
 	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, contact.HasTags(), contact.GetTags(), stateTags)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -334,7 +334,7 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 		resp.Diagnostics.AddError("Error updating contact", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
-	r.mapContactToState(ctx, contact, &plan)
+	r.mapContactToState(contact, &plan)
 
 	// After update, populate tags based on what the user specified
 	// If tags were null in plan (not specified), keep them null to match config
@@ -381,7 +381,7 @@ func (r *ContactResource) ImportState(ctx context.Context, req resource.ImportSt
 }
 
 // mapContactToState maps a Netbox Contact to the Terraform state model.
-func (r *ContactResource) mapContactToState(ctx context.Context, contact *netbox.Contact, data *ContactResourceModel) {
+func (r *ContactResource) mapContactToState(contact *netbox.Contact, data *ContactResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", contact.GetId()))
 	data.Name = types.StringValue(contact.GetName())
 

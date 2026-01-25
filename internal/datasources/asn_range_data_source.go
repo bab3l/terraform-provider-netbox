@@ -192,21 +192,18 @@ func (d *ASNRangeDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 			return
 		}
-		if results.Count == 0 {
-			resp.Diagnostics.AddError(
-				"ASNRange not found",
-				fmt.Sprintf("No ASNRange found with name %q", data.Name.ValueString()),
-			)
+		asnRangeResult, ok := utils.ExpectSingleResult(
+			results.Results,
+			"ASNRange not found",
+			fmt.Sprintf("No ASNRange found with name %q", data.Name.ValueString()),
+			"Multiple ASNRanges found",
+			fmt.Sprintf("Found %d ASNRanges with name %q. Please use 'id' or 'slug' to specify the exact ASNRange.", len(results.Results), data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if results.Count > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple ASNRanges found",
-				fmt.Sprintf("Found %d ASNRanges with name %q. Please use 'id' or 'slug' to specify the exact ASNRange.", results.Count, data.Name.ValueString()),
-			)
-			return
-		}
-		asnRange = &results.Results[0]
+		asnRange = asnRangeResult
 
 	case utils.IsSet(data.Slug):
 		// Looking up by slug
@@ -224,14 +221,18 @@ func (d *ASNRangeDataSource) Read(ctx context.Context, req datasource.ReadReques
 			)
 			return
 		}
-		if results.Count == 0 {
-			resp.Diagnostics.AddError(
-				"ASNRange not found",
-				fmt.Sprintf("No ASNRange found with slug %q", data.Slug.ValueString()),
-			)
+		asnRangeResult, ok := utils.ExpectSingleResult(
+			results.Results,
+			"ASNRange not found",
+			fmt.Sprintf("No ASNRange found with slug %q", data.Slug.ValueString()),
+			"Multiple ASNRanges found",
+			fmt.Sprintf("Found %d ASNRanges with slug %q. Please use 'id' to specify the exact ASNRange.", len(results.Results), data.Slug.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		asnRange = &results.Results[0]
+		asnRange = asnRangeResult
 
 	default:
 		resp.Diagnostics.AddError(
@@ -299,15 +300,7 @@ func (d *ASNRangeDataSource) mapASNRangeToDataSourceModel(ctx context.Context, a
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if asnRange.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(asnRange.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, asnRange.HasCustomFields(), asnRange.GetCustomFields(), nil)
 
 	// Map display name
 	if asnRange.GetDisplay() != "" {

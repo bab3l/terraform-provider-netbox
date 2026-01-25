@@ -166,21 +166,25 @@ func (d *VRFDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 			return
 		}
-		if list == nil || len(list.Results) == 0 {
+		if list == nil {
 			resp.Diagnostics.AddError(
 				"VRF not found",
 				fmt.Sprintf("No VRF found with name: %s", name),
 			)
 			return
 		}
-		if len(list.Results) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple VRFs found",
-				fmt.Sprintf("Found %d VRFs with name '%s'. Use 'id' for a unique lookup.", len(list.Results), name),
-			)
+		vrfResult, ok := utils.ExpectSingleResult(
+			list.Results,
+			"VRF not found",
+			fmt.Sprintf("No VRF found with name: %s", name),
+			"Multiple VRFs found",
+			fmt.Sprintf("Found %d VRFs with name '%s'. Use 'id' for a unique lookup.", len(list.Results), name),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		vrf = &list.Results[0]
+		vrf = vrfResult
 
 	default:
 		resp.Diagnostics.AddError(
@@ -281,15 +285,5 @@ func (d *VRFDataSource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data
 	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, vrf.HasTags(), vrf.GetTags(), diags)
 
 	// Custom fields - datasources return ALL fields
-	if vrf.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(vrf.GetCustomFields())
-		customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfValueDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, vrf.HasCustomFields(), vrf.GetCustomFields(), diags)
 }

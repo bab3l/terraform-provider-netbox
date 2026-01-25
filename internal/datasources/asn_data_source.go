@@ -176,22 +176,18 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"ASN not found",
-				fmt.Sprintf("No ASN found with number: %d", data.ASN.ValueInt64()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"ASN not found",
+			fmt.Sprintf("No ASN found with number: %d", data.ASN.ValueInt64()),
+			"Multiple ASNs found",
+			fmt.Sprintf("Found %d ASNs with number: %d", listResp.GetCount(), data.ASN.ValueInt64()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple ASNs found",
-				fmt.Sprintf("Found %d ASNs with number: %d", listResp.GetCount(), data.ASN.ValueInt64()),
-			)
-			return
-		}
-		asn = &listResp.GetResults()[0]
+		asn = result
 
 	default:
 		resp.Diagnostics.AddError(
@@ -264,18 +260,7 @@ func (d *ASNDataSource) mapResponseToModel(ctx context.Context, asn *netbox.ASN,
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if asn.HasCustomFields() {
-		apiCustomFields := asn.GetCustomFields()
-		customFields := utils.MapAllCustomFieldsToModels(apiCustomFields)
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		diags.Append(cfDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.CustomFields = customFieldsValue
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, asn.HasCustomFields(), asn.GetCustomFields(), diags)
 
 	// Map display name
 	if asn.GetDisplay() != "" {

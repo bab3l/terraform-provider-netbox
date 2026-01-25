@@ -180,7 +180,7 @@ func (r *IPAddressResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Map response to model
-	r.mapIPAddressToState(ctx, ipAddress, &data, &resp.Diagnostics)
+	r.mapIPAddressToState(ipAddress, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -243,7 +243,7 @@ func (r *IPAddressResource) Read(ctx context.Context, req resource.ReadRequest, 
 	originalCustomFields := data.CustomFields
 
 	// Map response to model
-	r.mapIPAddressToState(ctx, ipAddress, &data, &resp.Diagnostics)
+	r.mapIPAddressToState(ipAddress, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -316,7 +316,7 @@ func (r *IPAddressResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Map response to model
-	r.mapIPAddressToState(ctx, ipAddress, &plan, &resp.Diagnostics)
+	r.mapIPAddressToState(ipAddress, &plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -435,7 +435,7 @@ func (r *IPAddressResource) ImportState(ctx context.Context, req resource.Import
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapIPAddressToState(ctx, ipAddress, &data, &resp.Diagnostics)
+		r.mapIPAddressToState(ipAddress, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -585,7 +585,7 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 }
 
 // mapIPAddressToState maps a Netbox IPAddress to the Terraform state model.
-func (r *IPAddressResource) mapIPAddressToState(ctx context.Context, ipAddress *netbox.IPAddress, data *IPAddressResourceModel, diags *diag.Diagnostics) {
+func (r *IPAddressResource) mapIPAddressToState(ipAddress *netbox.IPAddress, data *IPAddressResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", ipAddress.Id))
 
 	// Address: preserve user formatting (especially for IPv6) when semantically equivalent.

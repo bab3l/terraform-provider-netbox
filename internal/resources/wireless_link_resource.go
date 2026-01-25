@@ -414,7 +414,7 @@ func (r *WirelessLinkResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Map the response to state
 
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	r.mapToState(result, &data)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -483,7 +483,7 @@ func (r *WirelessLinkResource) Read(ctx context.Context, req resource.ReadReques
 	stateTags := data.Tags
 	stateCustomFields := data.CustomFields
 
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	r.mapToState(result, &data)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -685,7 +685,7 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Map the response to plan model
 
-	r.mapToState(ctx, result, &plan, &resp.Diagnostics)
+	r.mapToState(result, &plan)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -787,7 +787,7 @@ func (r *WirelessLinkResource) ImportState(ctx context.Context, req resource.Imp
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapToState(ctx, result, &data, &resp.Diagnostics)
+		r.mapToState(result, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -824,7 +824,7 @@ func (r *WirelessLinkResource) ImportState(ctx context.Context, req resource.Imp
 
 // mapToState maps the API response to the Terraform state.
 
-func (r *WirelessLinkResource) mapToState(ctx context.Context, result *netbox.WirelessLink, data *WirelessLinkResourceModel, diags *diag.Diagnostics) {
+func (r *WirelessLinkResource) mapToState(result *netbox.WirelessLink, data *WirelessLinkResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	// Map interface IDs - on first read (unknown/null), set to ID; otherwise preserve current value to avoid drift

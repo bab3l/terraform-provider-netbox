@@ -155,7 +155,7 @@ func TestAccInterfacesDataSource_byNameIcEnabledAndDeviceFilters(t *testing.T) {
 	})
 }
 
-func testAccInterfacesDataSourceConfigBase(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName string) string {
+func testAccInterfacesDataSourceConfigBase(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name = %q
@@ -188,7 +188,7 @@ resource "netbox_device" "test" {
 }
 
 func testAccInterfacesDataSourceConfig_byDeviceAndName(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName string) string {
-	return testAccInterfacesDataSourceConfigBase(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName) + fmt.Sprintf(`
+	return testAccInterfacesDataSourceConfigBase(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName) + fmt.Sprintf(`
 
 resource "netbox_interface" "test" {
 	device = netbox_device.test.id
@@ -216,7 +216,7 @@ resource "netbox_tag" "test" {
   name = %q
   slug = %q
 }
-`, tagName, tagSlug) + testAccInterfacesDataSourceConfigBase(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName) + fmt.Sprintf(`
+`, tagName, tagSlug) + testAccInterfacesDataSourceConfigBase(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName) + fmt.Sprintf(`
 
 resource "netbox_interface" "test" {
   device = netbox_device.test.id
@@ -238,7 +238,7 @@ data "netbox_interfaces" "test" {
 }
 
 func testAccInterfacesDataSourceConfig_byNameIcEnabledAndDevice(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName string) string {
-	return testAccInterfacesDataSourceConfigBase(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName) + fmt.Sprintf(`
+	return testAccInterfacesDataSourceConfigBase(siteName, siteSlug, roleName, roleSlug, mfgName, mfgSlug, deviceTypeName, deviceTypeSlug, deviceName) + fmt.Sprintf(`
 
 resource "netbox_interface" "test" {
 	device = netbox_device.test.id

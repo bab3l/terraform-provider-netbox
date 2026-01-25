@@ -120,36 +120,48 @@ resource "netbox_custom_field" "test_longtext" {
   name = %q
   type = "longtext"
   object_types = ["dcim.powerport"]
+
+  depends_on = [netbox_custom_field.test_text]
 }
 
 resource "netbox_custom_field" "test_integer" {
   name = %q
   type = "integer"
   object_types = ["dcim.powerport"]
+
+  depends_on = [netbox_custom_field.test_longtext]
 }
 
 resource "netbox_custom_field" "test_boolean" {
   name = %q
   type = "boolean"
   object_types = ["dcim.powerport"]
+
+  depends_on = [netbox_custom_field.test_integer]
 }
 
 resource "netbox_custom_field" "test_date" {
   name = %q
   type = "date"
   object_types = ["dcim.powerport"]
+
+  depends_on = [netbox_custom_field.test_boolean]
 }
 
 resource "netbox_custom_field" "test_url" {
   name = %q
   type = "url"
   object_types = ["dcim.powerport"]
+
+  depends_on = [netbox_custom_field.test_date]
 }
 
 resource "netbox_custom_field" "test_json" {
   name = %q
   type = "json"
   object_types = ["dcim.powerport"]
+
+  depends_on = [netbox_custom_field.test_url]
 }
 
 # Tag definitions

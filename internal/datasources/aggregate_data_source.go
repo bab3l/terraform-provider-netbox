@@ -170,21 +170,18 @@ func (d *AggregateDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 			return
 		}
-		if len(list.Results) == 0 {
-			resp.Diagnostics.AddError(
-				"Aggregate not found",
-				fmt.Sprintf("No aggregate found with prefix %s", prefix),
-			)
+		aggregateResult, ok := utils.ExpectSingleResult(
+			list.Results,
+			"Aggregate not found",
+			fmt.Sprintf("No aggregate found with prefix %s", prefix),
+			"Multiple aggregates found",
+			fmt.Sprintf("Found %d aggregates with prefix %s, expected exactly one", len(list.Results), prefix),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if len(list.Results) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple aggregates found",
-				fmt.Sprintf("Found %d aggregates with prefix %s, expected exactly one", len(list.Results), prefix),
-			)
-			return
-		}
-		aggregate = &list.Results[0]
+		aggregate = aggregateResult
 
 	default:
 		resp.Diagnostics.AddError(
@@ -265,13 +262,5 @@ func (d *AggregateDataSource) mapResponseToModel(ctx context.Context, aggregate 
 	}
 
 	// Handle custom fields - datasources return ALL fields
-	if aggregate.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(aggregate.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, aggregate.HasCustomFields(), aggregate.GetCustomFields(), nil)
 }

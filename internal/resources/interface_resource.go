@@ -203,7 +203,7 @@ func (r *InterfaceResource) Create(ctx context.Context, req resource.CreateReque
 	interfaceReq := netbox.NewWritableInterfaceRequest(*deviceRef, data.Name.ValueString(), interfaceType)
 
 	// Set optional fields
-	r.setOptionalFields(ctx, interfaceReq, &data, &resp.Diagnostics)
+	r.setOptionalFields(interfaceReq, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -318,7 +318,7 @@ func (r *InterfaceResource) Update(ctx context.Context, req resource.UpdateReque
 	interfaceReq := netbox.NewWritableInterfaceRequest(*deviceRef, data.Name.ValueString(), interfaceType)
 
 	// Set optional fields
-	r.setOptionalFields(ctx, interfaceReq, &data, &resp.Diagnostics)
+	r.setOptionalFields(interfaceReq, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -473,7 +473,7 @@ func (r *InterfaceResource) ImportState(ctx context.Context, req resource.Import
 }
 
 // setOptionalFields sets optional fields on the interface request.
-func (r *InterfaceResource) setOptionalFields(ctx context.Context, interfaceReq *netbox.WritableInterfaceRequest, data *InterfaceResourceModel, diags *diag.Diagnostics) {
+func (r *InterfaceResource) setOptionalFields(interfaceReq *netbox.WritableInterfaceRequest, data *InterfaceResourceModel, diags *diag.Diagnostics) {
 	// Label
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
 		label := data.Label.ValueString()

@@ -345,15 +345,7 @@ func (d *PrefixDataSource) mapPrefixToState(ctx context.Context, prefix *netbox.
 	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, len(prefix.Tags) > 0, prefix.Tags, diags)
 
 	// Handle custom fields - datasources return ALL fields
-	if prefix.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(prefix.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, prefix.HasCustomFields(), prefix.GetCustomFields(), diags)
 
 	// Map display_name
 	if prefix.Display != "" {

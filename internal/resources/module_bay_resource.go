@@ -13,7 +13,6 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -167,7 +166,7 @@ func (r *ModuleBayResource) Create(ctx context.Context, req resource.CreateReque
 	planCustomFields := data.CustomFields
 
 	// Map response to model
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModel(response, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -223,7 +222,7 @@ func (r *ModuleBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 	stateCustomFields := data.CustomFields
 
 	// Map response to model
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModel(response, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -310,7 +309,7 @@ func (r *ModuleBayResource) Update(ctx context.Context, req resource.UpdateReque
 	planCustomFields := plan.CustomFields
 
 	// Map response to model
-	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
+	r.mapResponseToModel(response, &plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -403,7 +402,7 @@ func (r *ModuleBayResource) ImportState(ctx context.Context, req resource.Import
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+		r.mapResponseToModel(response, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -450,7 +449,7 @@ func (r *ModuleBayResource) ImportState(ctx context.Context, req resource.Import
 		return
 	}
 	var data ModuleBayResourceModel
-	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
+	r.mapResponseToModel(response, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -469,7 +468,7 @@ func (r *ModuleBayResource) ImportState(ctx context.Context, req resource.Import
 }
 
 // mapResponseToModel maps the API response to the Terraform model.
-func (r *ModuleBayResource) mapResponseToModel(ctx context.Context, moduleBay *netbox.ModuleBay, data *ModuleBayResourceModel, diags *diag.Diagnostics) {
+func (r *ModuleBayResource) mapResponseToModel(moduleBay *netbox.ModuleBay, data *ModuleBayResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", moduleBay.GetId()))
 	data.Name = types.StringValue(moduleBay.GetName())
 

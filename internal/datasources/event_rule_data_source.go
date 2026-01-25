@@ -285,16 +285,7 @@ func (d *EventRuleDataSource) mapToDataSourceModel(ctx context.Context, result *
 	}
 
 	// Map custom fields
-	if result.HasCustomFields() {
-		customFields := utils.MapAllCustomFieldsToModels(result.GetCustomFields())
-		customFieldsValue, cfDiags := types.SetValueFrom(ctx, utils.GetCustomFieldsAttributeType().ElemType, customFields)
-		if !cfDiags.HasError() {
-			data.CustomFields = customFieldsValue
-		}
-		diags.Append(cfDiags...)
-	} else {
-		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
-	}
+	data.CustomFields = utils.CustomFieldsSetFromAPI(ctx, result.HasCustomFields(), result.GetCustomFields(), diags)
 
 	// Map timestamps - Created and LastUpdated are NullableTime, use IsSet() pattern
 	createdOk, createdIsSet := result.GetCreatedOk()
