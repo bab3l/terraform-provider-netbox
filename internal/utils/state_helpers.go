@@ -559,6 +559,60 @@ func PopulateTagsFromAPI(ctx context.Context, hasTags bool, tags []netbox.Nested
 	return types.SetNull(GetTagsAttributeType().ElemType)
 }
 
+// PopulateTagsFilteredToOwned returns tags only when the user explicitly manages them.
+// If tags are omitted (null/unknown), keep state null even if API has tags.
+// If tags are explicitly set to empty, keep an empty set.
+// If tags are set, mirror API tags (or empty set if none).
+func PopulateTagsFilteredToOwned(ctx context.Context, hasTags bool, tags []netbox.NestedTag, planTags types.Set, diags *diag.Diagnostics) types.Set {
+	if planTags.IsNull() || planTags.IsUnknown() {
+		return types.SetNull(GetTagsAttributeType().ElemType)
+	}
+
+	// Explicit empty set in config
+	if len(planTags.Elements()) == 0 {
+		return types.SetValueMust(GetTagsAttributeType().ElemType, []attr.Value{})
+	}
+
+	if hasTags && len(tags) > 0 {
+		tagModels := NestedTagsToTagModels(tags)
+		tagsValue, tagDiags := types.SetValueFrom(ctx, GetTagsAttributeType().ElemType, tagModels)
+		diags.Append(tagDiags...)
+		if diags.HasError() {
+			return planTags
+		}
+		return tagsValue
+	}
+
+	// User manages tags but API returned none
+	return types.SetValueMust(GetTagsAttributeType().ElemType, []attr.Value{})
+}
+
+// PopulateTagsSlugFilteredToOwned returns tag slugs only when the user explicitly manages them.
+// If tags are omitted (null/unknown), keep state null even if API has tags.
+// If tags are explicitly set to empty, keep an empty set.
+// If tags are set, mirror API tag slugs (or empty set if none).
+func PopulateTagsSlugFilteredToOwned(ctx context.Context, hasTags bool, tags []netbox.NestedTag, planTags types.Set) types.Set {
+	if planTags.IsNull() || planTags.IsUnknown() {
+		return types.SetNull(types.StringType)
+	}
+
+	// Explicit empty set in config
+	if len(planTags.Elements()) == 0 {
+		return types.SetValueMust(types.StringType, []attr.Value{})
+	}
+
+	if hasTags && len(tags) > 0 {
+		tagSlugs := make([]string, 0, len(tags))
+		for _, tag := range tags {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		return TagsSlugToSet(ctx, tagSlugs)
+	}
+
+	// User manages tags but API returned none
+	return types.SetValueMust(types.StringType, []attr.Value{})
+}
+
 // PopulateCustomFieldsFromMap converts Netbox custom fields map to a Terraform Set value.
 // This function is kept for backwards compatibility during migration to PopulateCustomFieldsFromAPI.
 // TODO: Mark as deprecated after all resources migrate to PopulateCustomFieldsFromAPI (Batches 2-29).
