@@ -222,20 +222,7 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 	}
 
 	// Handle tags (slug list)
-	if group.HasTags() && len(group.GetTags()) > 0 {
-		tagSlugs := make([]string, 0, len(group.GetTags()))
-		for _, tag := range group.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		tagsValue, diags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		data.Tags = tagsValue
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, group.HasTags(), group.GetTags(), &resp.Diagnostics)
 
 	// Handle custom fields - datasources return ALL fields
 	if group.HasCustomFields() {

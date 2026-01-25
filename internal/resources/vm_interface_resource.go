@@ -13,6 +13,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -21,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -138,6 +140,9 @@ func (r *VMInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The MAC address of the interface.",
 
 				Optional: true,
+				Validators: []validator.String{
+					validators.ValidMACAddress(),
+				},
 			},
 
 			"mode": schema.StringAttribute{
@@ -317,19 +322,7 @@ func (r *VMInterfaceResource) mapVMInterfaceToState(ctx context.Context, iface *
 	}
 
 	// Handle tags (slug list) with empty-set preservation
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case iface.HasTags() && len(iface.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(iface.GetTags()))
-		for _, tag := range iface.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, iface.HasTags(), iface.GetTags(), data.Tags)
 
 	// Handle custom fields using consolidated helper
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, iface.GetCustomFields(), diags)

@@ -71,11 +71,8 @@ func (r *AggregateResource) Schema(ctx context.Context, req resource.SchemaReque
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"prefix": schema.StringAttribute{
-				MarkdownDescription: "The IP prefix in CIDR notation (e.g., 10.0.0.0/8, 2001:db8::/32).",
-				Required:            true,
-			},
-			"rir": nbschema.RequiredReferenceAttributeWithDiffSuppress("RIR", "ID, name, or slug of the Regional Internet Registry (RIR) this aggregate belongs to. Required."),
+			"prefix": nbschema.PrefixAttribute("The IP prefix in CIDR notation (e.g., 10.0.0.0/8, 2001:db8::/32)."),
+			"rir":    nbschema.RequiredReferenceAttributeWithDiffSuppress("RIR", "ID, name, or slug of the Regional Internet Registry (RIR) this aggregate belongs to. Required."),
 
 			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant this aggregate is assigned to."),
 			"date_added": schema.StringAttribute{
@@ -357,11 +354,7 @@ func (r *AggregateResource) ImportState(ctx context.Context, req resource.Import
 				data.Tenant = types.StringValue(tenant.GetSlug())
 			}
 		}
-		var tagSlugs []string
-		for _, tag := range aggregate.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, aggregate.HasTags(), aggregate.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -518,20 +511,7 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	}
 
 	// Tags (slug list)
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case len(aggregate.GetTags()) > 0:
-		for _, tag := range aggregate.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, aggregate.HasTags(), aggregate.GetTags(), data.Tags)
 	if diags.HasError() {
 		return
 	}

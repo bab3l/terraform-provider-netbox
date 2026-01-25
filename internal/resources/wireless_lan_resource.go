@@ -320,19 +320,7 @@ func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case response.HasTags() && len(response.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(response.GetTags()))
-		for _, tag := range response.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, response.HasTags(), response.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -422,19 +410,7 @@ func (r *WirelessLANResource) Read(ctx context.Context, req resource.ReadRequest
 	data.AuthPSK = existingPSK
 
 	// Populate tags and custom fields filtered to owned fields only (preserves null/empty state)
-	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
-	switch {
-	case response.HasTags() && len(response.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(response.GetTags()))
-		for _, tag := range response.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, response.HasTags(), response.GetTags(), stateTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -602,19 +578,7 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 	plan.AuthPSK = existingPSK
 
 	// Populate tags and custom fields filtered to owned fields only
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case response.HasTags() && len(response.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(response.GetTags()))
-		for _, tag := range response.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, response.HasTags(), response.GetTags(), planTags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -835,19 +799,7 @@ func (r *WirelessLANResource) mapResponseToModel(ctx context.Context, wlan *netb
 	}
 
 	// Handle tags (slug list) with empty-set preservation
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case wlan.HasTags() && len(wlan.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(wlan.GetTags()))
-		for _, tag := range wlan.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, wlan.HasTags(), wlan.GetTags(), data.Tags)
 
 	// Handle custom fields using consolidated helper
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, wlan.GetCustomFields(), diags)

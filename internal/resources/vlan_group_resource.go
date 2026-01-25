@@ -603,19 +603,7 @@ func (r *VLANGroupResource) mapVLANGroupToState(ctx context.Context, vlanGroup *
 	}
 
 	// Handle tags (slug list) with empty-set preservation
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case vlanGroup.HasTags() && len(vlanGroup.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(vlanGroup.GetTags()))
-		for _, tag := range vlanGroup.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, vlanGroup.HasTags(), vlanGroup.GetTags(), data.Tags)
 
 	// Handle custom fields using filtered-to-owned helper (preserves state pattern)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vlanGroup.GetCustomFields(), diags)

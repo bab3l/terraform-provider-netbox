@@ -2,10 +2,12 @@ package resources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -55,6 +57,19 @@ func TestASNRangeResourceSchema(t *testing.T) {
 
 		Computed: []string{"id"},
 	})
+
+	testutil.ValidateStringAttributeHasValidatorType(
+		t,
+		schemaResponse.Schema.Attributes["start"],
+		"start",
+		reflect.TypeOf(validators.ASNStringValidator{}),
+	)
+	testutil.ValidateStringAttributeHasValidatorType(
+		t,
+		schemaResponse.Schema.Attributes["end"],
+		"end",
+		reflect.TypeOf(validators.ASNStringValidator{}),
+	)
 
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -110,6 +111,9 @@ func (r *InterfaceResource) Schema(ctx context.Context, req resource.SchemaReque
 			"mac_address": schema.StringAttribute{
 				MarkdownDescription: "MAC address of the interface in format `AA:BB:CC:DD:EE:FF`.",
 				Optional:            true,
+				Validators: []validator.String{
+					validators.ValidMACAddress(),
+				},
 			},
 			"speed": schema.Int64Attribute{
 				MarkdownDescription: "Interface speed in Kbps (e.g., 1000000 for 1Gbps, 10000000 for 10Gbps).",
@@ -420,15 +424,7 @@ func (r *InterfaceResource) ImportState(ctx context.Context, req resource.Import
 		var data InterfaceResourceModel
 		device := iface.GetDevice()
 		data.Device = types.StringValue(fmt.Sprintf("%d", (&device).GetId()))
-		if iface.HasTags() && len(iface.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(iface.GetTags()))
-			for _, tag := range iface.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, iface.HasTags(), iface.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -756,19 +752,7 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 
 	// Tags with filter-to-owned pattern
 	planTags := data.Tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case iface.HasTags() && len(iface.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(iface.GetTags()))
-		for _, tag := range iface.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, iface.HasTags(), iface.GetTags(), planTags)
 
 	// Custom Fields
 	if iface.HasCustomFields() {

@@ -498,19 +498,7 @@ func (r *ConsolePortResource) mapResponseToModel(ctx context.Context, consolePor
 	}
 
 	// Tags (slug list)
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case consolePort.HasTags() && len(consolePort.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(consolePort.GetTags()))
-		for _, tag := range consolePort.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(context.Background(), tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, consolePort.HasTags(), consolePort.GetTags(), data.Tags)
 
 	// Handle custom fields
 	if consolePort.HasCustomFields() {

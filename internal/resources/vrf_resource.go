@@ -472,15 +472,7 @@ func (r *VRFResource) ImportState(ctx context.Context, req resource.ImportStateR
 			tenant := vrf.Tenant.Get()
 			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 		}
-		if vrf.HasTags() && len(vrf.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(vrf.GetTags()))
-			for _, tag := range vrf.GetTags() {
-				tagSlugs = append(tagSlugs, tag.Slug)
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, vrf.HasTags(), vrf.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -707,19 +699,7 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 	)
 
 	// Tags (slug list) with empty-set preservation
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case vrf.HasTags() && len(vrf.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(vrf.GetTags()))
-		for _, tag := range vrf.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, vrf.HasTags(), vrf.GetTags(), data.Tags)
 
 	// Custom fields
 	// Custom Fields - filter to owned fields only

@@ -11,6 +11,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -70,11 +71,7 @@ func (d *PrefixDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Optional:            true,
 				Computed:            true,
 			},
-			"prefix": schema.StringAttribute{
-				MarkdownDescription: "The IP prefix in CIDR notation (e.g., 192.168.1.0/24).",
-				Optional:            true,
-				Computed:            true,
-			},
+			"prefix": nbschema.DSPrefixAttribute("The IP prefix in CIDR notation (e.g., 192.168.1.0/24)."),
 			"site": schema.StringAttribute{
 				MarkdownDescription: "The name of the site this prefix is assigned to.",
 				Computed:            true,
@@ -249,7 +246,7 @@ func (d *PrefixDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	// Map the prefix to our model
-	d.mapPrefixToState(ctx, prefix, &data)
+	d.mapPrefixToState(ctx, prefix, &data, &resp.Diagnostics)
 	tflog.Debug(ctx, "Read prefix", map[string]interface{}{
 		"id":     data.ID.ValueString(),
 		"prefix": data.Prefix.ValueString(),
@@ -260,7 +257,7 @@ func (d *PrefixDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 }
 
 // mapPrefixToState maps a Netbox Prefix to the Terraform state model.
-func (d *PrefixDataSource) mapPrefixToState(ctx context.Context, prefix *netbox.Prefix, data *PrefixDataSourceModel) {
+func (d *PrefixDataSource) mapPrefixToState(ctx context.Context, prefix *netbox.Prefix, data *PrefixDataSourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", prefix.Id))
 	data.Prefix = types.StringValue(prefix.Prefix)
 
@@ -345,16 +342,7 @@ func (d *PrefixDataSource) mapPrefixToState(ctx context.Context, prefix *netbox.
 	}
 
 	// Tags (slug list)
-	if len(prefix.Tags) > 0 {
-		tagSlugs := make([]string, 0, len(prefix.Tags))
-		for _, tag := range prefix.Tags {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		tagList, _ := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		data.Tags = tagList
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, len(prefix.Tags) > 0, prefix.Tags, diags)
 
 	// Handle custom fields - datasources return ALL fields
 	if prefix.HasCustomFields() {

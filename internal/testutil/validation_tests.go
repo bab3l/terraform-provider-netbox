@@ -118,7 +118,7 @@ var (
 	ErrPatternInvalidValue = regexp.MustCompile(`(?i)invalid|not valid|must be one of`)
 
 	// ErrPatternInvalidFormat matches format validation errors.
-	ErrPatternInvalidFormat = regexp.MustCompile(`(?i)invalid format|malformed|parse error|Internal Server Error|KeyError`)
+	ErrPatternInvalidFormat = regexp.MustCompile(`(?i)invalid format|malformed|parse error|parseprefix|parseaddr|not a valid|network prefix|address with prefix|Internal Server Error|KeyError`)
 
 	// ErrPatternInvalidIP matches IP address validation errors.
 	ErrPatternInvalidIP = regexp.MustCompile(`(?i)invalid.*ip|invalid.*address|not a valid.*ip`)

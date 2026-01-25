@@ -450,15 +450,7 @@ func (r *RouteTargetResource) ImportState(ctx context.Context, req resource.Impo
 		}
 
 		var data RouteTargetResourceModel
-		if rt.HasTags() {
-			var tagSlugs []string
-			for _, tag := range rt.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, rt.HasTags(), rt.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -584,20 +576,7 @@ func (r *RouteTargetResource) mapRouteTargetToState(ctx context.Context, rt *net
 	}
 
 	// Extract tag slugs from API response and filter to owned tags
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case rt.HasTags():
-		for _, tag := range rt.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, rt.HasTags(), rt.GetTags(), data.Tags)
 
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, rt.CustomFields, diags)
 }

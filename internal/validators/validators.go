@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/netip"
 	"regexp"
 	"strconv"
 	"strings"
@@ -389,4 +390,345 @@ func SimpleValidCustomFieldValue() validator.String {
 
 	return ValidCustomFieldValue("text") // Default to text validation
 
+}
+
+// LatitudeValidator validates that a float is between -90 and 90 (inclusive).
+type LatitudeValidator struct{}
+
+func (v LatitudeValidator) Description(_ context.Context) string {
+	return "value must be a valid latitude between -90 and 90"
+}
+
+func (v LatitudeValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v LatitudeValidator) ValidateFloat64(ctx context.Context, request validator.Float64Request, response *validator.Float64Response) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueFloat64()
+	if value < -90 || value > 90 {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid Latitude",
+			fmt.Sprintf("Latitude must be between -90 and 90 (inclusive). Got %v", value),
+		)
+	}
+}
+
+// ValidLatitude returns a validator for latitude values.
+func ValidLatitude() validator.Float64 {
+	return LatitudeValidator{}
+}
+
+// LongitudeValidator validates that a float is between -180 and 180 (inclusive).
+type LongitudeValidator struct{}
+
+func (v LongitudeValidator) Description(_ context.Context) string {
+	return "value must be a valid longitude between -180 and 180"
+}
+
+func (v LongitudeValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v LongitudeValidator) ValidateFloat64(ctx context.Context, request validator.Float64Request, response *validator.Float64Response) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueFloat64()
+	if value < -180 || value > 180 {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid Longitude",
+			fmt.Sprintf("Longitude must be between -180 and 180 (inclusive). Got %v", value),
+		)
+	}
+}
+
+// ValidLongitude returns a validator for longitude values.
+func ValidLongitude() validator.Float64 {
+	return LongitudeValidator{}
+}
+
+// VLANIDInt64Validator validates that a VLAN ID is between 1 and 4094 (inclusive).
+type VLANIDInt64Validator struct{}
+
+func (v VLANIDInt64Validator) Description(_ context.Context) string {
+	return "value must be a valid VLAN ID between 1 and 4094"
+}
+
+func (v VLANIDInt64Validator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v VLANIDInt64Validator) ValidateInt64(ctx context.Context, request validator.Int64Request, response *validator.Int64Response) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueInt64()
+	if value < 1 || value > 4094 {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid VLAN ID",
+			fmt.Sprintf("VLAN ID must be between 1 and 4094 (inclusive). Got %d", value),
+		)
+	}
+}
+
+// ValidVLANIDInt64 returns a validator for VLAN IDs stored in int64 attributes.
+func ValidVLANIDInt64() validator.Int64 {
+	return VLANIDInt64Validator{}
+}
+
+// VLANIDInt32Validator validates that a VLAN ID is between 1 and 4094 (inclusive).
+type VLANIDInt32Validator struct{}
+
+func (v VLANIDInt32Validator) Description(_ context.Context) string {
+	return "value must be a valid VLAN ID between 1 and 4094"
+}
+
+func (v VLANIDInt32Validator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v VLANIDInt32Validator) ValidateInt32(ctx context.Context, request validator.Int32Request, response *validator.Int32Response) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueInt32()
+	if value < 1 || value > 4094 {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid VLAN ID",
+			fmt.Sprintf("VLAN ID must be between 1 and 4094 (inclusive). Got %d", value),
+		)
+	}
+}
+
+// ValidVLANIDInt32 returns a validator for VLAN IDs stored in int32 attributes.
+func ValidVLANIDInt32() validator.Int32 {
+	return VLANIDInt32Validator{}
+}
+
+// ASNInt64Validator validates that an ASN is between 1 and 4294967295 (inclusive).
+type ASNInt64Validator struct{}
+
+func (v ASNInt64Validator) Description(_ context.Context) string {
+	return "value must be a valid ASN between 1 and 4294967295"
+}
+
+func (v ASNInt64Validator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v ASNInt64Validator) ValidateInt64(ctx context.Context, request validator.Int64Request, response *validator.Int64Response) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueInt64()
+	if value < 1 || value > 4294967295 {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid ASN",
+			fmt.Sprintf("ASN must be between 1 and 4294967295 (inclusive). Got %d", value),
+		)
+	}
+}
+
+// ValidASNInt64 returns a validator for ASN values stored in int64 attributes.
+func ValidASNInt64() validator.Int64 {
+	return ASNInt64Validator{}
+}
+
+// ASNStringValidator validates that a string ASN is between 1 and 4294967295 (inclusive).
+type ASNStringValidator struct{}
+
+func (v ASNStringValidator) Description(_ context.Context) string {
+	return "value must be a valid ASN between 1 and 4294967295"
+}
+
+func (v ASNStringValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v ASNStringValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueString()
+	asn, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid ASN",
+			fmt.Sprintf("ASN must be a valid integer between 1 and 4294967295. Got '%s'", value),
+		)
+		return
+	}
+
+	if asn < 1 || asn > 4294967295 {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid ASN",
+			fmt.Sprintf("ASN must be between 1 and 4294967295 (inclusive). Got %d", asn),
+		)
+	}
+}
+
+// ValidASNString returns a validator for ASN values stored as strings.
+func ValidASNString() validator.String {
+	return ASNStringValidator{}
+}
+
+// MACAddressValidator validates MAC addresses in colon-separated hex format.
+type MACAddressValidator struct{}
+
+func (v MACAddressValidator) Description(_ context.Context) string {
+	return "value must be a valid MAC address in format AA:BB:CC:DD:EE:FF"
+}
+
+func (v MACAddressValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v MACAddressValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueString()
+	matched, _ := regexp.MatchString(`^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$`, value)
+	if !matched {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid MAC Address",
+			fmt.Sprintf("MAC address must be in format AA:BB:CC:DD:EE:FF. Got '%s'", value),
+		)
+	}
+}
+
+// ValidMACAddress returns a validator for MAC address values.
+func ValidMACAddress() validator.String {
+	return MACAddressValidator{}
+}
+
+// IPAddressValidator validates that a string is a valid IPv4 or IPv6 address.
+type IPAddressValidator struct{}
+
+// Description returns a description of the validator.
+func (v IPAddressValidator) Description(_ context.Context) string {
+	return "value must be a valid IPv4 or IPv6 address"
+}
+
+// MarkdownDescription returns a markdown description of the validator.
+func (v IPAddressValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v IPAddressValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueString()
+	if _, err := netip.ParseAddr(value); err != nil {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid IP Address",
+			fmt.Sprintf("The value '%s' is not a valid IPv4 or IPv6 address: %s", value, err),
+		)
+	}
+}
+
+// ValidIPAddress returns a validator which ensures the value is a valid IPv4 or IPv6 address.
+func ValidIPAddress() validator.String {
+	return IPAddressValidator{}
+}
+
+// IPAddressWithPrefixValidator validates that a string is a valid IP address with prefix length (CIDR).
+type IPAddressWithPrefixValidator struct{}
+
+// Description returns a description of the validator.
+func (v IPAddressWithPrefixValidator) Description(_ context.Context) string {
+	return "value must be a valid IPv4 or IPv6 address with prefix length (CIDR)"
+}
+
+// MarkdownDescription returns a markdown description of the validator.
+func (v IPAddressWithPrefixValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v IPAddressWithPrefixValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueString()
+	if _, err := netip.ParsePrefix(value); err != nil {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid IP Address with Prefix",
+			fmt.Sprintf("The value '%s' is not a valid IPv4 or IPv6 address with prefix length: %s", value, err),
+		)
+	}
+}
+
+// ValidIPAddressWithPrefix returns a validator which ensures the value is a valid IP address with prefix length.
+func ValidIPAddressWithPrefix() validator.String {
+	return IPAddressWithPrefixValidator{}
+}
+
+// IPPrefixValidator validates that a string is a valid network prefix (CIDR) with a masked network address.
+type IPPrefixValidator struct{}
+
+// Description returns a description of the validator.
+func (v IPPrefixValidator) Description(_ context.Context) string {
+	return "value must be a valid IPv4 or IPv6 network prefix (CIDR)"
+}
+
+// MarkdownDescription returns a markdown description of the validator.
+func (v IPPrefixValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v IPPrefixValidator) ValidateString(ctx context.Context, request validator.StringRequest, response *validator.StringResponse) {
+	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := request.ConfigValue.ValueString()
+	prefix, err := netip.ParsePrefix(value)
+	if err != nil {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid Prefix",
+			fmt.Sprintf("The value '%s' is not a valid IPv4 or IPv6 network prefix: %s", value, err),
+		)
+		return
+	}
+
+	masked := prefix.Masked()
+	if prefix.Addr() != masked.Addr() {
+		response.Diagnostics.AddAttributeError(
+			request.Path,
+			"Invalid Prefix",
+			fmt.Sprintf("The value '%s' must be a network address (host bits must be zero)", value),
+		)
+	}
+}
+
+// ValidIPPrefix returns a validator which ensures the value is a valid network prefix (CIDR).
+func ValidIPPrefix() validator.String {
+	return IPPrefixValidator{}
 }

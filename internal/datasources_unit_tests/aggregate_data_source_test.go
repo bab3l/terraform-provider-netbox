@@ -2,10 +2,12 @@ package datasources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
@@ -20,9 +22,29 @@ func TestAggregateDataSourceSchema(t *testing.T) {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
 	testutil.ValidateDataSourceSchema(t, resp.Schema.Attributes, testutil.DataSourceValidation{
-		LookupAttrs:   []string{},
-		ComputedAttrs: []string{},
+		LookupAttrs: []string{"id", "prefix"},
+		ComputedAttrs: []string{
+			"id",
+			"prefix",
+			"rir",
+			"rir_name",
+			"tenant",
+			"tenant_name",
+			"date_added",
+			"description",
+			"comments",
+			"display_name",
+			"tags",
+			"custom_fields",
+		},
 	})
+
+	testutil.ValidateDataSourceStringAttributeHasValidatorType(
+		t,
+		resp.Schema.Attributes["prefix"],
+		"prefix",
+		reflect.TypeOf(validators.IPPrefixValidator{}),
+	)
 }
 
 func TestAggregateDataSourceMetadata(t *testing.T) {

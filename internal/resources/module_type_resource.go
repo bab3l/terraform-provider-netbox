@@ -396,15 +396,7 @@ func (r *ModuleTypeResource) ImportState(ctx context.Context, req resource.Impor
 		}
 
 		var data ModuleTypeResourceModel
-		if response.HasTags() {
-			var tagSlugs []string
-			for _, tag := range response.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, response.HasTags(), response.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -502,22 +494,7 @@ func (r *ModuleTypeResource) mapResponseToModel(ctx context.Context, moduleType 
 	}
 
 	// Populate tags - filter to only those managed in config
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		if moduleType.HasTags() {
-			var tagSlugs []string
-			for _, tag := range moduleType.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-		}
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, moduleType.HasTags(), moduleType.GetTags(), data.Tags)
 
 	// Handle custom fields - use filtered-to-owned for partial management
 	if moduleType.HasCustomFields() {

@@ -114,8 +114,8 @@ func TestAccIPRangeResource_import(t *testing.T) {
 	thirdOctet := acctest.RandIntRange(151, 200)
 	startOctet := 10 + acctest.RandIntRange(1, 200)
 	endOctet := startOctet + 10
-	startAddress := fmt.Sprintf("10.%d.%d.%d/32", secondOctet, thirdOctet, startOctet)
-	endAddress := fmt.Sprintf("10.%d.%d.%d/32", secondOctet, thirdOctet, endOctet)
+	startAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, startOctet)
+	endAddress := fmt.Sprintf("10.%d.%d.%d", secondOctet, thirdOctet, endOctet)
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterIPRangeCleanup(startAddress)
@@ -134,6 +134,11 @@ func TestAccIPRangeResource_import(t *testing.T) {
 				ResourceName:      "netbox_ip_range.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+				// NetBox normalizes IP range endpoints to /32 on import; ignore to avoid false diffs.
+				ImportStateVerifyIgnore: []string{
+					"start_address",
+					"end_address",
+				},
 			},
 			{
 				Config:   testAccIPRangeResourceConfig_basic(startAddress, endAddress),

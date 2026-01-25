@@ -486,20 +486,7 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Handle tags using consolidated helper
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case tunnel.HasTags():
-		for _, tag := range tunnel.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, tunnel.HasTags(), tunnel.GetTags(), data.Tags)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -854,15 +841,7 @@ func (r *TunnelResource) ImportState(ctx context.Context, req resource.ImportSta
 			data.Comments = types.StringNull()
 		}
 
-		if tunnel.HasTags() {
-			var tagSlugs []string
-			for _, tag := range tunnel.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, tunnel.HasTags(), tunnel.GetTags(), data.Tags)
 
 		if parsed.HasCustomFields {
 			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, tunnel.GetCustomFields(), &resp.Diagnostics)

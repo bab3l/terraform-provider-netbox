@@ -150,19 +150,7 @@ func (r *ClusterGroupResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case clusterGroup.HasTags() && len(clusterGroup.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(clusterGroup.GetTags()))
-		for _, tag := range clusterGroup.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
@@ -204,19 +192,7 @@ func (r *ClusterGroupResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
-	switch {
-	case clusterGroup.HasTags() && len(clusterGroup.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(clusterGroup.GetTags()))
-		for _, tag := range clusterGroup.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), stateTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
@@ -274,19 +250,7 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
-	switch {
-	case clusterGroup.HasTags() && len(clusterGroup.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(clusterGroup.GetTags()))
-		for _, tag := range clusterGroup.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), plan.Tags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 
@@ -350,13 +314,7 @@ func (r *ClusterGroupResource) ImportState(ctx context.Context, req resource.Imp
 		}
 
 		var data ClusterGroupResourceModel
-		if clusterGroup.HasTags() {
-			var tagSlugs []string
-			for _, tag := range clusterGroup.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -376,19 +334,7 @@ func (r *ClusterGroupResource) ImportState(ctx context.Context, req resource.Imp
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-		switch {
-		case clusterGroup.HasTags() && len(clusterGroup.GetTags()) > 0:
-			tagSlugs := make([]string, 0, len(clusterGroup.GetTags()))
-			for _, tag := range clusterGroup.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		case wasExplicitlyEmpty:
-			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-		default:
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, clusterGroup.HasTags(), clusterGroup.GetTags(), data.Tags)
 
 		if parsed.HasCustomFields {
 			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, clusterGroup.GetCustomFields(), &resp.Diagnostics)

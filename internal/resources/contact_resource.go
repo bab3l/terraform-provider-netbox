@@ -11,7 +11,6 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -209,19 +208,7 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 	r.mapContactToState(ctx, contact, &data)
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case contact.HasTags() && len(contact.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(contact.GetTags()))
-		for _, tag := range contact.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, contact.HasTags(), contact.GetTags(), planTags)
 	tflog.Debug(ctx, "Created contact", map[string]interface{}{
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
@@ -255,19 +242,7 @@ func (r *ContactResource) Read(ctx context.Context, req resource.ReadRequest, re
 	stateTags := data.Tags
 	r.mapContactToState(ctx, contact, &data)
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
-	switch {
-	case contact.HasTags() && len(contact.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(contact.GetTags()))
-		for _, tag := range contact.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, contact.HasTags(), contact.GetTags(), stateTags)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -364,19 +339,7 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 	// After update, populate tags based on what the user specified
 	// If tags were null in plan (not specified), keep them null to match config
 	// Otherwise, populate from API response (replace-all semantics)
-	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
-	switch {
-	case contact.HasTags() && len(contact.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(contact.GetTags()))
-		for _, tag := range contact.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, contact.HasTags(), contact.GetTags(), plan.Tags)
 
 	tflog.Debug(ctx, "Updated contact", map[string]interface{}{
 		"id":   plan.ID.ValueString(),

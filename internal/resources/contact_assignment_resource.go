@@ -211,19 +211,7 @@ func (r *ContactAssignmentResource) Create(ctx context.Context, req resource.Cre
 	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
 
 	// Apply filter-to-owned pattern
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case assignment.HasTags() && len(assignment.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(assignment.GetTags()))
-		for _, tag := range assignment.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, assignment.HasTags(), assignment.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 
@@ -280,19 +268,7 @@ func (r *ContactAssignmentResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
-	switch {
-	case assignment.HasTags() && len(assignment.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(assignment.GetTags()))
-		for _, tag := range assignment.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, assignment.HasTags(), assignment.GetTags(), stateTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -399,19 +375,7 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 	r.mapResponseToState(ctx, assignment, &plan, &resp.Diagnostics)
 
 	// Apply filter-to-owned pattern
-	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
-	switch {
-	case assignment.HasTags() && len(assignment.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(assignment.GetTags()))
-		for _, tag := range assignment.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, assignment.HasTags(), assignment.GetTags(), plan.Tags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, assignment.GetCustomFields(), &resp.Diagnostics)
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 
@@ -510,19 +474,7 @@ func (r *ContactAssignmentResource) ImportState(ctx context.Context, req resourc
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-		switch {
-		case assignment.HasTags() && len(assignment.GetTags()) > 0:
-			tagSlugs := make([]string, 0, len(assignment.GetTags()))
-			for _, tag := range assignment.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		case wasExplicitlyEmpty:
-			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-		default:
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, assignment.HasTags(), assignment.GetTags(), data.Tags)
 
 		if parsed.HasCustomFields {
 			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, assignment.GetCustomFields(), &resp.Diagnostics)

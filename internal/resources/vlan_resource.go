@@ -11,12 +11,14 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -82,6 +84,9 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				MarkdownDescription: "VLAN ID (1-4094). This is the numeric identifier used on network devices. Required.",
 
 				Required: true,
+				Validators: []validator.Int64{
+					validators.ValidVLANIDInt64(),
+				},
 			},
 
 			"name": nbschema.NameAttribute("VLAN", 64),
@@ -720,19 +725,7 @@ func (r *VLANResource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, da
 	}
 
 	// Handle tags (slug list) with empty-set preservation
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case vlan.HasTags() && len(vlan.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(vlan.GetTags()))
-		for _, tag := range vlan.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, vlan.HasTags(), vlan.GetTags(), data.Tags)
 
 	// Handle custom fields using filter-to-owned pattern
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vlan.GetCustomFields(), diags)

@@ -620,19 +620,7 @@ func (r *VirtualDiskResource) mapVirtualDiskToState(ctx context.Context, vd *net
 	}
 
 	// Handle tags (slug list) with empty-set preservation
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case len(vd.Tags) > 0:
-		tagSlugs := make([]string, 0, len(vd.Tags))
-		for _, tag := range vd.Tags {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(vd.Tags) > 0, vd.Tags, data.Tags)
 
 	// Handle custom fields using consolidated helper
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vd.CustomFields, diags)

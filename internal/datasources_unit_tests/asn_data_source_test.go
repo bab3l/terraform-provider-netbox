@@ -2,10 +2,12 @@ package datasources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
@@ -24,9 +26,28 @@ func TestASNDataSourceSchema(t *testing.T) {
 	}
 
 	testutil.ValidateDataSourceSchema(t, resp.Schema.Attributes, testutil.DataSourceValidation{
-		LookupAttrs:   []string{},
-		ComputedAttrs: []string{},
+		LookupAttrs: []string{"id", "asn"},
+		ComputedAttrs: []string{
+			"id",
+			"asn",
+			"display_name",
+			"rir",
+			"rir_id",
+			"tenant",
+			"tenant_id",
+			"description",
+			"comments",
+			"tags",
+			"custom_fields",
+		},
 	})
+
+	testutil.ValidateDataSourceInt64AttributeHasValidatorType(
+		t,
+		resp.Schema.Attributes["asn"],
+		"asn",
+		reflect.TypeOf(validators.ASNInt64Validator{}),
+	)
 }
 
 func TestASNDataSourceMetadata(t *testing.T) {

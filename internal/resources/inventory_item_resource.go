@@ -496,15 +496,7 @@ func (r *InventoryItemResource) ImportState(ctx context.Context, req resource.Im
 		if device := response.GetDevice(); device.Id != 0 {
 			data.Device = types.StringValue(device.GetName())
 		}
-		if response.HasTags() && len(response.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(response.GetTags()))
-			for _, tag := range response.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, response.HasTags(), response.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -653,19 +645,7 @@ func (r *InventoryItemResource) mapResponseToModel(ctx context.Context, item *ne
 
 	// Handle tags with filter-to-owned pattern
 	planTags := data.Tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case item.HasTags() && len(item.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(item.GetTags()))
-		for _, tag := range item.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, item.HasTags(), item.GetTags(), planTags)
 
 	// Handle custom fields - use filtered-to-owned for partial management
 	if item.HasCustomFields() {

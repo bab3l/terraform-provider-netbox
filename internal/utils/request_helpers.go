@@ -122,14 +122,17 @@ func ApplyTags[T TagsSetter](ctx context.Context, request T, tags types.Set, dia
 
 // ApplyTagsFromSlugs sets the Tags field on a request using tag slugs.
 // Looks up tag names by slug to build NestedTagRequests.
+// If tags is not set (null/unknown), we don't set anything (omit from request).
+// If tags is set but empty, we explicitly set an empty array to clear tags.
 func ApplyTagsFromSlugs[T TagsSetter](ctx context.Context, client *netbox.APIClient, request T, tags types.Set, diags *diag.Diagnostics) {
 	if !IsSet(tags) {
-		request.SetTags([]netbox.NestedTagRequest{})
+		// Don't set tags if not explicitly provided - let server use defaults
 		return
 	}
 
 	tagSlugs := SetToStringSlice(ctx, tags)
 	if len(tagSlugs) == 0 {
+		// Explicitly empty set - set empty array to clear tags
 		request.SetTags([]netbox.NestedTagRequest{})
 		return
 	}

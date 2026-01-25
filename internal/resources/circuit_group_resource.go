@@ -352,13 +352,7 @@ func (r *CircuitGroupResource) ImportState(ctx context.Context, req resource.Imp
 		}
 
 		var data CircuitGroupResourceModel
-		if group.HasTags() {
-			var tagSlugs []string
-			for _, tag := range group.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, group.HasTags(), group.GetTags(), data.Tags)
 		if group.HasTenant() && group.Tenant.IsSet() && group.Tenant.Get() != nil {
 			tenant := group.Tenant.Get()
 			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
@@ -435,20 +429,7 @@ func (r *CircuitGroupResource) mapResponseToState(ctx context.Context, group *ne
 	}
 
 	// Tags (slug list)
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case group.HasTags():
-		for _, tag := range group.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, group.HasTags(), group.GetTags(), data.Tags)
 	if diags.HasError() {
 		return
 	}

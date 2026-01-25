@@ -445,26 +445,6 @@ func PreserveOptionalReferenceWithID(stateValue types.String, hasValue bool, api
 // TAGS AND CUSTOM FIELDS HELPERS
 
 // =====================================================
-// TagsFromAPI converts API tags to a Terraform Set value.
-// Returns a null set if the API has no tags.
-//
-// Deprecated: Use PopulateTagsFromNestedTags instead which provides a cleaner API.
-func TagsFromAPI(ctx context.Context, hasTags bool, getTags func() []netbox.NestedTag, diags *diag.Diagnostics) types.Set {
-	if hasTags {
-		tags := NestedTagsToTagModels(getTags())
-
-		tagsValue, tagDiags := types.SetValueFrom(ctx, GetTagsAttributeType().ElemType, tags)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return types.SetNull(GetTagsAttributeType().ElemType)
-		}
-
-		return tagsValue
-	}
-
-	return types.SetNull(GetTagsAttributeType().ElemType)
-}
-
 // CustomFieldsFromAPI converts API custom fields to a Terraform Set value.
 // Uses the stateCustomFields to preserve type information.
 
@@ -498,29 +478,6 @@ func CustomFieldsFromAPI(ctx context.Context, hasCustomFields bool, getCustomFie
 	}
 
 	return stateCustomFields
-}
-
-// PopulateTagsFromNestedTags converts Netbox NestedTag slice to a Terraform Set value.
-// This function is kept for backwards compatibility during migration to PopulateTagsFromAPI.
-// TODO: Mark as deprecated after all resources migrate to PopulateTagsFromAPI (Batches 2-29).
-//
-// Example:
-//
-//	data.Tags = utils.PopulateTagsFromNestedTags(ctx, cluster.HasTags(), cluster.GetTags(), &diags)
-func PopulateTagsFromNestedTags(ctx context.Context, hasTags bool, tags []netbox.NestedTag, diags *diag.Diagnostics) types.Set {
-	if !hasTags || len(tags) == 0 {
-		return types.SetNull(GetTagsAttributeType().ElemType)
-	}
-
-	tagModels := NestedTagsToTagModels(tags)
-
-	tagsValue, tagDiags := types.SetValueFrom(ctx, GetTagsAttributeType().ElemType, tagModels)
-	diags.Append(tagDiags...)
-	if diags.HasError() {
-		return types.SetNull(GetTagsAttributeType().ElemType)
-	}
-
-	return tagsValue
 }
 
 // PopulateTagsFromAPI converts Netbox NestedTag slice to a Terraform Set value.
@@ -557,6 +514,99 @@ func PopulateTagsFromAPI(ctx context.Context, hasTags bool, tags []netbox.Nested
 		return types.SetValueMust(GetTagsAttributeType().ElemType, []attr.Value{})
 	}
 	return types.SetNull(GetTagsAttributeType().ElemType)
+}
+
+// PopulateTagsFilteredToOwned returns tags only when the user explicitly manages them.
+// If tags are omitted (null/unknown), keep state null even if API has tags.
+// If tags are explicitly set to empty, keep an empty set.
+// If tags are set, mirror API tags (or empty set if none).
+func PopulateTagsFilteredToOwned(ctx context.Context, hasTags bool, tags []netbox.NestedTag, planTags types.Set, diags *diag.Diagnostics) types.Set {
+	if planTags.IsNull() || planTags.IsUnknown() {
+		return types.SetNull(GetTagsAttributeType().ElemType)
+	}
+
+	// Explicit empty set in config
+	if len(planTags.Elements()) == 0 {
+		return types.SetValueMust(GetTagsAttributeType().ElemType, []attr.Value{})
+	}
+
+	if hasTags && len(tags) > 0 {
+		tagModels := NestedTagsToTagModels(tags)
+		tagsValue, tagDiags := types.SetValueFrom(ctx, GetTagsAttributeType().ElemType, tagModels)
+		diags.Append(tagDiags...)
+		if diags.HasError() {
+			return planTags
+		}
+		return tagsValue
+	}
+
+	// User manages tags but API returned none
+	return types.SetValueMust(GetTagsAttributeType().ElemType, []attr.Value{})
+}
+
+// PopulateTagsSlugFilteredToOwned returns tag slugs only when the user explicitly manages them.
+// If tags are omitted (null/unknown), keep state null even if API has tags.
+// If tags are explicitly set to empty, keep an empty set.
+// If tags are set, mirror API tag slugs (or empty set if none).
+func PopulateTagsSlugFilteredToOwned(ctx context.Context, hasTags bool, tags []netbox.NestedTag, planTags types.Set) types.Set {
+	if planTags.IsNull() || planTags.IsUnknown() {
+		return types.SetNull(types.StringType)
+	}
+
+	// Explicit empty set in config
+	if len(planTags.Elements()) == 0 {
+		return types.SetValueMust(types.StringType, []attr.Value{})
+	}
+
+	if hasTags && len(tags) > 0 {
+		tagSlugs := make([]string, 0, len(tags))
+		for _, tag := range tags {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		return TagsSlugToSet(ctx, tagSlugs)
+	}
+
+	// User manages tags but API returned none
+	return types.SetValueMust(types.StringType, []attr.Value{})
+}
+
+// PopulateTagsSlugFromAPI converts API tags to a Terraform string set of slugs.
+// Preserves explicit empty sets in state (tags = []) versus null.
+func PopulateTagsSlugFromAPI(ctx context.Context, hasTags bool, tags []netbox.NestedTag, stateTags types.Set) types.Set {
+	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
+
+	if hasTags && len(tags) > 0 {
+		tagSlugs := make([]string, 0, len(tags))
+		for _, tag := range tags {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		return TagsSlugToSet(ctx, tagSlugs)
+	}
+
+	if wasExplicitlyEmpty {
+		return types.SetValueMust(types.StringType, []attr.Value{})
+	}
+
+	return types.SetNull(types.StringType)
+}
+
+// PopulateTagsSlugListFromAPI converts API tags to a Terraform string list of slugs.
+// Used by data sources that model tags as types.List.
+func PopulateTagsSlugListFromAPI(ctx context.Context, hasTags bool, tags []netbox.NestedTag, diags *diag.Diagnostics) types.List {
+	if hasTags && len(tags) > 0 {
+		tagSlugs := make([]string, 0, len(tags))
+		for _, tag := range tags {
+			tagSlugs = append(tagSlugs, tag.Slug)
+		}
+		listValue, listDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
+		diags.Append(listDiags...)
+		if diags.HasError() {
+			return types.ListNull(types.StringType)
+		}
+		return listValue
+	}
+
+	return types.ListNull(types.StringType)
 }
 
 // PopulateCustomFieldsFromMap converts Netbox custom fields map to a Terraform Set value.

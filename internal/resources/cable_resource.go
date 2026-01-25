@@ -492,13 +492,7 @@ func (r *CableResource) ImportState(ctx context.Context, req resource.ImportStat
 		}
 
 		var data CableResourceModel
-		if cable.HasTags() {
-			var tagSlugs []string
-			for _, tag := range cable.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, cable.HasTags(), cable.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -662,20 +656,7 @@ func (r *CableResource) mapResponseToState(ctx context.Context, result *netbox.C
 	}
 
 	// Tags (slug list)
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case result.HasTags():
-		for _, tag := range result.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, result.HasTags(), result.GetTags(), data.Tags)
 
 	// Custom fields
 	if result.HasCustomFields() && len(result.GetCustomFields()) > 0 {

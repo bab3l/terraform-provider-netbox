@@ -305,15 +305,7 @@ func (r *ManufacturerResource) ImportState(ctx context.Context, req resource.Imp
 		}
 
 		var data ManufacturerResourceModel
-		if manufacturer.HasTags() {
-			var tagSlugs []string
-			for _, tag := range manufacturer.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, manufacturer.HasTags(), manufacturer.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -367,22 +359,7 @@ func (r *ManufacturerResource) mapManufacturerToState(ctx context.Context, manuf
 
 	// Handle tags using filter-to-owned approach
 	planTags := data.Tags
-	switch {
-	case planTags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(planTags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		if manufacturer.HasTags() {
-			var tagSlugs []string
-			for _, tag := range manufacturer.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-		}
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, manufacturer.HasTags(), manufacturer.GetTags(), planTags)
 
 	// Handle custom fields - filter to owned fields only
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, manufacturer.GetCustomFields(), diags)

@@ -479,15 +479,7 @@ func (r *RoleResource) ImportState(ctx context.Context, req resource.ImportState
 		}
 
 		var data RoleResourceModel
-		if role.HasTags() {
-			tagSlugs := make([]string, 0, len(role.GetTags()))
-			for _, tag := range role.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, role.HasTags(), role.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -606,20 +598,7 @@ func (r *RoleResource) mapResponseToModel(ctx context.Context, role *netbox.Role
 	}
 
 	// Handle tags - filter to owned slugs only
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	case role.HasTags():
-		var tagSlugs []string
-		for _, tag := range role.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, role.HasTags(), role.GetTags(), data.Tags)
 
 	// Handle custom fields
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, role.GetCustomFields(), diags)

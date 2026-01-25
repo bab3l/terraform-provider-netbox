@@ -79,14 +79,8 @@ func (r *IPRangeResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"start_address": schema.StringAttribute{
-				MarkdownDescription: "The starting IP address of the range (e.g., 192.168.1.10/24).",
-				Required:            true,
-			},
-			"end_address": schema.StringAttribute{
-				MarkdownDescription: "The ending IP address of the range (e.g., 192.168.1.20/24).",
-				Required:            true,
-			},
+			"start_address": nbschema.IPAddressAttribute("The starting IP address of the range (e.g., 192.168.1.10)."),
+			"end_address":   nbschema.IPAddressAttribute("The ending IP address of the range (e.g., 192.168.1.20)."),
 			"size": schema.Int64Attribute{
 				MarkdownDescription: "The number of IP addresses in the range (computed).",
 				Computed:            true,
@@ -444,15 +438,7 @@ func (r *IPRangeResource) ImportState(ctx context.Context, req resource.ImportSt
 				data.Role = types.StringValue(fmt.Sprintf("%d", role.GetId()))
 			}
 		}
-		if len(ipRange.Tags) > 0 {
-			tagSlugs := make([]string, 0, len(ipRange.Tags))
-			for _, tag := range ipRange.Tags {
-				tagSlugs = append(tagSlugs, tag.Slug)
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(ipRange.Tags) > 0, ipRange.Tags, data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -676,19 +662,7 @@ func (r *IPRangeResource) mapIPRangeToState(ctx context.Context, ipRange *netbox
 
 	// Handle tags with filter-to-owned pattern
 	planTags := data.Tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case len(ipRange.Tags) > 0:
-		tagSlugs := make([]string, 0, len(ipRange.Tags))
-		for _, tag := range ipRange.Tags {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, len(ipRange.Tags) > 0, ipRange.Tags, planTags)
 	if diags.HasError() {
 		return
 	}

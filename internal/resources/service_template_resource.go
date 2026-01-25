@@ -248,20 +248,7 @@ func (r *ServiceTemplateResource) Create(ctx context.Context, req resource.Creat
 	r.mapResponseToState(ctx, serviceTemplate, &data, &resp.Diagnostics)
 
 	// Populate tags and custom fields filtered to owned fields only
-	var tagSlugs []string
-	switch {
-	case planTags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(planTags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case serviceTemplate.HasTags():
-		for _, tag := range serviceTemplate.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, serviceTemplate.HasTags(), serviceTemplate.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, serviceTemplate.GetCustomFields(), &resp.Diagnostics)
 
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
@@ -342,20 +329,7 @@ func (r *ServiceTemplateResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	// Override with filter-to-owned pattern: only show fields that were in original state
-	var tagSlugs []string
-	switch {
-	case stateTags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(stateTags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case serviceTemplate.HasTags():
-		for _, tag := range serviceTemplate.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, serviceTemplate.HasTags(), serviceTemplate.GetTags(), stateTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, serviceTemplate.GetCustomFields(), &resp.Diagnostics)
 
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
@@ -487,20 +461,7 @@ func (r *ServiceTemplateResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Override with filter-to-owned pattern
-	var updateTagSlugs []string
-	switch {
-	case planTags.IsNull():
-		plan.Tags = types.SetNull(types.StringType)
-	case len(planTags.Elements()) == 0:
-		plan.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case serviceTemplate.HasTags():
-		for _, tag := range serviceTemplate.GetTags() {
-			updateTagSlugs = append(updateTagSlugs, tag.GetSlug())
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, updateTagSlugs)
-	default:
-		plan.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, serviceTemplate.HasTags(), serviceTemplate.GetTags(), planTags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, serviceTemplate.GetCustomFields(), &resp.Diagnostics)
 
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
@@ -595,15 +556,7 @@ func (r *ServiceTemplateResource) ImportState(ctx context.Context, req resource.
 		}
 
 		var data ServiceTemplateResourceModel
-		if serviceTemplate.HasTags() {
-			tagSlugs := make([]string, 0, len(serviceTemplate.GetTags()))
-			for _, tag := range serviceTemplate.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, serviceTemplate.HasTags(), serviceTemplate.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -703,20 +656,7 @@ func (r *ServiceTemplateResource) mapResponseToState(ctx context.Context, servic
 	}
 
 	// Handle tags using consolidated helper
-	var importTagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case serviceTemplate.HasTags():
-		for _, tag := range serviceTemplate.GetTags() {
-			importTagSlugs = append(importTagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, importTagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, serviceTemplate.HasTags(), serviceTemplate.GetTags(), data.Tags)
 	if diags.HasError() {
 		return
 	}

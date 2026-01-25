@@ -394,15 +394,7 @@ func (r *IPSecProposalResource) ImportState(ctx context.Context, req resource.Im
 		}
 
 		var data IPSecProposalResourceModel
-		if ipsec.HasTags() {
-			tagSlugs := make([]string, 0, len(ipsec.GetTags()))
-			for _, tag := range ipsec.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, ipsec.HasTags(), ipsec.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -562,19 +554,7 @@ func (r *IPSecProposalResource) mapIPSecProposalToState(ctx context.Context, ips
 
 	// Handle tags with filter-to-owned pattern
 	planTags := data.Tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case ipsec.HasTags() && len(ipsec.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(ipsec.GetTags()))
-		for _, tag := range ipsec.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, ipsec.HasTags(), ipsec.GetTags(), planTags)
 	if diags.HasError() {
 		return
 	}

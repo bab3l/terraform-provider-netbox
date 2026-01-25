@@ -224,19 +224,7 @@ func (r *WirelessLANGroupResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case response.HasTags() && len(response.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(response.GetTags()))
-		for _, tag := range response.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, response.HasTags(), response.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -318,19 +306,7 @@ func (r *WirelessLANGroupResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	// Populate tags and custom fields filtered to owned fields only (preserves null/empty state)
-	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
-	switch {
-	case response.HasTags() && len(response.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(response.GetTags()))
-		for _, tag := range response.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, response.HasTags(), response.GetTags(), stateTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -440,19 +416,7 @@ func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case response.HasTags() && len(response.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(response.GetTags()))
-		for _, tag := range response.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, response.HasTags(), response.GetTags(), planTags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, response.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -622,19 +586,7 @@ func (r *WirelessLANGroupResource) mapResponseToModel(ctx context.Context, group
 	}
 
 	// Handle tags (slug list) with empty-set preservation
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case group.HasTags() && len(group.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(group.GetTags()))
-		for _, tag := range group.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, group.HasTags(), group.GetTags(), data.Tags)
 
 	// Handle custom fields using consolidated helper
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, group.GetCustomFields(), diags)

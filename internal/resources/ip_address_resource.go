@@ -4,6 +4,7 @@ package resources
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"maps"
 	"net/http"
@@ -77,12 +78,9 @@ func (r *IPAddressResource) Schema(ctx context.Context, req resource.SchemaReque
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"address": schema.StringAttribute{
-				MarkdownDescription: "The IP address with prefix length (e.g., 192.168.1.1/24).",
-				Required:            true,
-			},
-			"vrf":    nbschema.ReferenceAttributeWithDiffSuppress("VRF", "ID or name of the VRF this IP address is assigned to."),
-			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant this IP address is assigned to."),
+			"address": nbschema.IPAddressWithPrefixAttribute("The IP address with prefix length (e.g., 192.168.1.1/24)."),
+			"vrf":     nbschema.ReferenceAttributeWithDiffSuppress("VRF", "ID or name of the VRF this IP address is assigned to."),
+			"tenant":  nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant this IP address is assigned to."),
 			"status": schema.StringAttribute{
 				MarkdownDescription: "The status of the IP address. Valid values are: `active`, `reserved`, `deprecated`, `dhcp`, `slaac`. Defaults to `active`.",
 				Optional:            true,
@@ -162,8 +160,12 @@ func (r *IPAddressResource) Create(ctx context.Context, req resource.CreateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	tflog.Debug(ctx, "Creating IP address", map[string]interface{}{
+
+	// Debug: log the full request
+	reqJSON, _ := json.Marshal(ipRequest)
+	tflog.Debug(ctx, "Creating IP address - request body", map[string]interface{}{
 		"address": data.Address.ValueString(),
+		"request": string(reqJSON),
 	})
 
 	// Create the IP address
@@ -184,19 +186,7 @@ func (r *IPAddressResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case len(ipAddress.Tags) > 0:
-		tagSlugs := make([]string, 0, len(ipAddress.Tags))
-		for _, tag := range ipAddress.Tags {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, ipAddress.HasTags(), ipAddress.GetTags(), planTags)
 
 	// Apply filter-to-owned pattern for custom fields
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, ipAddress.CustomFields, &resp.Diagnostics)
@@ -259,19 +249,7 @@ func (r *IPAddressResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !originalTags.IsNull() && !originalTags.IsUnknown() && len(originalTags.Elements()) == 0
-	switch {
-	case len(ipAddress.Tags) > 0:
-		tagSlugs := make([]string, 0, len(ipAddress.Tags))
-		for _, tag := range ipAddress.Tags {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, ipAddress.HasTags(), ipAddress.GetTags(), originalTags)
 
 	// Apply filter-to-owned pattern for custom fields
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, originalCustomFields, ipAddress.CustomFields, &resp.Diagnostics)
@@ -344,19 +322,7 @@ func (r *IPAddressResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Apply filter-to-owned pattern for tags
-	wasExplicitlyEmpty := !plan.Tags.IsNull() && !plan.Tags.IsUnknown() && len(plan.Tags.Elements()) == 0
-	switch {
-	case len(ipAddress.Tags) > 0:
-		tagSlugs := make([]string, 0, len(ipAddress.Tags))
-		for _, tag := range ipAddress.Tags {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, ipAddress.HasTags(), ipAddress.GetTags(), plan.Tags)
 
 	// Apply filter-to-owned pattern for custom fields
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, ipAddress.CustomFields, &resp.Diagnostics)
@@ -453,15 +419,7 @@ func (r *IPAddressResource) ImportState(ctx context.Context, req resource.Import
 			tenant := ipAddress.Tenant.Get()
 			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 		}
-		if len(ipAddress.Tags) > 0 {
-			tagSlugs := make([]string, 0, len(ipAddress.Tags))
-			for _, tag := range ipAddress.Tags {
-				tagSlugs = append(tagSlugs, tag.Slug)
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(ipAddress.Tags) > 0, ipAddress.Tags, data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -511,7 +469,7 @@ func (r *IPAddressResource) ImportState(ctx context.Context, req resource.Import
 
 // setOptionalFields sets optional fields on the IP address request from the resource model.
 func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *netbox.WritableIPAddressRequest, plan *IPAddressResourceModel, state *IPAddressResourceModel, diags *diag.Diagnostics) {
-	// VRF
+	// VRF - only set if explicitly provided, don't set nil for omitted values on Create
 	if utils.IsSet(plan.VRF) {
 		vrf, vrfDiags := netboxlookup.LookupVRF(ctx, r.client, plan.VRF.ValueString())
 		diags.Append(vrfDiags...)
@@ -519,11 +477,12 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 			return
 		}
 		ipRequest.Vrf = *netbox.NewNullableBriefVRFRequest(vrf)
-	} else if plan.VRF.IsNull() {
+	} else if plan.VRF.IsNull() && state != nil && utils.IsSet(state.VRF) {
+		// Only set nil during Update to clear an existing value
 		ipRequest.SetVrfNil()
 	}
 
-	// Tenant
+	// Tenant - only set if explicitly provided, don't set nil for omitted values on Create
 	if utils.IsSet(plan.Tenant) {
 		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, plan.Tenant.ValueString())
 		diags.Append(tenantDiags...)
@@ -531,7 +490,8 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 			return
 		}
 		ipRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
-	} else if plan.Tenant.IsNull() {
+	} else if plan.Tenant.IsNull() && state != nil && utils.IsSet(state.Tenant) {
+		// Only set nil during Update to clear an existing value
 		ipRequest.SetTenantNil()
 	}
 
@@ -597,16 +557,18 @@ func (r *IPAddressResource) setOptionalFields(ctx context.Context, ipRequest *ne
 	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
 		desc := plan.Description.ValueString()
 		ipRequest.Description = &desc
-	} else if plan.Description.IsNull() {
-		ipRequest.SetDescription("")
+	} else if plan.Description.IsNull() && state != nil && utils.IsSet(state.Description) {
+		emptyDesc := ""
+		ipRequest.Description = &emptyDesc
 	}
 
 	// Comments
 	if !plan.Comments.IsNull() && !plan.Comments.IsUnknown() {
 		comments := plan.Comments.ValueString()
 		ipRequest.Comments = &comments
-	} else if plan.Comments.IsNull() {
-		ipRequest.SetComments("")
+	} else if plan.Comments.IsNull() && state != nil && utils.IsSet(state.Comments) {
+		emptyComments := ""
+		ipRequest.Comments = &emptyComments
 	}
 
 	// Handle tags

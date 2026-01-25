@@ -2,10 +2,12 @@ package resources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -55,6 +57,13 @@ func TestASNResourceSchema(t *testing.T) {
 
 		Computed: []string{"id"},
 	})
+
+	testutil.ValidateInt64AttributeHasValidatorType(
+		t,
+		schemaResponse.Schema.Attributes["asn"],
+		"asn",
+		reflect.TypeOf(validators.ASNInt64Validator{}),
+	)
 
 }
 

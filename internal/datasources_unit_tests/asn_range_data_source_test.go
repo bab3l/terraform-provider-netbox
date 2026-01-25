@@ -24,8 +24,23 @@ func TestASNRangeDataSourceSchema(t *testing.T) {
 	}
 
 	testutil.ValidateDataSourceSchema(t, resp.Schema.Attributes, testutil.DataSourceValidation{
-		LookupAttrs:   []string{},
-		ComputedAttrs: []string{},
+		LookupAttrs: []string{"id", "name", "slug"},
+		ComputedAttrs: []string{
+			"id",
+			"name",
+			"slug",
+			"rir",
+			"rir_name",
+			"start",
+			"end",
+			"tenant",
+			"tenant_name",
+			"description",
+			"asn_count",
+			"display_name",
+			"tags",
+			"custom_fields",
+		},
 	})
 }
 

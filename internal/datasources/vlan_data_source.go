@@ -10,8 +10,11 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -72,6 +75,9 @@ func (d *VLANDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 				MarkdownDescription: "The VLAN ID (numeric identifier).",
 				Optional:            true,
 				Computed:            true,
+				Validators: []validator.Int32{
+					validators.ValidVLANIDInt32(),
+				},
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the VLAN.",
@@ -272,7 +278,7 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	}
 
 	// Map the VLAN to our model
-	d.mapVLANToState(ctx, vlan, &data)
+	d.mapVLANToState(ctx, vlan, &data, &resp.Diagnostics)
 	tflog.Debug(ctx, "Read VLAN", map[string]interface{}{
 		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
@@ -283,7 +289,7 @@ func (d *VLANDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 }
 
 // mapVLANToState maps a Netbox VLAN to the Terraform state model.
-func (d *VLANDataSource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, data *VLANDataSourceModel) {
+func (d *VLANDataSource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, data *VLANDataSourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", vlan.Id))
 	data.VID = types.Int32Value(vlan.Vid)
 	data.Name = types.StringValue(vlan.Name)
@@ -353,16 +359,7 @@ func (d *VLANDataSource) mapVLANToState(ctx context.Context, vlan *netbox.VLAN, 
 	}
 
 	// Tags (slug list)
-	if len(vlan.Tags) > 0 {
-		tagSlugs := make([]string, 0, len(vlan.Tags))
-		for _, tag := range vlan.Tags {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		tagList, _ := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		data.Tags = tagList
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, len(vlan.Tags) > 0, vlan.Tags, diags)
 
 	// Handle custom fields - datasources return ALL fields
 	if vlan.HasCustomFields() {

@@ -375,13 +375,7 @@ func (r *CircuitTerminationResource) ImportState(ctx context.Context, req resour
 		if pn, ok := termination.GetProviderNetworkOk(); ok && pn != nil && pn.Id != 0 {
 			data.ProviderNetwork = types.StringValue(fmt.Sprintf("%d", pn.Id))
 		}
-		if len(termination.Tags) > 0 {
-			var tagSlugs []string
-			for _, tag := range termination.Tags {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(termination.Tags) > 0, termination.Tags, data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -603,19 +597,7 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	}
 
 	// Populate tags using slug list format
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case len(termination.Tags) > 0:
-		tagSlugs := make([]string, 0, len(termination.Tags))
-		for _, tag := range termination.Tags {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(termination.Tags) > 0, termination.Tags, data.Tags)
 	if termination.HasCustomFields() {
 		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, termination.CustomFields, diags)
 	}

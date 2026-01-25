@@ -421,19 +421,7 @@ func (r *WirelessLinkResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case result.HasTags() && len(result.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(result.GetTags()))
-		for _, tag := range result.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, result.HasTags(), result.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
@@ -502,19 +490,7 @@ func (r *WirelessLinkResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
-	switch {
-	case result.HasTags() && len(result.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(result.GetTags()))
-		for _, tag := range result.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, result.HasTags(), result.GetTags(), stateTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -716,19 +692,7 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// Populate tags and custom fields filtered to owned fields only
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case result.HasTags() && len(result.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(result.GetTags()))
-		for _, tag := range result.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, result.HasTags(), result.GetTags(), planTags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, result.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -828,15 +792,7 @@ func (r *WirelessLinkResource) ImportState(ctx context.Context, req resource.Imp
 			return
 		}
 
-		if result.HasTags() && len(result.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(result.GetTags()))
-			for _, tag := range result.GetTags() {
-				tagSlugs = append(tagSlugs, tag.Slug)
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, result.HasTags(), result.GetTags(), data.Tags)
 
 		if parsed.HasCustomFields {
 			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, result.GetCustomFields(), &resp.Diagnostics)

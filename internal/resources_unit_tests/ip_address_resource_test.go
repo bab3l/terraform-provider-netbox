@@ -2,10 +2,12 @@ package resources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -37,6 +39,13 @@ func TestIPAddressResourceSchema(t *testing.T) {
 		Optional: []string{"vrf", "tenant", "status", "role", "assigned_object_type", "assigned_object_id", "nat_inside", "dns_name", "description", "comments"},
 		Computed: []string{"id"},
 	})
+
+	testutil.ValidateStringAttributeHasValidatorType(
+		t,
+		schemaResponse.Schema.Attributes["address"],
+		"address",
+		reflect.TypeOf(validators.IPAddressWithPrefixValidator{}),
+	)
 }
 
 func TestIPAddressResourceMetadata(t *testing.T) {

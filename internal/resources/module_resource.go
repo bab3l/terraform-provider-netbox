@@ -410,15 +410,7 @@ func (r *ModuleResource) ImportState(ctx context.Context, req resource.ImportSta
 		if moduleType := response.GetModuleType(); moduleType.Id != 0 {
 			data.ModuleType = types.StringValue(fmt.Sprintf("%d", moduleType.GetId()))
 		}
-		if response.HasTags() {
-			var tagSlugs []string
-			for _, tag := range response.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, response.HasTags(), response.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -542,22 +534,7 @@ func (r *ModuleResource) mapResponseToModel(ctx context.Context, module *netbox.
 	}
 
 	// Populate tags - filter to only those managed in config
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		if module.HasTags() {
-			var tagSlugs []string
-			for _, tag := range module.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-		}
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, module.HasTags(), module.GetTags(), data.Tags)
 
 	// Filter custom fields to only those managed in config
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, module.GetCustomFields(), diags)

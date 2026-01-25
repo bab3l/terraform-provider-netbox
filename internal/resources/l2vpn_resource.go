@@ -505,15 +505,7 @@ func (r *L2VPNResource) ImportState(ctx context.Context, req resource.ImportStat
 			}
 			data.ExportTargets = exportSet
 		}
-		if l2vpn.HasTags() {
-			tagSlugs := make([]string, 0, len(l2vpn.GetTags()))
-			for _, tag := range l2vpn.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, l2vpn.HasTags(), l2vpn.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -631,22 +623,7 @@ func (r *L2VPNResource) mapResponseToState(ctx context.Context, l2vpn *netbox.L2
 
 	// Handle tags using filter-to-owned approach
 	planTags := data.Tags
-	switch {
-	case planTags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(planTags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		if l2vpn.HasTags() {
-			var tagSlugs []string
-			for _, tag := range l2vpn.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-		}
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, l2vpn.HasTags(), l2vpn.GetTags(), planTags)
 
 	// Handle custom fields using consolidated helper with filtered-to-owned
 	if l2vpn.HasCustomFields() {

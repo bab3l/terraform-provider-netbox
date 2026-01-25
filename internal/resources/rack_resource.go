@@ -1202,15 +1202,7 @@ func (r *RackResource) ImportState(ctx context.Context, req resource.ImportState
 		}
 
 		var data RackResourceModel
-		if rack.HasTags() {
-			var tagSlugs []string
-			for _, tag := range rack.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, rack.HasTags(), rack.GetTags(), data.Tags)
 		if rack.GetTenant().Id != 0 {
 			data.Tenant = types.StringValue(fmt.Sprintf("%d", rack.GetTenant().Id))
 		}
@@ -1509,20 +1501,7 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 	}
 
 	// Filter tags to owned (slug list format)
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	case rack.HasTags():
-		var tagSlugs []string
-		for _, tag := range rack.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, rack.HasTags(), rack.GetTags(), data.Tags)
 
 	// Note: Custom fields are handled separately in Read to preserve type information
 }

@@ -358,13 +358,7 @@ func (r *CircuitTypeResource) ImportState(ctx context.Context, req resource.Impo
 		}
 
 		var data CircuitTypeResourceModel
-		if circuitType.HasTags() && len(circuitType.GetTags()) > 0 {
-			var tagSlugs []string
-			for _, tag := range circuitType.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, circuitType.HasTags(), circuitType.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -433,19 +427,7 @@ func (r *CircuitTypeResource) mapCircuitTypeToState(ctx context.Context, circuit
 	}
 
 	// Populate tags using slug list format
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case circuitType.HasTags() && len(circuitType.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(circuitType.GetTags()))
-		for _, tag := range circuitType.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, circuitType.HasTags(), circuitType.GetTags(), data.Tags)
 	if diags.HasError() {
 		return
 	}

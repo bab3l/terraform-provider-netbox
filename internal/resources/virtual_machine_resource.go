@@ -13,7 +13,6 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
@@ -737,19 +736,7 @@ func (r *VirtualMachineResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case vm.HasTags() && len(vm.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(vm.GetTags()))
-		for _, tag := range vm.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, vm.HasTags(), vm.GetTags(), planTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, vm.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -836,19 +823,11 @@ func (r *VirtualMachineResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	// Preserve null/empty state values for tags and custom_fields
-	wasExplicitlyEmpty := !stateTags.IsNull() && !stateTags.IsUnknown() && len(stateTags.Elements()) == 0
-	switch {
-	case vm.HasTags() && len(vm.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(vm.GetTags()))
-		for _, tag := range vm.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
+	// Preserve null/empty state values for tags and custom_fields; on import, populate from API
+	if stateTags.IsUnknown() {
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, vm.HasTags(), vm.GetTags(), stateTags)
+	} else {
+		data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, vm.HasTags(), vm.GetTags(), stateTags)
 	}
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, vm.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
@@ -945,19 +924,7 @@ func (r *VirtualMachineResource) Update(ctx context.Context, req resource.Update
 	}
 
 	// Apply filter-to-owned pattern for tags and custom_fields
-	wasExplicitlyEmpty := !planTags.IsNull() && !planTags.IsUnknown() && len(planTags.Elements()) == 0
-	switch {
-	case vm.HasTags() && len(vm.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(vm.GetTags()))
-		for _, tag := range vm.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		plan.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		plan.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		plan.Tags = types.SetNull(types.StringType)
-	}
+	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, vm.HasTags(), vm.GetTags(), planTags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, planCustomFields, vm.GetCustomFields(), &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -1083,6 +1050,8 @@ func (r *VirtualMachineResource) ImportState(ctx context.Context, req resource.I
 			return
 		}
 
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(vm.GetTags()) > 0, vm.GetTags(), types.SetNull(types.StringType))
+
 		if parsed.HasCustomFields {
 			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vm.GetCustomFields(), &resp.Diagnostics)
 		} else {
@@ -1108,5 +1077,28 @@ func (r *VirtualMachineResource) ImportState(ctx context.Context, req resource.I
 		return
 	}
 
-	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
+	vmIDInt, err := utils.ParseID(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid Virtual Machine ID", fmt.Sprintf("Virtual Machine ID must be a number, got: %s", req.ID))
+		return
+	}
+
+	vm, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualMachinesRetrieve(ctx, vmIDInt).Execute()
+	defer utils.CloseResponseBody(httpResp)
+	if err != nil {
+		resp.Diagnostics.AddError("Error importing virtual machine", utils.FormatAPIError(fmt.Sprintf("read virtual machine ID %s", req.ID), err, httpResp))
+		return
+	}
+
+	var data VirtualMachineResourceModel
+	data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+
+	r.mapVirtualMachineToState(ctx, vm, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(vm.GetTags()) > 0, vm.GetTags(), types.SetNull(types.StringType))
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

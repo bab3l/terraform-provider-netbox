@@ -14,7 +14,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -117,14 +117,14 @@ func (r *SiteResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				MarkdownDescription: "GPS latitude coordinate in decimal format (xx.yyyyyy).",
 				Optional:            true,
 				Validators: []validator.Float64{
-					float64validator.Between(-90, 90),
+					validators.ValidLatitude(),
 				},
 			},
 			"longitude": schema.Float64Attribute{
 				MarkdownDescription: "GPS longitude coordinate in decimal format (xx.yyyyyy).",
 				Optional:            true,
 				Validators: []validator.Float64{
-					float64validator.Between(-180, 180),
+					validators.ValidLongitude(),
 				},
 			},
 		},
@@ -544,15 +544,7 @@ func (r *SiteResource) ImportState(ctx context.Context, req resource.ImportState
 			tenant := site.GetTenant()
 			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 		}
-		if site.HasTags() {
-			tagSlugs := make([]string, 0, len(site.GetTags()))
-			for _, tag := range site.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, site.HasTags(), site.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -671,20 +663,7 @@ func (r *SiteResource) mapSiteToState(ctx context.Context, site *netbox.Site, da
 	}
 
 	// Handle tags
-	var tagSlugs []string
-	switch {
-	case data.Tags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(data.Tags.Elements()) == 0:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	case site.HasTags():
-		for _, tag := range site.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	default:
-		data.Tags, _ = types.SetValue(types.StringType, []attr.Value{})
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, site.HasTags(), site.GetTags(), data.Tags)
 
 	// Handle custom fields - use filtered-to-owned for partial management
 	if site.HasCustomFields() {

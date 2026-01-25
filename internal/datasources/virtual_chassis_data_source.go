@@ -240,20 +240,7 @@ func (d *VirtualChassisDataSource) mapResponseToModel(ctx context.Context, vc *n
 	data.MemberCount = types.Int64Value(int64(vc.GetMemberCount()))
 
 	// Handle tags (slug list)
-	if vc.HasTags() && len(vc.GetTags()) > 0 {
-		tagSlugs := make([]string, 0, len(vc.GetTags()))
-		for _, tag := range vc.GetTags() {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		tagList, tagDiags := types.ListValueFrom(ctx, types.StringType, tagSlugs)
-		diags.Append(tagDiags...)
-		if diags.HasError() {
-			return
-		}
-		data.Tags = tagList
-	} else {
-		data.Tags = types.ListNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugListFromAPI(ctx, vc.HasTags(), vc.GetTags(), diags)
 
 	// Handle custom fields
 	if vc.HasCustomFields() {

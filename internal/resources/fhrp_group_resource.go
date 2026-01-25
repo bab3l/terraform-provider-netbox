@@ -353,15 +353,7 @@ func (r *FHRPGroupResource) ImportState(ctx context.Context, req resource.Import
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		if fhrpGroup.HasTags() && len(fhrpGroup.GetTags()) > 0 {
-			tagSlugs := make([]string, 0, len(fhrpGroup.GetTags()))
-			for _, tag := range fhrpGroup.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, fhrpGroup.HasTags(), fhrpGroup.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, fhrpGroup.GetCustomFields(), &resp.Diagnostics)
 		} else {
@@ -490,19 +482,7 @@ func (r *FHRPGroupResource) mapFHRPGroupToState(ctx context.Context, fhrpGroup *
 	}
 
 	// Handle tags using slug list handling
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case fhrpGroup.HasTags() && len(fhrpGroup.GetTags()) > 0:
-		tagSlugs := make([]string, 0, len(fhrpGroup.GetTags()))
-		for _, tag := range fhrpGroup.GetTags() {
-			tagSlugs = append(tagSlugs, tag.GetSlug())
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, fhrpGroup.HasTags(), fhrpGroup.GetTags(), data.Tags)
 
 	// Handle custom fields using filter-to-owned helper
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, fhrpGroup.GetCustomFields(), diags)

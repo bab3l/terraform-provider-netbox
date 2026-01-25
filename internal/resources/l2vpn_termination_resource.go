@@ -375,15 +375,7 @@ func (r *L2VPNTerminationResource) ImportState(ctx context.Context, req resource
 		}
 		data.AssignedObjectType = types.StringValue(termination.GetAssignedObjectType())
 		data.AssignedObjectID = types.Int64Value(termination.GetAssignedObjectId())
-		if termination.HasTags() {
-			tagSlugs := make([]string, 0, len(termination.GetTags()))
-			for _, tag := range termination.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, termination.HasTags(), termination.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -445,22 +437,7 @@ func (r *L2VPNTerminationResource) mapResponseToState(ctx context.Context, termi
 
 	// Handle tags using filter-to-owned approach
 	planTags := data.Tags
-	switch {
-	case planTags.IsNull():
-		data.Tags = types.SetNull(types.StringType)
-	case len(planTags.Elements()) == 0:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		if termination.HasTags() {
-			var tagSlugs []string
-			for _, tag := range termination.GetTags() {
-				tagSlugs = append(tagSlugs, tag.GetSlug())
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-		}
-	}
+	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, termination.HasTags(), termination.GetTags(), planTags)
 
 	// Handle custom fields using consolidated helper
 	if termination.HasCustomFields() {

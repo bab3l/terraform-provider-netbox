@@ -2,11 +2,13 @@ package resources_unit_tests
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/resources"
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
+	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -83,6 +85,13 @@ func TestVLANResourceSchema(t *testing.T) {
 		}
 
 	}
+
+	testutil.ValidateInt64AttributeHasValidatorType(
+		t,
+		schemaResponse.Schema.Attributes["vid"],
+		"vid",
+		reflect.TypeOf(validators.VLANIDInt64Validator{}),
+	)
 
 }
 

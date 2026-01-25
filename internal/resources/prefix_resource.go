@@ -102,11 +102,7 @@ func (r *PrefixResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 
-			"prefix": schema.StringAttribute{
-				MarkdownDescription: "The IP prefix in CIDR notation (e.g., 192.168.1.0/24).",
-
-				Required: true,
-			},
+			"prefix": nbschema.PrefixAttribute("The IP prefix in CIDR notation (e.g., 192.168.1.0/24)."),
 
 			"site": nbschema.ReferenceAttributeWithDiffSuppress("site", "ID or slug of the site this prefix is assigned to."),
 
@@ -531,15 +527,7 @@ func (r *PrefixResource) ImportState(ctx context.Context, req resource.ImportSta
 			role := prefix.Role.Get()
 			data.Role = types.StringValue(fmt.Sprintf("%d", role.GetId()))
 		}
-		if len(prefix.Tags) > 0 {
-			tagSlugs := make([]string, 0, len(prefix.Tags))
-			for _, tag := range prefix.Tags {
-				tagSlugs = append(tagSlugs, tag.Slug)
-			}
-			data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-		} else {
-			data.Tags = types.SetNull(types.StringType)
-		}
+		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(prefix.Tags) > 0, prefix.Tags, data.Tags)
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {
 				data.CustomFields = types.SetValueMust(utils.GetCustomFieldsAttributeType().ElemType, []attr.Value{})
@@ -842,19 +830,7 @@ func (r *PrefixResource) mapPrefixToState(ctx context.Context, prefix *netbox.Pr
 	}
 
 	// Tags
-	wasExplicitlyEmpty := !data.Tags.IsNull() && !data.Tags.IsUnknown() && len(data.Tags.Elements()) == 0
-	switch {
-	case len(prefix.Tags) > 0:
-		tagSlugs := make([]string, 0, len(prefix.Tags))
-		for _, tag := range prefix.Tags {
-			tagSlugs = append(tagSlugs, tag.Slug)
-		}
-		data.Tags = utils.TagsSlugToSet(ctx, tagSlugs)
-	case wasExplicitlyEmpty:
-		data.Tags = types.SetValueMust(types.StringType, []attr.Value{})
-	default:
-		data.Tags = types.SetNull(types.StringType)
-	}
+	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, len(prefix.Tags) > 0, prefix.Tags, data.Tags)
 
 	// Custom fields - use filter-to-owned pattern
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, prefix.GetCustomFields(), diags)
