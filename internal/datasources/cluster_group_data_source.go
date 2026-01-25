@@ -95,11 +95,19 @@ func (d *ClusterGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		defer utils.CloseResponseBody(listResp)
 		httpResp = listResp
 		err = listErr
-		if err == nil && list != nil && len(list.Results) > 0 {
-			clusterGroup = &list.Results[0]
-		} else if err == nil {
-			resp.Diagnostics.AddError("Cluster group not found", fmt.Sprintf("No cluster group found with slug: %s", slug))
-			return
+		if err == nil && list != nil {
+			clusterGroupResult, ok := utils.ExpectSingleResult(
+				list.Results,
+				"Cluster group not found",
+				fmt.Sprintf("No cluster group found with slug: %s", slug),
+				"Multiple cluster groups found",
+				fmt.Sprintf("Found %d cluster groups with slug: %s. Use ID for unique lookup.", len(list.Results), slug),
+				&resp.Diagnostics,
+			)
+			if !ok {
+				return
+			}
+			clusterGroup = clusterGroupResult
 		}
 	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Lookup by name
@@ -110,15 +118,18 @@ func (d *ClusterGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		httpResp = listResp
 		err = listErr
 		if err == nil && list != nil {
-			if len(list.Results) == 0 {
-				resp.Diagnostics.AddError("Cluster group not found", fmt.Sprintf("No cluster group found with name: %s", name))
+			clusterGroupResult, ok := utils.ExpectSingleResult(
+				list.Results,
+				"Cluster group not found",
+				fmt.Sprintf("No cluster group found with name: %s", name),
+				"Multiple cluster groups found",
+				fmt.Sprintf("Found %d cluster groups with name: %s. Use slug or ID for unique lookup.", len(list.Results), name),
+				&resp.Diagnostics,
+			)
+			if !ok {
 				return
 			}
-			if len(list.Results) > 1 {
-				resp.Diagnostics.AddError("Multiple cluster groups found", fmt.Sprintf("Found %d cluster groups with name: %s. Use slug or ID for unique lookup.", len(list.Results), name))
-				return
-			}
-			clusterGroup = &list.Results[0]
+			clusterGroup = clusterGroupResult
 		}
 	default:
 		resp.Diagnostics.AddError("Missing identifier", "Either 'id', 'slug', or 'name' must be specified")

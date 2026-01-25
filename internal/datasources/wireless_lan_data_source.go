@@ -214,21 +214,18 @@ func (d *WirelessLANDataSource) Read(ctx context.Context, req datasource.ReadReq
 			)
 			return
 		}
-		if response.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"No wireless LAN found",
-				"No wireless LAN matching the specified criteria was found.",
-			)
+		result, ok := utils.ExpectSingleResult(
+			response.GetResults(),
+			"No wireless LAN found",
+			"No wireless LAN matching the specified criteria was found.",
+			"Multiple wireless LANs found",
+			fmt.Sprintf("Found %d wireless LANs matching the specified criteria. Please provide more specific filters.", response.GetCount()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if response.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple wireless LANs found",
-				fmt.Sprintf("Found %d wireless LANs matching the specified criteria. Please provide more specific filters.", response.GetCount()),
-			)
-			return
-		}
-		wlan = &response.GetResults()[0]
+		wlan = result
 	}
 
 	// Map response to model

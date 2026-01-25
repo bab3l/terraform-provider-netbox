@@ -196,21 +196,18 @@ func (d *InterfaceTemplateDataSource) Read(ctx context.Context, req datasource.R
 			)
 			return
 		}
-		if result.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"No interface template found",
-				"No interface template matching the specified criteria was found.",
-			)
+		single, ok := utils.ExpectSingleResult(
+			result.GetResults(),
+			"No interface template found",
+			"No interface template matching the specified criteria was found.",
+			"Multiple interface templates found",
+			fmt.Sprintf("Found %d interface templates matching the specified criteria. Please refine your search.", result.GetCount()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if result.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple interface templates found",
-				fmt.Sprintf("Found %d interface templates matching the specified criteria. Please refine your search.", result.GetCount()),
-			)
-			return
-		}
-		template = &result.GetResults()[0]
+		template = single
 	}
 
 	// Map response to model

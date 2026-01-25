@@ -167,21 +167,18 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 			return
 		}
-		if len(list.Results) == 0 {
-			resp.Diagnostics.AddError(
-				"Device not found",
-				fmt.Sprintf("No device found with name '%s'", data.Name.ValueString()),
-			)
+		deviceResult, ok := utils.ExpectSingleResult(
+			list.Results,
+			"Device not found",
+			fmt.Sprintf("No device found with name '%s'", data.Name.ValueString()),
+			"Multiple devices found",
+			fmt.Sprintf("Multiple devices found with name '%s'. Please use ID or serial to identify the device uniquely.", data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if len(list.Results) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple devices found",
-				fmt.Sprintf("Multiple devices found with name '%s'. Please use ID or serial to identify the device uniquely.", data.Name.ValueString()),
-			)
-			return
-		}
-		device = &list.Results[0]
+		device = deviceResult
 
 	case !data.Serial.IsNull() && !data.Serial.IsUnknown() && data.Serial.ValueString() != "":
 		// Look up by serial
@@ -197,22 +194,18 @@ func (d *DeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 			)
 			return
 		}
-		if len(list.Results) == 0 {
-			resp.Diagnostics.AddError(
-				"Device not found",
-				fmt.Sprintf("No device found with serial '%s'", data.Serial.ValueString()),
-			)
+		deviceResult, ok := utils.ExpectSingleResult(
+			list.Results,
+			"Device not found",
+			fmt.Sprintf("No device found with serial '%s'", data.Serial.ValueString()),
+			"Multiple devices found",
+			fmt.Sprintf("Multiple devices found with serial '%s'. Please use ID to identify the device uniquely.", data.Serial.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-
-		if len(list.Results) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple devices found",
-				fmt.Sprintf("Multiple devices found with serial '%s'. Please use ID to identify the device uniquely.", data.Serial.ValueString()),
-			)
-			return
-		}
-		device = &list.Results[0]
+		device = deviceResult
 
 	default:
 		resp.Diagnostics.AddError(

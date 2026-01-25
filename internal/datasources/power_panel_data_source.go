@@ -170,21 +170,18 @@ func (d *PowerPanelDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Power panel not found",
-				fmt.Sprintf("No power panel found with name: %s", data.Name.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Power panel not found",
+			fmt.Sprintf("No power panel found with name: %s", data.Name.ValueString()),
+			"Multiple power panels found",
+			fmt.Sprintf("Found %d power panels with name: %s. Please specify the site to narrow results.", listResp.GetCount(), data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple power panels found",
-				fmt.Sprintf("Found %d power panels with name: %s. Please specify the site to narrow results.", listResp.GetCount(), data.Name.ValueString()),
-			)
-			return
-		}
-		pp = &listResp.GetResults()[0]
+		pp = result
 
 	default:
 		resp.Diagnostics.AddError(

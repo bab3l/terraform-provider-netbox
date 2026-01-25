@@ -124,21 +124,18 @@ func (d *ExportTemplateDataSource) Read(ctx context.Context, req datasource.Read
 		err = listErr
 		if err == nil {
 			results := list.GetResults()
-			if len(results) == 0 {
-				resp.Diagnostics.AddError(
-					"Not Found",
-					fmt.Sprintf("No export template found with name: %s", data.Name.ValueString()),
-				)
+			exportTemplateResult, ok := utils.ExpectSingleResult(
+				results,
+				"Not Found",
+				fmt.Sprintf("No export template found with name: %s", data.Name.ValueString()),
+				"Multiple Found",
+				fmt.Sprintf("Multiple export templates found with name: %s. Please use id for a more specific lookup.", data.Name.ValueString()),
+				&resp.Diagnostics,
+			)
+			if !ok {
 				return
 			}
-			if len(results) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple Found",
-					fmt.Sprintf("Multiple export templates found with name: %s. Please use id for a more specific lookup.", data.Name.ValueString()),
-				)
-				return
-			}
-			exportTemplate = &results[0]
+			exportTemplate = exportTemplateResult
 		}
 
 	default:

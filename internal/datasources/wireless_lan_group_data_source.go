@@ -175,21 +175,18 @@ func (d *WirelessLANGroupDataSource) Read(ctx context.Context, req datasource.Re
 			)
 			return
 		}
-		if response.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"No wireless LAN group found",
-				"No wireless LAN group matching the specified criteria was found.",
-			)
+		result, ok := utils.ExpectSingleResult(
+			response.GetResults(),
+			"No wireless LAN group found",
+			"No wireless LAN group matching the specified criteria was found.",
+			"Multiple wireless LAN groups found",
+			fmt.Sprintf("Found %d wireless LAN groups matching the specified criteria. Please provide more specific filters.", response.GetCount()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if response.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple wireless LAN groups found",
-				fmt.Sprintf("Found %d wireless LAN groups matching the specified criteria. Please provide more specific filters.", response.GetCount()),
-			)
-			return
-		}
-		group = &response.GetResults()[0]
+		group = result
 	}
 
 	// Map response to model

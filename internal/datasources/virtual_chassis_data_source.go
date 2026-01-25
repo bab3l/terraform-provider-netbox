@@ -164,21 +164,18 @@ func (d *VirtualChassisDataSource) Read(ctx context.Context, req datasource.Read
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Virtual chassis not found",
-				fmt.Sprintf("No virtual chassis found with name: %s", data.Name.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Virtual chassis not found",
+			fmt.Sprintf("No virtual chassis found with name: %s", data.Name.ValueString()),
+			"Multiple virtual chassis found",
+			fmt.Sprintf("Found %d virtual chassis with name: %s.", listResp.GetCount(), data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple virtual chassis found",
-				fmt.Sprintf("Found %d virtual chassis with name: %s.", listResp.GetCount(), data.Name.ValueString()),
-			)
-			return
-		}
-		vc = &listResp.GetResults()[0]
+		vc = result
 
 	default:
 		resp.Diagnostics.AddError(

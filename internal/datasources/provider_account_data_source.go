@@ -168,21 +168,18 @@ func (d *ProviderAccountDataSource) Read(ctx context.Context, req datasource.Rea
 			)
 			return
 		}
-		if len(list.Results) == 0 {
-			resp.Diagnostics.AddError(
-				"Provider account not found",
-				fmt.Sprintf("No provider account found with account identifier %s", account),
-			)
+		providerAccountResult, ok := utils.ExpectSingleResult(
+			list.Results,
+			"Provider account not found",
+			fmt.Sprintf("No provider account found with account identifier %s", account),
+			"Multiple provider accounts found",
+			fmt.Sprintf("Found %d provider accounts with account identifier %s, expected exactly one. Consider filtering by provider as well.", len(list.Results), account),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if len(list.Results) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple provider accounts found",
-				fmt.Sprintf("Found %d provider accounts with account identifier %s, expected exactly one. Consider filtering by provider as well.", len(list.Results), account),
-			)
-			return
-		}
-		providerAccount = &list.Results[0]
+		providerAccount = providerAccountResult
 
 	default:
 		resp.Diagnostics.AddError(

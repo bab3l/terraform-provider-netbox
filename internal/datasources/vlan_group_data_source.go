@@ -150,14 +150,25 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 			return
 		}
-		if list == nil || len(list.Results) == 0 {
+		if list == nil {
 			resp.Diagnostics.AddError(
 				"VLAN Group not found",
 				fmt.Sprintf("No VLAN Group found with slug: %s", slug),
 			)
 			return
 		}
-		vlanGroup = &list.Results[0]
+		vlanGroupResult, ok := utils.ExpectSingleResult(
+			list.Results,
+			"VLAN Group not found",
+			fmt.Sprintf("No VLAN Group found with slug: %s", slug),
+			"Multiple VLAN Groups found",
+			fmt.Sprintf("Found %d VLAN Groups with slug '%s'. Use 'id' for a unique lookup.", len(list.Results), slug),
+			&resp.Diagnostics,
+		)
+		if !ok {
+			return
+		}
+		vlanGroup = vlanGroupResult
 
 	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Look up by name
@@ -174,21 +185,25 @@ func (d *VLANGroupDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 			return
 		}
-		if list == nil || len(list.Results) == 0 {
+		if list == nil {
 			resp.Diagnostics.AddError(
 				"VLAN Group not found",
 				fmt.Sprintf("No VLAN Group found with name: %s", name),
 			)
 			return
 		}
-		if len(list.Results) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple VLAN Groups found",
-				fmt.Sprintf("Found %d VLAN Groups with name '%s'. Use 'id' or 'slug' for a unique lookup.", len(list.Results), name),
-			)
+		vlanGroupResult, ok := utils.ExpectSingleResult(
+			list.Results,
+			"VLAN Group not found",
+			fmt.Sprintf("No VLAN Group found with name: %s", name),
+			"Multiple VLAN Groups found",
+			fmt.Sprintf("Found %d VLAN Groups with name '%s'. Use 'id' or 'slug' for a unique lookup.", len(list.Results), name),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		vlanGroup = &list.Results[0]
+		vlanGroup = vlanGroupResult
 
 	default:
 		resp.Diagnostics.AddError(

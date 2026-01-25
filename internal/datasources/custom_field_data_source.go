@@ -237,23 +237,19 @@ func (d *CustomFieldDataSource) Read(ctx context.Context, req datasource.ReadReq
 			return
 		}
 
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Custom field not found",
-				fmt.Sprintf("No custom field found with name: %s", data.Name.ValueString()),
-			)
+		results := listResp.GetResults()
+		customFieldResult, ok := utils.ExpectSingleResult(
+			results,
+			"Custom field not found",
+			fmt.Sprintf("No custom field found with name: %s", data.Name.ValueString()),
+			"Multiple custom fields found",
+			fmt.Sprintf("Found %d custom fields with name: %s", len(results), data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple custom fields found",
-				fmt.Sprintf("Found %d custom fields with name: %s", listResp.GetCount(), data.Name.ValueString()),
-			)
-			return
-		}
-
-		customField = &listResp.GetResults()[0]
+		customField = customFieldResult
 	default:
 		resp.Diagnostics.AddError(
 			"Missing Required Attribute",

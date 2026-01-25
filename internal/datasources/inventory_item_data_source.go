@@ -243,21 +243,18 @@ func (d *InventoryItemDataSource) Read(ctx context.Context, req datasource.ReadR
 			)
 			return
 		}
-		if response.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"No inventory item found",
-				"No inventory item matching the specified criteria was found.",
-			)
+		result, ok := utils.ExpectSingleResult(
+			response.GetResults(),
+			"No inventory item found",
+			"No inventory item matching the specified criteria was found.",
+			"Multiple inventory items found",
+			fmt.Sprintf("Found %d inventory items matching the specified criteria. Please provide more specific filters.", response.GetCount()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if response.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple inventory items found",
-				fmt.Sprintf("Found %d inventory items matching the specified criteria. Please provide more specific filters.", response.GetCount()),
-			)
-			return
-		}
-		item = &response.GetResults()[0]
+		item = result
 	}
 
 	// Map response to model

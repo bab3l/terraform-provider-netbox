@@ -158,21 +158,18 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Role not found",
-				fmt.Sprintf("No role found with slug: %s", data.Slug.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Role not found",
+			fmt.Sprintf("No role found with slug: %s", data.Slug.ValueString()),
+			"Multiple roles found",
+			fmt.Sprintf("Found %d roles with slug: %s", listResp.GetCount(), data.Slug.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple roles found",
-				fmt.Sprintf("Found %d roles with slug: %s", listResp.GetCount(), data.Slug.ValueString()),
-			)
-			return
-		}
-		role = &listResp.GetResults()[0]
+		role = result
 
 	case !data.Name.IsNull() && !data.Name.IsUnknown():
 		// Look up by name
@@ -188,21 +185,18 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Role not found",
-				fmt.Sprintf("No role found with name: %s", data.Name.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Role not found",
+			fmt.Sprintf("No role found with name: %s", data.Name.ValueString()),
+			"Multiple roles found",
+			fmt.Sprintf("Found %d roles with name: %s", listResp.GetCount(), data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple roles found",
-				fmt.Sprintf("Found %d roles with name: %s", listResp.GetCount(), data.Name.ValueString()),
-			)
-			return
-		}
-		role = &listResp.GetResults()[0]
+		role = result
 
 	default:
 		resp.Diagnostics.AddError(

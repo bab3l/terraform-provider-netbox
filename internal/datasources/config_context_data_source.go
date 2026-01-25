@@ -208,21 +208,18 @@ func (d *ConfigContextDataSource) Read(ctx context.Context, req datasource.ReadR
 		httpResp = listHttpResp
 		err = listErr
 		if err == nil {
-			if listResult.GetCount() == 0 {
-				resp.Diagnostics.AddError(
-					"Config context not found",
-					fmt.Sprintf("No config context found with name: %s", data.Name.ValueString()),
-				)
+			configContext, ok := utils.ExpectSingleResult(
+				listResult.GetResults(),
+				"Config context not found",
+				fmt.Sprintf("No config context found with name: %s", data.Name.ValueString()),
+				"Multiple config contexts found",
+				fmt.Sprintf("Found %d config contexts with name: %s. Please use 'id' for more specific lookup.", listResult.GetCount(), data.Name.ValueString()),
+				&resp.Diagnostics,
+			)
+			if !ok {
 				return
 			}
-			if listResult.GetCount() > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple config contexts found",
-					fmt.Sprintf("Found %d config contexts with name: %s. Please use 'id' for more specific lookup.", listResult.GetCount(), data.Name.ValueString()),
-				)
-				return
-			}
-			result = &listResult.GetResults()[0]
+			result = configContext
 		}
 	}
 

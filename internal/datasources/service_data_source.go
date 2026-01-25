@@ -198,21 +198,18 @@ func (d *ServiceDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Service not found",
-				fmt.Sprintf("No service found with name: %s", data.Name.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Service not found",
+			fmt.Sprintf("No service found with name: %s", data.Name.ValueString()),
+			"Multiple services found",
+			fmt.Sprintf("Found %d services with name: %s. Please specify device or virtual_machine to narrow results.", listResp.GetCount(), data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple services found",
-				fmt.Sprintf("Found %d services with name: %s. Please specify device or virtual_machine to narrow results.", listResp.GetCount(), data.Name.ValueString()),
-			)
-			return
-		}
-		svc = &listResp.GetResults()[0]
+		svc = result
 
 	default:
 		resp.Diagnostics.AddError(

@@ -176,22 +176,18 @@ func (d *ASNDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"ASN not found",
-				fmt.Sprintf("No ASN found with number: %d", data.ASN.ValueInt64()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"ASN not found",
+			fmt.Sprintf("No ASN found with number: %d", data.ASN.ValueInt64()),
+			"Multiple ASNs found",
+			fmt.Sprintf("Found %d ASNs with number: %d", listResp.GetCount(), data.ASN.ValueInt64()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple ASNs found",
-				fmt.Sprintf("Found %d ASNs with number: %d", listResp.GetCount(), data.ASN.ValueInt64()),
-			)
-			return
-		}
-		asn = &listResp.GetResults()[0]
+		asn = result
 
 	default:
 		resp.Diagnostics.AddError(

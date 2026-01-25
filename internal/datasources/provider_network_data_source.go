@@ -159,22 +159,18 @@ func (d *ProviderNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Provider network not found",
-				fmt.Sprintf("No provider network found with name: %s", data.Name.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Provider network not found",
+			fmt.Sprintf("No provider network found with name: %s", data.Name.ValueString()),
+			"Multiple provider networks found",
+			fmt.Sprintf("Found %d provider networks with name: %s. Consider filtering by provider as well.", listResp.GetCount(), data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple provider networks found",
-				fmt.Sprintf("Found %d provider networks with name: %s. Consider filtering by provider as well.", listResp.GetCount(), data.Name.ValueString()),
-			)
-			return
-		}
-		pn = &listResp.GetResults()[0]
+		pn = result
 
 	default:
 		resp.Diagnostics.AddError(

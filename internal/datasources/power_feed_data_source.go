@@ -215,21 +215,18 @@ func (d *PowerFeedDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 			return
 		}
-		if listResp.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"Power feed not found",
-				fmt.Sprintf("No power feed found with name: %s", data.Name.ValueString()),
-			)
+		result, ok := utils.ExpectSingleResult(
+			listResp.GetResults(),
+			"Power feed not found",
+			fmt.Sprintf("No power feed found with name: %s", data.Name.ValueString()),
+			"Multiple power feeds found",
+			fmt.Sprintf("Found %d power feeds with name: %s. Please specify the power_panel to narrow results.", listResp.GetCount(), data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if listResp.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple power feeds found",
-				fmt.Sprintf("Found %d power feeds with name: %s. Please specify the power_panel to narrow results.", listResp.GetCount(), data.Name.ValueString()),
-			)
-			return
-		}
-		pf = &listResp.GetResults()[0]
+		pf = result
 
 	default:
 		resp.Diagnostics.AddError(

@@ -101,11 +101,19 @@ func (d *ContactGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		defer utils.CloseResponseBody(listResp)
 		httpResp = listResp
 		err = listErr
-		if err == nil && list != nil && len(list.Results) > 0 {
-			contactGroup = &list.Results[0]
-		} else if err == nil {
-			resp.Diagnostics.AddError("Contact group not found", fmt.Sprintf("No contact group found with slug: %s", slug))
-			return
+		if err == nil && list != nil {
+			contactGroupResult, ok := utils.ExpectSingleResult(
+				list.Results,
+				"Contact group not found",
+				fmt.Sprintf("No contact group found with slug: %s", slug),
+				"Multiple contact groups found",
+				fmt.Sprintf("Found %d contact groups with slug: %s. Use ID for unique lookup.", len(list.Results), slug),
+				&resp.Diagnostics,
+			)
+			if !ok {
+				return
+			}
+			contactGroup = contactGroupResult
 		}
 	case !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "":
 		// Lookup by name
@@ -116,15 +124,18 @@ func (d *ContactGroupDataSource) Read(ctx context.Context, req datasource.ReadRe
 		httpResp = listResp
 		err = listErr
 		if err == nil && list != nil {
-			if len(list.Results) == 0 {
-				resp.Diagnostics.AddError("Contact group not found", fmt.Sprintf("No contact group found with name: %s", name))
+			contactGroupResult, ok := utils.ExpectSingleResult(
+				list.Results,
+				"Contact group not found",
+				fmt.Sprintf("No contact group found with name: %s", name),
+				"Multiple contact groups found",
+				fmt.Sprintf("Found %d contact groups with name: %s. Use slug or ID for unique lookup.", len(list.Results), name),
+				&resp.Diagnostics,
+			)
+			if !ok {
 				return
 			}
-			if len(list.Results) > 1 {
-				resp.Diagnostics.AddError("Multiple contact groups found", fmt.Sprintf("Found %d contact groups with name: %s. Use slug or ID for unique lookup.", len(list.Results), name))
-				return
-			}
-			contactGroup = &list.Results[0]
+			contactGroup = contactGroupResult
 		}
 	default:
 		resp.Diagnostics.AddError("Missing identifier", "Either 'id', 'slug', or 'name' must be specified")

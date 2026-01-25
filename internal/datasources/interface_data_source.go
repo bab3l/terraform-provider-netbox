@@ -165,21 +165,18 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 				)
 				return
 			}
-			if len(deviceList.Results) == 0 {
-				resp.Diagnostics.AddError(
-					"Device not found",
-					fmt.Sprintf("No device found with name '%s'", deviceValue),
-				)
+			deviceResult, ok := utils.ExpectSingleResult(
+				deviceList.Results,
+				"Device not found",
+				fmt.Sprintf("No device found with name '%s'", deviceValue),
+				"Multiple devices found",
+				fmt.Sprintf("Multiple devices found with name '%s'. Please use device ID.", deviceValue),
+				&resp.Diagnostics,
+			)
+			if !ok {
 				return
 			}
-			if len(deviceList.Results) > 1 {
-				resp.Diagnostics.AddError(
-					"Multiple devices found",
-					fmt.Sprintf("Multiple devices found with name '%s'. Please use device ID.", deviceValue),
-				)
-				return
-			}
-			deviceID = deviceList.Results[0].GetId()
+			deviceID = deviceResult.GetId()
 		}
 
 		// Look up interface by device ID and name
@@ -195,21 +192,18 @@ func (d *InterfaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 			)
 			return
 		}
-		if len(list.Results) == 0 {
-			resp.Diagnostics.AddError(
-				"Interface not found",
-				fmt.Sprintf("No interface found on device '%s' with name '%s'", deviceValue, data.Name.ValueString()),
-			)
+		ifaceResult, ok := utils.ExpectSingleResult(
+			list.Results,
+			"Interface not found",
+			fmt.Sprintf("No interface found on device '%s' with name '%s'", deviceValue, data.Name.ValueString()),
+			"Multiple interfaces found",
+			fmt.Sprintf("Multiple interfaces found on device '%s' with name '%s'. Please use ID to identify uniquely.", deviceValue, data.Name.ValueString()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if len(list.Results) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple interfaces found",
-				fmt.Sprintf("Multiple interfaces found on device '%s' with name '%s'. Please use ID to identify uniquely.", deviceValue, data.Name.ValueString()),
-			)
-			return
-		}
-		iface = &list.Results[0]
+		iface = ifaceResult
 
 	default:
 		resp.Diagnostics.AddError(

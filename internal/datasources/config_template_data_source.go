@@ -145,21 +145,18 @@ func (d *ConfigTemplateDataSource) Read(ctx context.Context, req datasource.Read
 			)
 			return
 		}
-		if result.GetCount() == 0 {
-			resp.Diagnostics.AddError(
-				"No config template found",
-				"No config template matching the specified criteria was found.",
-			)
+		single, ok := utils.ExpectSingleResult(
+			result.GetResults(),
+			"No config template found",
+			"No config template matching the specified criteria was found.",
+			"Multiple config templates found",
+			fmt.Sprintf("Found %d config templates matching the specified criteria. Please refine your search.", result.GetCount()),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if result.GetCount() > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple config templates found",
-				fmt.Sprintf("Found %d config templates matching the specified criteria. Please refine your search.", result.GetCount()),
-			)
-			return
-		}
-		template = &result.GetResults()[0]
+		template = single
 	}
 
 	// Map response to model

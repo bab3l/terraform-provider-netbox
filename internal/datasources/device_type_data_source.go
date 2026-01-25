@@ -159,21 +159,19 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 			return
 		}
-		if len(deviceTypes.GetResults()) == 0 {
-			resp.Diagnostics.AddError(
-				"Device Type Not Found",
-				fmt.Sprintf("No device type found with slug: %s", deviceTypeSlug),
-			)
+		results := deviceTypes.GetResults()
+		deviceTypeResult, ok := utils.ExpectSingleResult(
+			results,
+			"Device Type Not Found",
+			fmt.Sprintf("No device type found with slug: %s", deviceTypeSlug),
+			"Multiple Device Types Found",
+			fmt.Sprintf("Multiple device types found with slug: %s. This should not happen as slugs should be unique.", deviceTypeSlug),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if len(deviceTypes.GetResults()) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple Device Types Found",
-				fmt.Sprintf("Multiple device types found with slug: %s. This should not happen as slugs should be unique.", deviceTypeSlug),
-			)
-			return
-		}
-		deviceType = &deviceTypes.GetResults()[0]
+		deviceType = deviceTypeResult
 
 	case !data.Model.IsNull() && !data.Model.IsUnknown():
 		// Search by model
@@ -193,21 +191,19 @@ func (d *DeviceTypeDataSource) Read(ctx context.Context, req datasource.ReadRequ
 			)
 			return
 		}
-		if len(deviceTypes.GetResults()) == 0 {
-			resp.Diagnostics.AddError(
-				"Device Type Not Found",
-				fmt.Sprintf("No device type found with model: %s", deviceTypeModel),
-			)
+		results := deviceTypes.GetResults()
+		deviceTypeResult, ok := utils.ExpectSingleResult(
+			results,
+			"Device Type Not Found",
+			fmt.Sprintf("No device type found with model: %s", deviceTypeModel),
+			"Multiple Device Types Found",
+			fmt.Sprintf("Multiple device types found with model: %s. Specify a more precise filter.", deviceTypeModel),
+			&resp.Diagnostics,
+		)
+		if !ok {
 			return
 		}
-		if len(deviceTypes.GetResults()) > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple Device Types Found",
-				fmt.Sprintf("Multiple device types found with model: %s. Specify a more precise filter.", deviceTypeModel),
-			)
-			return
-		}
-		deviceType = &deviceTypes.GetResults()[0]
+		deviceType = deviceTypeResult
 
 	default:
 		resp.Diagnostics.AddError(
