@@ -128,12 +128,12 @@ func (d *FHRPGroupAssignmentDataSource) Read(ctx context.Context, req datasource
 	}
 
 	// Map response to state
-	d.mapResponseToState(ctx, assignment, &data)
+	d.mapResponseToState(assignment, &data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // mapResponseToState maps the API response to the Terraform state.
-func (d *FHRPGroupAssignmentDataSource) mapResponseToState(ctx context.Context, assignment *netbox.FHRPGroupAssignment, data *FHRPGroupAssignmentDataSourceModel) {
+func (d *FHRPGroupAssignmentDataSource) mapResponseToState(assignment *netbox.FHRPGroupAssignment, data *FHRPGroupAssignmentDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", assignment.GetId()))
 
 	// Get group info - access Id field directly since GetId() is a pointer receiver method

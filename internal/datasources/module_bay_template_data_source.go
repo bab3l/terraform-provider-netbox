@@ -11,7 +11,6 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -155,7 +154,7 @@ func (d *ModuleBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 	}
 
 	// Map response to state
-	d.mapToState(ctx, result, &data, &resp.Diagnostics)
+	d.mapToState(result, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -163,7 +162,7 @@ func (d *ModuleBayTemplateDataSource) Read(ctx context.Context, req datasource.R
 }
 
 // mapToState maps the API response to the Terraform state.
-func (d *ModuleBayTemplateDataSource) mapToState(ctx context.Context, result *netbox.ModuleBayTemplate, data *ModuleBayTemplateDataSourceModel, diags *diag.Diagnostics) {
+func (d *ModuleBayTemplateDataSource) mapToState(result *netbox.ModuleBayTemplate, data *ModuleBayTemplateDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	// Display Name

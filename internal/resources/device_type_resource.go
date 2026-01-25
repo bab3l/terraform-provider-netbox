@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -276,7 +275,7 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 	})
 
 	// Map response to state
-	r.mapDeviceTypeToState(ctx, deviceType, &data, &resp.Diagnostics)
+	r.mapDeviceTypeToState(deviceType, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -333,7 +332,7 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 	stateCustomFields := data.CustomFields
 
 	// Map response to state
-	r.mapDeviceTypeToState(ctx, deviceType, &data, &resp.Diagnostics)
+	r.mapDeviceTypeToState(deviceType, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -482,7 +481,7 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 	})
 
 	// Map response to state
-	r.mapDeviceTypeToState(ctx, deviceType, &data, &resp.Diagnostics)
+	r.mapDeviceTypeToState(deviceType, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -589,7 +588,7 @@ func (r *DeviceTypeResource) ImportState(ctx context.Context, req resource.Impor
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapDeviceTypeToState(ctx, deviceType, &data, &resp.Diagnostics)
+		r.mapDeviceTypeToState(deviceType, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -622,7 +621,7 @@ func (r *DeviceTypeResource) ImportState(ctx context.Context, req resource.Impor
 }
 
 // mapDeviceTypeToState maps a DeviceType from the API to the Terraform state model.
-func (r *DeviceTypeResource) mapDeviceTypeToState(ctx context.Context, deviceType *netbox.DeviceType, data *DeviceTypeResourceModel, diags *diag.Diagnostics) {
+func (r *DeviceTypeResource) mapDeviceTypeToState(deviceType *netbox.DeviceType, data *DeviceTypeResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", deviceType.GetId()))
 	data.Model = types.StringValue(deviceType.GetModel())
 	data.Slug = types.StringValue(deviceType.GetSlug())

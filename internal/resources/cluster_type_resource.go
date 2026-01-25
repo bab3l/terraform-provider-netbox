@@ -12,7 +12,6 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -94,7 +93,7 @@ func (r *ClusterTypeResource) Configure(ctx context.Context, req resource.Config
 }
 
 // mapClusterTypeToState maps a ClusterType from the API to the Terraform state model.
-func (r *ClusterTypeResource) mapClusterTypeToState(ctx context.Context, clusterType *netbox.ClusterType, data *ClusterTypeResourceModel, diags *diag.Diagnostics) {
+func (r *ClusterTypeResource) mapClusterTypeToState(clusterType *netbox.ClusterType, data *ClusterTypeResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", clusterType.GetId()))
 	data.Name = types.StringValue(clusterType.GetName())
 	data.Slug = types.StringValue(clusterType.GetSlug())
@@ -160,7 +159,7 @@ func (r *ClusterTypeResource) Create(ctx context.Context, req resource.CreateReq
 	planCustomFields := data.CustomFields
 
 	// Map response to state
-	r.mapClusterTypeToState(ctx, clusterType, &data, &resp.Diagnostics)
+	r.mapClusterTypeToState(clusterType, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -219,7 +218,7 @@ func (r *ClusterTypeResource) Read(ctx context.Context, req resource.ReadRequest
 	stateCustomFields := data.CustomFields
 
 	// Map response to state
-	r.mapClusterTypeToState(ctx, clusterType, &data, &resp.Diagnostics)
+	r.mapClusterTypeToState(clusterType, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -295,7 +294,7 @@ func (r *ClusterTypeResource) Update(ctx context.Context, req resource.UpdateReq
 	planCustomFields := plan.CustomFields
 
 	// Map response to state
-	r.mapClusterTypeToState(ctx, clusterType, &plan, &resp.Diagnostics)
+	r.mapClusterTypeToState(clusterType, &plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -400,7 +399,7 @@ func (r *ClusterTypeResource) ImportState(ctx context.Context, req resource.Impo
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapClusterTypeToState(ctx, clusterType, &data, &resp.Diagnostics)
+		r.mapClusterTypeToState(clusterType, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}

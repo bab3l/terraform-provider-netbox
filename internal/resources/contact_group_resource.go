@@ -11,7 +11,6 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -163,7 +162,7 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	r.mapContactGroupToState(ctx, contactGroup, &data, &resp.Diagnostics)
+	r.mapContactGroupToState(contactGroup, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -210,7 +209,7 @@ func (r *ContactGroupResource) Read(ctx context.Context, req resource.ReadReques
 	stateTags := data.Tags
 	stateCustomFields := data.CustomFields
 
-	r.mapContactGroupToState(ctx, contactGroup, &data, &resp.Diagnostics)
+	r.mapContactGroupToState(contactGroup, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -283,7 +282,7 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// Map response to model
-	r.mapContactGroupToState(ctx, contactGroup, &plan, &resp.Diagnostics)
+	r.mapContactGroupToState(contactGroup, &plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -376,7 +375,7 @@ func (r *ContactGroupResource) ImportState(ctx context.Context, req resource.Imp
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapContactGroupToState(ctx, contactGroup, &data, &resp.Diagnostics)
+		r.mapContactGroupToState(contactGroup, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -411,7 +410,7 @@ func (r *ContactGroupResource) ImportState(ctx context.Context, req resource.Imp
 }
 
 // mapContactGroupToState maps API response to Terraform state.
-func (r *ContactGroupResource) mapContactGroupToState(ctx context.Context, contactGroup *netbox.ContactGroup, data *ContactGroupResourceModel, diags *diag.Diagnostics) {
+func (r *ContactGroupResource) mapContactGroupToState(contactGroup *netbox.ContactGroup, data *ContactGroupResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", contactGroup.GetId()))
 	data.Name = types.StringValue(contactGroup.GetName())
 	data.Slug = types.StringValue(contactGroup.GetSlug())

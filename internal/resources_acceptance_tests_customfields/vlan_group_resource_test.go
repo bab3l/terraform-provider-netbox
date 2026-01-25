@@ -107,6 +107,8 @@ resource "netbox_custom_field" "cf_owner" {
   name        = %[4]q
   type        = "text"
   object_types = ["ipam.vlangroup"]
+
+	depends_on = [netbox_custom_field.cf_env]
 }
 
 resource "netbox_vlan_group" "test" {
@@ -141,6 +143,8 @@ resource "netbox_custom_field" "cf_owner" {
   name        = %[4]q
   type        = "text"
   object_types = ["ipam.vlangroup"]
+
+	depends_on = [netbox_custom_field.cf_env]
 }
 
 resource "netbox_vlan_group" "test" {
@@ -163,6 +167,8 @@ resource "netbox_custom_field" "cf_owner" {
   name        = %[4]q
   type        = "text"
   object_types = ["ipam.vlangroup"]
+
+	depends_on = [netbox_custom_field.cf_env]
 }
 
 resource "netbox_vlan_group" "test" {

@@ -80,6 +80,8 @@ resource "netbox_custom_field" "integer" {
   name         = %[9]q
   type         = "integer"
   object_types = ["tenancy.contactassignment"]
+
+  depends_on = [netbox_custom_field.text]
 }
 
 resource "netbox_contact_group" "test" {
@@ -139,6 +141,8 @@ resource "netbox_custom_field" "integer" {
   name         = %[9]q
   type         = "integer"
   object_types = ["tenancy.contactassignment"]
+
+  depends_on = [netbox_custom_field.text]
 }
 
 resource "netbox_contact_group" "test" {
@@ -204,7 +208,7 @@ func TestAccContactAssignmentResource_importWithCustomFieldsAndTags(t *testing.T
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccContactAssignmentResourceImportConfig_full(contactName, "", contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				Config: testAccContactAssignmentResourceImportConfig_full(contactName, contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_contact_assignment.test", "id"),
 					// Verify custom fields are applied
@@ -214,21 +218,21 @@ func TestAccContactAssignmentResource_importWithCustomFieldsAndTags(t *testing.T
 				),
 			},
 			{
-				Config:            testAccContactAssignmentResourceImportConfig_full(contactName, "", contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				Config:            testAccContactAssignmentResourceImportConfig_full(contactName, contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
 				ResourceName:      "netbox_contact_assignment.test",
 				ImportState:       true,
 				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
 				ImportStateVerify: false,
 			},
 			{
-				Config:   testAccContactAssignmentResourceImportConfig_full(contactName, "", contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				Config:   testAccContactAssignmentResourceImportConfig_full(contactName, contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
 				PlanOnly: true,
 			},
 		},
 	})
 }
 
-func testAccContactAssignmentResourceImportConfig_full(contactName, contactSlug, contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug string) string {
+func testAccContactAssignmentResourceImportConfig_full(contactName, contactGroupName, contactGroupSlug, contactRoleName, contactRoleSlug, siteName, siteSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug string) string {
 	return fmt.Sprintf(`
 # Dependencies
 resource "netbox_contact_group" "test" {
@@ -262,36 +266,48 @@ resource "netbox_custom_field" "cf_longtext" {
   name         = %q
   type         = "longtext"
   object_types = ["tenancy.contactassignment"]
+
+  depends_on = [netbox_custom_field.cf_text]
 }
 
 resource "netbox_custom_field" "cf_integer" {
   name         = %q
   type         = "integer"
   object_types = ["tenancy.contactassignment"]
+
+  depends_on = [netbox_custom_field.cf_longtext]
 }
 
 resource "netbox_custom_field" "cf_boolean" {
   name         = %q
   type         = "boolean"
   object_types = ["tenancy.contactassignment"]
+
+  depends_on = [netbox_custom_field.cf_integer]
 }
 
 resource "netbox_custom_field" "cf_date" {
   name         = %q
   type         = "date"
   object_types = ["tenancy.contactassignment"]
+
+  depends_on = [netbox_custom_field.cf_boolean]
 }
 
 resource "netbox_custom_field" "cf_url" {
   name         = %q
   type         = "url"
   object_types = ["tenancy.contactassignment"]
+
+  depends_on = [netbox_custom_field.cf_date]
 }
 
 resource "netbox_custom_field" "cf_json" {
   name         = %q
   type         = "json"
   object_types = ["tenancy.contactassignment"]
+
+  depends_on = [netbox_custom_field.cf_url]
 }
 
 # Tags

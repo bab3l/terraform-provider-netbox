@@ -11,7 +11,6 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -135,7 +134,7 @@ func (d *CableTerminationDataSource) Read(ctx context.Context, req datasource.Re
 	}
 
 	// Map response to state
-	d.mapToState(ctx, result, &data, &resp.Diagnostics)
+	d.mapToState(result, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -143,7 +142,7 @@ func (d *CableTerminationDataSource) Read(ctx context.Context, req datasource.Re
 }
 
 // mapToState maps the API response to the Terraform state.
-func (d *CableTerminationDataSource) mapToState(ctx context.Context, result *netbox.CableTermination, data *CableTerminationDataSourceModel, diags *diag.Diagnostics) {
+func (d *CableTerminationDataSource) mapToState(result *netbox.CableTermination, data *CableTerminationDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
 	// Map cable (required field)

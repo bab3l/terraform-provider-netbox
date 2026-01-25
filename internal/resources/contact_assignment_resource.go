@@ -12,7 +12,6 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -208,7 +207,7 @@ func (r *ContactAssignmentResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Map response to state
-	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+	r.mapResponseToState(assignment, &data)
 
 	// Apply filter-to-owned pattern
 	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, assignment.HasTags(), assignment.GetTags(), planTags)
@@ -262,7 +261,7 @@ func (r *ContactAssignmentResource) Read(ctx context.Context, req resource.ReadR
 	stateCustomFields := data.CustomFields
 
 	// Map response to state
-	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+	r.mapResponseToState(assignment, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -372,7 +371,7 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Map response to state
-	r.mapResponseToState(ctx, assignment, &plan, &resp.Diagnostics)
+	r.mapResponseToState(assignment, &plan)
 
 	// Apply filter-to-owned pattern
 	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, assignment.HasTags(), assignment.GetTags(), plan.Tags)
@@ -470,7 +469,7 @@ func (r *ContactAssignmentResource) ImportState(ctx context.Context, req resourc
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+		r.mapResponseToState(assignment, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -505,7 +504,7 @@ func (r *ContactAssignmentResource) ImportState(ctx context.Context, req resourc
 }
 
 // mapResponseToState maps a ContactAssignment API response to the Terraform state model.
-func (r *ContactAssignmentResource) mapResponseToState(ctx context.Context, assignment *netbox.ContactAssignment, data *ContactAssignmentResourceModel, diags *diag.Diagnostics) {
+func (r *ContactAssignmentResource) mapResponseToState(assignment *netbox.ContactAssignment, data *ContactAssignmentResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", assignment.GetId()))
 	data.ObjectType = types.StringValue(assignment.GetObjectType())
 	data.ObjectID = types.StringValue(fmt.Sprintf("%d", assignment.GetObjectId()))

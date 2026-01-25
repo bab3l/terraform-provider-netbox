@@ -138,12 +138,12 @@ func (d *ScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	// Map response to state
-	d.mapResponseToState(ctx, script, &data)
+	d.mapResponseToState(script, &data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // mapResponseToState maps the API response to the Terraform state.
-func (d *ScriptDataSource) mapResponseToState(ctx context.Context, script *netbox.Script, data *ScriptDataSourceModel) {
+func (d *ScriptDataSource) mapResponseToState(script *netbox.Script, data *ScriptDataSourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", script.GetId()))
 	data.Name = types.StringValue(script.GetName())
 	data.Module = types.Int64Value(int64(script.GetModule()))

@@ -12,7 +12,6 @@ import (
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -180,7 +179,7 @@ func (r *ModuleBayTemplateResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Map response to state
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	r.mapToState(result, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -222,7 +221,7 @@ func (r *ModuleBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	// Map response to state
-	r.mapToState(ctx, result, &data, &resp.Diagnostics)
+	r.mapToState(result, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -313,7 +312,7 @@ func (r *ModuleBayTemplateResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Map response to state
-	r.mapToState(ctx, result, &plan, &resp.Diagnostics)
+	r.mapToState(result, &plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -361,7 +360,7 @@ func (r *ModuleBayTemplateResource) ImportState(ctx context.Context, req resourc
 }
 
 // mapToState maps the API response to the Terraform state.
-func (r *ModuleBayTemplateResource) mapToState(ctx context.Context, result *netbox.ModuleBayTemplate, data *ModuleBayTemplateResourceModel, diags *diag.Diagnostics) {
+func (r *ModuleBayTemplateResource) mapToState(result *netbox.ModuleBayTemplate, data *ModuleBayTemplateResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 	data.Name = types.StringValue(result.GetName())
 

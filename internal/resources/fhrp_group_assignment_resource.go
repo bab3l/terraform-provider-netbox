@@ -11,7 +11,6 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/bab3l/terraform-provider-netbox/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -194,7 +193,7 @@ func (r *FHRPGroupAssignmentResource) Create(ctx context.Context, req resource.C
 	}
 
 	// Map response to state
-	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+	r.mapResponseToState(assignment, &data)
 	tflog.Debug(ctx, "Created FHRP group assignment", map[string]interface{}{
 		"id": assignment.GetId(),
 	})
@@ -238,7 +237,7 @@ func (r *FHRPGroupAssignmentResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	// Map response to state
-	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+	r.mapResponseToState(assignment, &data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -330,7 +329,7 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 	}
 
 	// Map response to state
-	r.mapResponseToState(ctx, assignment, &data, &resp.Diagnostics)
+	r.mapResponseToState(assignment, &data)
 	tflog.Debug(ctx, "Updated FHRP group assignment", map[string]interface{}{
 		"id": assignment.GetId(),
 	})
@@ -380,7 +379,7 @@ func (r *FHRPGroupAssignmentResource) ImportState(ctx context.Context, req resou
 }
 
 // mapResponseToState maps the API response to the Terraform state.
-func (r *FHRPGroupAssignmentResource) mapResponseToState(ctx context.Context, assignment *netbox.FHRPGroupAssignment, data *FHRPGroupAssignmentResourceModel, diags *diag.Diagnostics) {
+func (r *FHRPGroupAssignmentResource) mapResponseToState(assignment *netbox.FHRPGroupAssignment, data *FHRPGroupAssignmentResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", assignment.GetId()))
 	group := assignment.GetGroup()
 	data.GroupID = types.StringValue(fmt.Sprintf("%d", group.Id))

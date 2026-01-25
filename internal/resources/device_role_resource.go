@@ -13,7 +13,6 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -94,7 +93,7 @@ func (r *DeviceRoleResource) Configure(ctx context.Context, req resource.Configu
 }
 
 // mapDeviceRoleToState maps a DeviceRole from the API to the Terraform state model.
-func (r *DeviceRoleResource) mapDeviceRoleToState(ctx context.Context, deviceRole *netbox.DeviceRole, data *DeviceRoleResourceModel, diags *diag.Diagnostics) {
+func (r *DeviceRoleResource) mapDeviceRoleToState(deviceRole *netbox.DeviceRole, data *DeviceRoleResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", deviceRole.GetId()))
 	data.Name = types.StringValue(deviceRole.GetName())
 	data.Slug = types.StringValue(deviceRole.GetSlug())
@@ -208,7 +207,7 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 	})
 
 	// Map response to state
-	r.mapDeviceRoleToState(ctx, deviceRole, &data, &resp.Diagnostics)
+	r.mapDeviceRoleToState(deviceRole, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -265,7 +264,7 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 	originalCustomFields := data.CustomFields
 
 	// Map response to state
-	r.mapDeviceRoleToState(ctx, deviceRole, &data, &resp.Diagnostics)
+	r.mapDeviceRoleToState(deviceRole, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -381,7 +380,7 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 	})
 
 	// Map response to state
-	r.mapDeviceRoleToState(ctx, deviceRole, &data, &resp.Diagnostics)
+	r.mapDeviceRoleToState(deviceRole, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -467,7 +466,7 @@ func (r *DeviceRoleResource) ImportState(ctx context.Context, req resource.Impor
 		}
 
 		var data DeviceRoleResourceModel
-		r.mapDeviceRoleToState(ctx, deviceRole, &data, &resp.Diagnostics)
+		r.mapDeviceRoleToState(deviceRole, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}

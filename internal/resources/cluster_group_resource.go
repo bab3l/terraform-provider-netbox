@@ -10,7 +10,6 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -144,7 +143,7 @@ func (r *ClusterGroupResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	r.mapClusterGroupToState(ctx, clusterGroup, &data, &resp.Diagnostics)
+	r.mapClusterGroupToState(clusterGroup, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -186,7 +185,7 @@ func (r *ClusterGroupResource) Read(ctx context.Context, req resource.ReadReques
 	stateTags := data.Tags
 	stateCustomFields := data.CustomFields
 
-	r.mapClusterGroupToState(ctx, clusterGroup, &data, &resp.Diagnostics)
+	r.mapClusterGroupToState(clusterGroup, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -244,7 +243,7 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 		resp.Diagnostics.AddError("Error updating cluster group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
-	r.mapClusterGroupToState(ctx, clusterGroup, &plan, &resp.Diagnostics)
+	r.mapClusterGroupToState(clusterGroup, &plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -330,7 +329,7 @@ func (r *ClusterGroupResource) ImportState(ctx context.Context, req resource.Imp
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapClusterGroupToState(ctx, clusterGroup, &data, &resp.Diagnostics)
+		r.mapClusterGroupToState(clusterGroup, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -365,7 +364,7 @@ func (r *ClusterGroupResource) ImportState(ctx context.Context, req resource.Imp
 }
 
 // mapClusterGroupToState maps API response to Terraform state.
-func (r *ClusterGroupResource) mapClusterGroupToState(ctx context.Context, clusterGroup *netbox.ClusterGroup, data *ClusterGroupResourceModel, diags *diag.Diagnostics) {
+func (r *ClusterGroupResource) mapClusterGroupToState(clusterGroup *netbox.ClusterGroup, data *ClusterGroupResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", clusterGroup.GetId()))
 	data.Name = types.StringValue(clusterGroup.GetName())
 	data.Slug = types.StringValue(clusterGroup.GetSlug())

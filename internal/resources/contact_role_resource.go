@@ -10,7 +10,6 @@ import (
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -143,7 +142,7 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 		resp.Diagnostics.AddError("Error creating contact role", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
 		return
 	}
-	r.mapContactRoleToState(ctx, contactRole, &data, &resp.Diagnostics)
+	r.mapContactRoleToState(contactRole, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -186,7 +185,7 @@ func (r *ContactRoleResource) Read(ctx context.Context, req resource.ReadRequest
 	// Store state values before mapping
 	stateTags := data.Tags
 	stateCustomFields := data.CustomFields
-	r.mapContactRoleToState(ctx, contactRole, &data, &resp.Diagnostics)
+	r.mapContactRoleToState(contactRole, &data)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -242,7 +241,7 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 		resp.Diagnostics.AddError("Error updating contact role", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
 		return
 	}
-	r.mapContactRoleToState(ctx, contactRole, &plan, &resp.Diagnostics)
+	r.mapContactRoleToState(contactRole, &plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -325,7 +324,7 @@ func (r *ContactRoleResource) ImportState(ctx context.Context, req resource.Impo
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
 
-		r.mapContactRoleToState(ctx, contactRole, &data, &resp.Diagnostics)
+		r.mapContactRoleToState(contactRole, &data)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -360,7 +359,7 @@ func (r *ContactRoleResource) ImportState(ctx context.Context, req resource.Impo
 }
 
 // mapContactRoleToState maps API response to Terraform state.
-func (r *ContactRoleResource) mapContactRoleToState(ctx context.Context, contactRole *netbox.ContactRole, data *ContactRoleResourceModel, diags *diag.Diagnostics) {
+func (r *ContactRoleResource) mapContactRoleToState(contactRole *netbox.ContactRole, data *ContactRoleResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", contactRole.GetId()))
 	data.Name = types.StringValue(contactRole.GetName())
 	data.Slug = types.StringValue(contactRole.GetSlug())
