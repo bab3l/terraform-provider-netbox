@@ -6,13 +6,13 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_device_type" "test" {
   model        = "Test Model"
   slug         = "test-model"
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
   u_height     = 1
 }
 
 resource "netbox_interface_template" "test" {
   name        = "GigabitEthernet1/0/1"
-  device_type = netbox_device_type.test.model
+  device_type = netbox_device_type.test.id
   type        = "1000base-t"
 
   # Partial custom fields management

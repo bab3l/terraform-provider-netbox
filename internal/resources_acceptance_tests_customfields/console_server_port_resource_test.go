@@ -118,14 +118,14 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_device" "test" {
   name        = %q
-  device_type = netbox_device_type.test.slug
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
 }
 
 # Custom Fields
@@ -197,7 +197,7 @@ resource "netbox_tag" "tag2" {
 # Main Resource
 resource "netbox_console_server_port" "test" {
   name   = %q
-  device = netbox_device.test.name
+  device = netbox_device.test.id
 
   custom_fields = [
     {
@@ -344,14 +344,14 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = %[7]q
   slug         = %[8]q
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_device" "test" {
   name        = %[2]q
-  device_type = netbox_device_type.test.slug
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
 }
 
 resource "netbox_custom_field" "env" {
@@ -368,7 +368,7 @@ resource "netbox_custom_field" "owner" {
 
 resource "netbox_console_server_port" "test" {
   name   = %[1]q
-  device = netbox_device.test.name
+  device = netbox_device.test.id
 
   custom_fields = [
     {
@@ -407,14 +407,14 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = %[7]q
   slug         = %[8]q
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_device" "test" {
   name        = %[2]q
-  device_type = netbox_device_type.test.slug
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
 }
 
 resource "netbox_custom_field" "env" {
@@ -431,7 +431,7 @@ resource "netbox_custom_field" "owner" {
 
 resource "netbox_console_server_port" "test" {
   name        = %[1]q
-  device      = netbox_device.test.name
+  device      = netbox_device.test.id
   description = "Updated description"
   # custom_fields intentionally omitted - testing preservation
 }
@@ -459,14 +459,14 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = %[7]q
   slug         = %[8]q
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_device" "test" {
   name        = %[2]q
-  device_type = netbox_device_type.test.slug
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
 }
 
 resource "netbox_custom_field" "env" {
@@ -483,7 +483,7 @@ resource "netbox_custom_field" "owner" {
 
 resource "netbox_console_server_port" "test" {
   name        = %[1]q
-  device      = netbox_device.test.name
+  device      = netbox_device.test.id
   description = "Updated description"
 
   custom_fields = [

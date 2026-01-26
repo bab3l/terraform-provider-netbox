@@ -589,9 +589,9 @@ func (r *ProviderNetworkResource) mapResponseToModel(ctx context.Context, pn *ne
 
 	data.Name = types.StringValue(pn.GetName())
 
-	// Map Provider (use ID to match what was passed in)
-
-	data.CircuitProvider = types.StringValue(fmt.Sprintf("%d", pn.Provider.GetId()))
+	// Map Provider - preserve user's input format
+	provider := pn.GetProvider()
+	data.CircuitProvider = utils.UpdateReferenceAttribute(data.CircuitProvider, provider.GetName(), provider.GetSlug(), provider.GetId())
 
 	// Map service_id
 

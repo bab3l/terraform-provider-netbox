@@ -367,7 +367,7 @@ func (r *ModuleBayTemplateResource) mapToState(result *netbox.ModuleBayTemplate,
 	// Map device type - preserve user's input format
 	if result.HasDeviceType() && result.GetDeviceType().Id != 0 {
 		dt := result.GetDeviceType()
-		data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, dt.GetModel(), dt.GetSlug(), dt.GetId())
+		data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, dt.GetSlug(), "", dt.GetId())
 	} else {
 		data.DeviceType = types.StringNull()
 	}

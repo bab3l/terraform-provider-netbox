@@ -621,13 +621,7 @@ func (r *TunnelTerminationResource) mapTunnelTerminationToState(ctx context.Cont
 
 	tunnel := tunnelTermination.Tunnel
 
-	userTunnel := data.Tunnel.ValueString()
-
-	if userTunnel == tunnel.GetName() || userTunnel == tunnel.GetDisplay() || userTunnel == fmt.Sprintf("%d", tunnel.GetId()) {
-		// Keep user's original value
-	} else {
-		data.Tunnel = types.StringValue(tunnel.GetName())
-	}
+	data.Tunnel = utils.UpdateReferenceAttribute(data.Tunnel, tunnel.GetName(), "", tunnel.GetId())
 
 	data.TerminationType = types.StringValue(tunnelTermination.GetTerminationType())
 

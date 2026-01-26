@@ -293,9 +293,9 @@ func TestAccConsistency_Site(t *testing.T) {
 				Config: testAccSiteConsistencyConfig(siteName, siteSlug, regionName, regionSlug, groupName, groupSlug, tenantName, tenantSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_site.test", "name", siteName),
-					resource.TestCheckResourceAttr("netbox_site.test", "region", regionName),
-					resource.TestCheckResourceAttr("netbox_site.test", "group", groupName),
-					resource.TestCheckResourceAttr("netbox_site.test", "tenant", tenantName),
+					testutil.ReferenceFieldCheck("netbox_site.test", "region"),
+					testutil.ReferenceFieldCheck("netbox_site.test", "group"),
+					testutil.ReferenceFieldCheck("netbox_site.test", "tenant"),
 				),
 			},
 			{
@@ -438,9 +438,9 @@ resource "netbox_tenant" "test" {
 resource "netbox_site" "test" {
   name = "%[1]s"
   slug = "%[2]s"
-  region = netbox_region.test.name
-  group = netbox_site_group.test.name
-  tenant = netbox_tenant.test.name
+	region = netbox_region.test.id
+	group = netbox_site_group.test.id
+	tenant = netbox_tenant.test.id
 }
 `, siteName, siteSlug, regionName, regionSlug, groupName, groupSlug, tenantName, tenantSlug)
 }

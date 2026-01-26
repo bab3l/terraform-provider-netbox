@@ -471,12 +471,7 @@ func (r *InventoryItemTemplateResource) mapToState(result *netbox.InventoryItemT
 
 	// Map device type (required field)
 	deviceType := result.GetDeviceType()
-	userDeviceType := data.DeviceType.ValueString()
-	if userDeviceType == deviceType.GetModel() || userDeviceType == deviceType.GetSlug() || userDeviceType == deviceType.GetDisplay() || userDeviceType == fmt.Sprintf("%d", deviceType.GetId()) {
-		// Keep user's original value
-	} else {
-		data.DeviceType = types.StringValue(deviceType.GetModel())
-	}
+	data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, deviceType.GetSlug(), deviceType.GetModel(), deviceType.GetId())
 
 	// Map parent (NullableInt32 - just the ID)
 	// Check if the value is set and non-nil (parent: null in JSON means no parent)
@@ -496,12 +491,7 @@ func (r *InventoryItemTemplateResource) mapToState(result *netbox.InventoryItemT
 	// Map role
 	if result.HasRole() && result.GetRole().Id != 0 {
 		role := result.GetRole()
-		userRole := data.Role.ValueString()
-		if userRole == role.GetName() || userRole == role.GetSlug() || userRole == role.GetDisplay() || userRole == fmt.Sprintf("%d", role.GetId()) {
-			// Keep user's original value
-		} else {
-			data.Role = types.StringValue(role.GetName())
-		}
+		data.Role = utils.UpdateReferenceAttribute(data.Role, role.GetName(), role.GetSlug(), role.GetId())
 	} else {
 		data.Role = types.StringNull()
 	}
@@ -509,12 +499,7 @@ func (r *InventoryItemTemplateResource) mapToState(result *netbox.InventoryItemT
 	// Map manufacturer
 	if result.HasManufacturer() && result.GetManufacturer().Id != 0 {
 		manufacturer := result.GetManufacturer()
-		userManufacturer := data.Manufacturer.ValueString()
-		if userManufacturer == manufacturer.GetName() || userManufacturer == manufacturer.GetSlug() || userManufacturer == manufacturer.GetDisplay() || userManufacturer == fmt.Sprintf("%d", manufacturer.GetId()) {
-			// Keep user's original value
-		} else {
-			data.Manufacturer = types.StringValue(manufacturer.GetName())
-		}
+		data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, manufacturer.GetName(), manufacturer.GetSlug(), manufacturer.GetId())
 	} else {
 		data.Manufacturer = types.StringNull()
 	}

@@ -118,15 +118,15 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.slug
+	manufacturer = netbox_manufacturer.test.id
   subdevice_role = "parent"
 }
 
 resource "netbox_device" "test" {
   name        = %q
-  device_type = netbox_device_type.test.slug
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	site        = netbox_site.test.id
 }
 
 # Custom Fields
@@ -198,7 +198,7 @@ resource "netbox_tag" "tag2" {
 # Main Resource
 resource "netbox_device_bay" "test" {
   name   = %q
-  device = netbox_device.test.name
+	device = netbox_device.test.id
 
   custom_fields = [
     {
@@ -385,7 +385,7 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.slug
+	manufacturer = netbox_manufacturer.test.id
   subdevice_role = "parent"
 }
 
@@ -403,15 +403,15 @@ resource "netbox_custom_field" "integer" {
 
 resource "netbox_device" "test" {
   name        = %q
-  site        = netbox_site.test.slug
-  role        = netbox_device_role.test.slug
-  device_type = netbox_device_type.test.slug
-  tenant      = netbox_tenant.test.slug
+	site        = netbox_site.test.id
+	role        = netbox_device_role.test.id
+	device_type = netbox_device_type.test.id
+	tenant      = netbox_tenant.test.id
   status      = "active"
 }
 
 resource "netbox_device_bay" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name   = %q
   label  = "Test Label"
 
@@ -470,7 +470,7 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.slug
+	manufacturer = netbox_manufacturer.test.id
   subdevice_role = "parent"
 }
 
@@ -488,15 +488,15 @@ resource "netbox_custom_field" "integer" {
 
 resource "netbox_device" "test" {
   name        = %q
-  site        = netbox_site.test.slug
-  role        = netbox_device_role.test.slug
-  device_type = netbox_device_type.test.slug
-  tenant      = netbox_tenant.test.slug
+	site        = netbox_site.test.id
+	role        = netbox_device_role.test.id
+	device_type = netbox_device_type.test.id
+	tenant      = netbox_tenant.test.id
   status      = "active"
 }
 
 resource "netbox_device_bay" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name   = %q
   label  = %q
 }

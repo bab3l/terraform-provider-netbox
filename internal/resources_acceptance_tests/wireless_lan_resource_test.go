@@ -223,7 +223,7 @@ func TestAccConsistency_WirelessLAN(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "ssid", ssid),
 					resource.TestCheckResourceAttrSet("netbox_wireless_lan.test", "group"),
-					resource.TestCheckResourceAttr("netbox_wireless_lan.test", "tenant", tenantName),
+					testutil.ReferenceFieldCheck("netbox_wireless_lan.test", "tenant"),
 				),
 			},
 			{
@@ -249,7 +249,7 @@ resource "netbox_tenant" "test" {
 resource "netbox_wireless_lan" "test" {
   ssid = "%[2]s"
   group = netbox_wireless_lan_group.test.id
-  tenant = netbox_tenant.test.name
+	tenant = netbox_tenant.test.id
 }
 `, wlanName, ssid, groupName, groupSlug, tenantName, tenantSlug)
 }

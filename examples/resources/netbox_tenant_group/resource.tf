@@ -62,7 +62,7 @@ import {
 resource "netbox_tenant_group" "subsidiaries" {
   name        = "Subsidiary Companies"
   slug        = "subsidiaries"
-  parent      = netbox_tenant_group.corporate.slug
+  parent      = netbox_tenant_group.corporate.id
   description = "Group for subsidiary company tenants"
 
   tags = [
@@ -77,7 +77,7 @@ resource "netbox_tenant_group" "subsidiaries" {
 resource "netbox_tenant_group" "departments" {
   name        = "Departments"
   slug        = "departments"
-  parent      = netbox_tenant_group.corporate.slug
+  parent      = netbox_tenant_group.corporate.id
   description = "Group for internal department tenants"
 
   tags = [

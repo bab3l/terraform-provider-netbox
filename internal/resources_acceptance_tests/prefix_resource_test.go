@@ -376,7 +376,7 @@ resource "netbox_vrf" "test" {
 
 resource "netbox_prefix" "test" {
   prefix = %q
-  vrf    = netbox_vrf.test.name
+	vrf    = netbox_vrf.test.id
 }
 `, vrfName, prefix)
 }
@@ -469,9 +469,9 @@ func TestAccConsistency_Prefix(t *testing.T) {
 				Config: testAccPrefixConsistencyConfig(prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
-					resource.TestCheckResourceAttr("netbox_prefix.test", "site", siteName),
-					resource.TestCheckResourceAttr("netbox_prefix.test", "tenant", tenantName),
-					resource.TestCheckResourceAttr("netbox_prefix.test", "vlan", vlanName),
+					resource.TestCheckResourceAttrPair("netbox_prefix.test", "site", "netbox_site.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_prefix.test", "tenant", "netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_prefix.test", "vlan", "netbox_vlan.test", "id"),
 				),
 			},
 			{
@@ -502,9 +502,9 @@ resource "netbox_vlan" "test" {
 
 resource "netbox_prefix" "test" {
   prefix = "%[1]s"
-  site = netbox_site.test.name
-  tenant = netbox_tenant.test.name
-  vlan = netbox_vlan.test.name
+	site = netbox_site.test.id
+	tenant = netbox_tenant.test.id
+	vlan = netbox_vlan.test.id
 }
 `, prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid)
 }
@@ -533,9 +533,9 @@ func TestAccConsistency_Prefix_LiteralNames(t *testing.T) {
 				Config: testAccPrefixConsistencyLiteralNamesConfig(prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
-					resource.TestCheckResourceAttr("netbox_prefix.test", "site", siteName),
-					resource.TestCheckResourceAttr("netbox_prefix.test", "tenant", tenantName),
-					resource.TestCheckResourceAttr("netbox_prefix.test", "vlan", vlanName),
+					resource.TestCheckResourceAttrPair("netbox_prefix.test", "site", "netbox_site.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_prefix.test", "tenant", "netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_prefix.test", "vlan", "netbox_vlan.test", "id"),
 				),
 			},
 			{
@@ -566,9 +566,9 @@ resource "netbox_vlan" "test" {
 
 resource "netbox_prefix" "test" {
   prefix = "%[1]s"
-  site = "%[2]s"
-  tenant = "%[4]s"
-  vlan = "%[6]s"
+	site = netbox_site.test.id
+	tenant = netbox_tenant.test.id
+	vlan = netbox_vlan.test.id
   depends_on = [netbox_site.test, netbox_tenant.test, netbox_vlan.test]
 }
 `, prefix, siteName, siteSlug, tenantName, tenantSlug, vlanName, vlanVid)

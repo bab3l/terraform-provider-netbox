@@ -32,7 +32,7 @@ resource "netbox_device" "test" {
 
 resource "netbox_rear_port" "test" {
   name        = "Rear Port 1"
-  device      = netbox_device.test.name
+  device      = netbox_device.test.id
   type        = "8p8c"
   positions   = 1
   description = "Patch panel rear connection"

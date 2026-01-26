@@ -17,6 +17,12 @@ import (
 // refer to the same NetBox object but use different representations
 // (name vs ID vs slug). This is used as a plan modifier for reference fields.
 func suppressReferenceEquivalent(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	// If the user explicitly configured a value, honor their chosen format.
+	// We only suppress diffs for unmanaged (null/unknown) config values.
+	if !req.ConfigValue.IsNull() && !req.ConfigValue.IsUnknown() {
+		return
+	}
+
 	// Skip if no prior state (new resource)
 	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
 		return

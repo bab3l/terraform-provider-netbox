@@ -547,43 +547,13 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 	data.ID = types.StringValue(fmt.Sprintf("%d", circuit.GetId()))
 	data.Cid = types.StringValue(circuit.GetCid())
 
-	// Provider - preserve user input if it matches, otherwise normalize to slug/name
+	// Provider - preserve user's reference format
 	providerObj := circuit.GetProvider()
-	if data.CircuitProvider.IsUnknown() || data.CircuitProvider.IsNull() {
-		// During initial creation, set to ID so plan matches apply
-		data.CircuitProvider = types.StringValue(fmt.Sprintf("%d", providerObj.GetId()))
-	} else {
-		userProvider := data.CircuitProvider.ValueString()
-		if userProvider == providerObj.GetName() || userProvider == providerObj.GetSlug() || userProvider == providerObj.GetDisplay() || userProvider == fmt.Sprintf("%d", providerObj.GetId()) {
-			// Keep user's original value
-		} else {
-			// Reference changed, update to slug/name
-			if providerObj.GetSlug() != "" {
-				data.CircuitProvider = types.StringValue(providerObj.GetSlug())
-			} else {
-				data.CircuitProvider = types.StringValue(providerObj.GetName())
-			}
-		}
-	}
+	data.CircuitProvider = utils.UpdateReferenceAttribute(data.CircuitProvider, providerObj.GetSlug(), "", providerObj.GetId())
 
-	// Type - preserve user input if it matches, otherwise normalize to slug/name
+	// Type - preserve user's reference format
 	typeObj := circuit.GetType()
-	if data.Type.IsUnknown() || data.Type.IsNull() {
-		// During initial creation, set to ID so plan matches apply
-		data.Type = types.StringValue(fmt.Sprintf("%d", typeObj.GetId()))
-	} else {
-		userType := data.Type.ValueString()
-		if userType == typeObj.GetName() || userType == typeObj.GetSlug() || userType == typeObj.GetDisplay() || userType == fmt.Sprintf("%d", typeObj.GetId()) {
-			// Keep user's original value
-		} else {
-			// Reference changed, update to slug/name
-			if typeObj.GetSlug() != "" {
-				data.Type = types.StringValue(typeObj.GetSlug())
-			} else {
-				data.Type = types.StringValue(typeObj.GetName())
-			}
-		}
-	}
+	data.Type = utils.UpdateReferenceAttribute(data.Type, typeObj.GetSlug(), "", typeObj.GetId())
 
 	// Provider account - preserve user input if it matches, otherwise normalize to account
 	if circuit.ProviderAccount.IsSet() && circuit.ProviderAccount.Get() != nil {
@@ -609,25 +579,10 @@ func (r *CircuitResource) mapCircuitToState(ctx context.Context, circuit *netbox
 		data.Status = types.StringValue("active")
 	}
 
-	// Tenant - preserve user input if it matches, otherwise normalize to slug/name
+	// Tenant - preserve user's reference format
 	if circuit.Tenant.IsSet() && circuit.Tenant.Get() != nil {
 		tenantObj := circuit.Tenant.Get()
-		if data.Tenant.IsUnknown() || data.Tenant.IsNull() {
-			// During initial creation, set to ID so plan matches apply
-			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenantObj.GetId()))
-		} else {
-			userTenant := data.Tenant.ValueString()
-			if userTenant == tenantObj.GetName() || userTenant == tenantObj.GetSlug() || userTenant == tenantObj.GetDisplay() || userTenant == fmt.Sprintf("%d", tenantObj.GetId()) {
-				// Keep user's original value
-			} else {
-				// Reference changed, update to slug/name
-				if tenantObj.GetSlug() != "" {
-					data.Tenant = types.StringValue(tenantObj.GetSlug())
-				} else {
-					data.Tenant = types.StringValue(tenantObj.GetName())
-				}
-			}
-		}
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenantObj.GetName(), tenantObj.GetSlug(), tenantObj.GetId())
 	} else {
 		data.Tenant = types.StringNull()
 	}

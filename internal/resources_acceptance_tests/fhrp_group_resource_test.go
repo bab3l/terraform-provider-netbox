@@ -126,7 +126,7 @@ func TestAccFHRPGroupResource_update(t *testing.T) {
 	})
 }
 
-func TestAccFHRPGroupResource_external_deletion(t *testing.T) {
+func TestAccFHRPGroupResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	protocol := fhrpGroupProtocol

@@ -13,7 +13,7 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = "Test Model"
   slug         = "test-model"
-  manufacturer = netbox_manufacturer.test.name
+  manufacturer = netbox_manufacturer.test.id
   u_height     = 1
 }
 
@@ -24,7 +24,7 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device" "test" {
   name        = "test-device-1"
-  device_type = netbox_device_type.test.model
+  device_type = netbox_device_type.test.id
   role        = netbox_device_role.test.id
   site        = netbox_site.test.id
   status      = "active"
@@ -32,7 +32,7 @@ resource "netbox_device" "test" {
 
 resource "netbox_device_bay" "test" {
   name        = "Device Bay 1"
-  device      = netbox_device.test.name
+  device      = netbox_device.test.id
   description = "Expansion slot for modular device"
 
   # Partial custom fields management

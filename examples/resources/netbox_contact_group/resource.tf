@@ -57,7 +57,7 @@ resource "netbox_contact_group" "parent" {
 resource "netbox_contact_group" "child" {
   name        = "DevOps Team"
   slug        = "devops-team"
-  parent      = netbox_contact_group.parent.name
+  parent      = netbox_contact_group.parent.id
   description = "DevOps and infrastructure automation team"
 }
 

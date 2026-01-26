@@ -420,12 +420,7 @@ func (r *ContactGroupResource) mapContactGroupToState(contactGroup *netbox.Conta
 		parent := contactGroup.GetParent()
 		if parent.GetId() != 0 {
 			data.ParentID = types.StringValue(fmt.Sprintf("%d", parent.GetId()))
-			userParent := data.Parent.ValueString()
-			if userParent == parent.GetName() || userParent == parent.GetSlug() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
-				// Keep user's original value
-			} else {
-				data.Parent = types.StringValue(parent.GetName())
-			}
+			data.Parent = utils.UpdateReferenceAttribute(data.Parent, parent.GetName(), parent.GetSlug(), parent.GetId())
 		} else {
 			data.Parent = types.StringNull()
 			data.ParentID = types.StringNull()

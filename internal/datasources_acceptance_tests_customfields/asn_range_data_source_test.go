@@ -58,7 +58,7 @@ resource "netbox_custom_field" "test" {
 resource "netbox_asn_range" "test" {
   name  = %q
   slug  = %q
-  rir   = netbox_rir.test.slug
+	rir   = netbox_rir.test.id
   start = "64512"
   end   = "64520"
 

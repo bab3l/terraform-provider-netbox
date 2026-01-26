@@ -42,10 +42,9 @@ func TestAccDeviceBayResource_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_device_bay.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device"},
+				ResourceName:      "netbox_device_bay.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 				Check: resource.ComposeTestCheckFunc(
 					testutil.ReferenceFieldCheck("netbox_device_bay.test", "device"),
 					testutil.ReferenceFieldCheck("netbox_device_bay.test", "installed_device"),
@@ -132,7 +131,7 @@ func TestAccConsistency_DeviceBay(t *testing.T) {
 			{
 				Config: testAccDeviceBayConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, deviceBayName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_device_bay.test", "device", deviceName),
+					testutil.ReferenceFieldCheck("netbox_device_bay.test", "device"),
 				),
 			},
 			{
@@ -172,7 +171,7 @@ func TestAccConsistency_DeviceBay_LiteralNames(t *testing.T) {
 				Config: testAccDeviceBayConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_device_bay.test", "name", resourceName),
-					resource.TestCheckResourceAttr("netbox_device_bay.test", "device", deviceName),
+					resource.TestCheckResourceAttrPair("netbox_device_bay.test", "device", "netbox_device.test", "id"),
 				),
 			},
 			{
@@ -439,7 +438,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_device_bay" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = "%[10]s"
 }
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, deviceBayName)
@@ -479,11 +478,10 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_device_bay" "test" {
-  device = %q
+  device = netbox_device.test.id
   name = %q
-  depends_on = [netbox_device.test]
 }
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, deviceName, resourceName)
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName)
 }
 
 // NOTE: Custom field tests for device_bay resource are in resources_acceptance_tests_customfields package

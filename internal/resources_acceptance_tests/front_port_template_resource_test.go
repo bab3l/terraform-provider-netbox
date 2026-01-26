@@ -36,7 +36,7 @@ func TestAccFrontPortTemplateResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_front_port_template.test", "id"),
 					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", frontPortName),
 					resource.TestCheckResourceAttr("netbox_front_port_template.test", "type", portType),
-					resource.TestCheckResourceAttr("netbox_front_port_template.test", "rear_port", rearPortName),
+					resource.TestCheckResourceAttrPair("netbox_front_port_template.test", "rear_port", "netbox_rear_port_template.test", "id"),
 				),
 			},
 			{
@@ -186,7 +186,7 @@ func TestAccConsistency_FrontPortTemplate_LiteralNames(t *testing.T) {
 				Config: testAccFrontPortTemplateConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, resourceName, rearPortTemplateName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_front_port_template.test", "name", resourceName),
-					resource.TestCheckResourceAttr("netbox_front_port_template.test", "device_type", deviceTypeSlug),
+					resource.TestCheckResourceAttrPair("netbox_front_port_template.test", "device_type", "netbox_device_type.test", "id"),
 				),
 			},
 			{
@@ -270,7 +270,7 @@ resource "netbox_front_port_template" "test" {
   device_type = netbox_device_type.test.id
   name        = %q
   type        = %q
-  rear_port   = netbox_rear_port_template.test.name
+	rear_port   = netbox_rear_port_template.test.id
 }
 `, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, rearPortName, portType, frontPortName, portType)
 }
@@ -308,7 +308,7 @@ resource "netbox_front_port_template" "test" {
   device_type = netbox_device_type.test.id
   name        = %q
   type        = %q
-  rear_port   = netbox_rear_port_template.test.name
+	rear_port   = netbox_rear_port_template.test.id
   label       = %q
   description = %q
 }
@@ -339,7 +339,7 @@ resource "netbox_front_port_template" "test" {
   device_type        = netbox_device_type.test.id
   name               = %q
   type               = %q
-  rear_port          = netbox_rear_port_template.test.name
+	rear_port          = netbox_rear_port_template.test.id
   rear_port_position = %d
   label              = %q
   color              = %q
@@ -369,10 +369,10 @@ resource "netbox_rear_port_template" "rear" {
 }
 
 resource "netbox_front_port_template" "test" {
-  device_type = %[4]q
+	device_type = netbox_device_type.test.id
   name = %[6]q
   type = "8p8c"
-  rear_port = netbox_rear_port_template.rear.name
+	rear_port = netbox_rear_port_template.rear.id
   rear_port_position = 1
 
   depends_on = [netbox_device_type.test]
@@ -454,7 +454,7 @@ resource "netbox_front_port_template" "test" {
   device_type = netbox_device_type.test.id
   name = %[6]q
   type = "8p8c"
-  rear_port = netbox_rear_port_template.rear.name
+	rear_port = netbox_rear_port_template.rear.id
 	rear_port_position = %[7]d
 	label = %[8]q
 	color = %[9]q
@@ -487,7 +487,7 @@ resource "netbox_front_port_template" "test" {
   device_type = netbox_device_type.test.id
   name = %[6]q
   type = "8p8c"
-  rear_port = netbox_rear_port_template.rear.name
+	rear_port = netbox_rear_port_template.rear.id
 }
 `, mfgName, mfgSlug, dtModel, dtSlug, rearPortName, portName)
 }

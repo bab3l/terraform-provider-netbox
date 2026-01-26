@@ -182,7 +182,7 @@ func TestAccConsistency_InterfaceTemplate_LiteralNames(t *testing.T) {
 	})
 }
 
-func TestAccInterfaceTemplateResource_external_deletion(t *testing.T) {
+func TestAccInterfaceTemplateResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-interface-template-ext-del")

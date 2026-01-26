@@ -18,21 +18,21 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_device_type" "test" {
   model        = "PDU Model"
   slug         = "pdu-model"
-  manufacturer = netbox_manufacturer.test.name
+  manufacturer = netbox_manufacturer.test.id
   u_height     = 0
 }
 
 resource "netbox_device" "test" {
   name        = "test-pdu-1"
-  device_type = netbox_device_type.test.model
-  role        = netbox_device_role.test.name
-  site        = netbox_site.test.slug
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
   status      = "active"
 }
 
 resource "netbox_power_outlet" "test" {
   name        = "Outlet 1"
-  device      = netbox_device.test.name
+  device      = netbox_device.test.id
   type        = "iec-60320-c13"
   description = "PDU power outlet"
 

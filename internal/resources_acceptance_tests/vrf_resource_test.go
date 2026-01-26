@@ -403,7 +403,7 @@ func TestAccConsistency_VRF(t *testing.T) {
 				Config: testAccVRFConsistencyConfig(vrfName, tenantName, tenantSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_vrf.test", "name", vrfName),
-					resource.TestCheckResourceAttr("netbox_vrf.test", "tenant", tenantName),
+					testutil.ReferenceFieldCheck("netbox_vrf.test", "tenant"),
 				),
 			},
 			{
@@ -423,7 +423,7 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_vrf" "test" {
   name = "%[1]s"
-  tenant = netbox_tenant.test.name
+	tenant = netbox_tenant.test.id
 }
 `, vrfName, tenantName, tenantSlug)
 }
@@ -506,7 +506,7 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_vrf" "test" {
   name        = "%[1]s"
-  tenant      = netbox_tenant.test.name
+	tenant      = netbox_tenant.test.id
   description = "%[4]s"
 }
 `, vrfName, tenantName, tenantSlug, description)

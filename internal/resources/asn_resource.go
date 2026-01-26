@@ -348,15 +348,23 @@ func (r *ASNResource) ImportState(ctx context.Context, req resource.ImportStateR
 		var data ASNResourceModel
 		if asn.Rir.IsSet() && asn.Rir.Get() != nil {
 			rir := asn.Rir.Get()
-			if rir.GetSlug() != "" {
-				data.RIR = types.StringValue(rir.GetSlug())
+			if rir.GetId() != 0 {
+				data.RIR = types.StringValue(fmt.Sprintf("%d", rir.GetId()))
+			} else {
+				data.RIR = types.StringNull()
 			}
+		} else {
+			data.RIR = types.StringNull()
 		}
 		if asn.Tenant.IsSet() && asn.Tenant.Get() != nil {
 			tenant := asn.Tenant.Get()
-			if tenant.GetSlug() != "" {
-				data.Tenant = types.StringValue(tenant.GetSlug())
+			if tenant.GetId() != 0 {
+				data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+			} else {
+				data.Tenant = types.StringNull()
 			}
+		} else {
+			data.Tenant = types.StringNull()
 		}
 		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, asn.HasTags(), asn.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
@@ -483,18 +491,26 @@ func (r *ASNResource) mapResponseToModel(ctx context.Context, asn *netbox.ASN, d
 	data.ID = types.StringValue(fmt.Sprintf("%d", asn.GetId()))
 	data.ASN = types.Int64Value(asn.GetAsn())
 
-	// Map RIR - preserve the user's input format (ID or slug)
+	// Map RIR (store ID to avoid import drift)
 	if asn.Rir.IsSet() && asn.Rir.Get() != nil {
 		rir := asn.Rir.Get()
-		data.RIR = utils.UpdateReferenceAttribute(data.RIR, rir.GetName(), rir.GetSlug(), rir.GetId())
+		if rir.GetId() != 0 {
+			data.RIR = types.StringValue(fmt.Sprintf("%d", rir.GetId()))
+		} else {
+			data.RIR = types.StringNull()
+		}
 	} else {
 		data.RIR = types.StringNull()
 	}
 
-	// Map Tenant - preserve the user's input format (ID or name)
+	// Map Tenant (store ID to avoid import drift)
 	if asn.Tenant.IsSet() && asn.Tenant.Get() != nil {
 		tenant := asn.Tenant.Get()
-		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
+		if tenant.GetId() != 0 {
+			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		} else {
+			data.Tenant = types.StringNull()
+		}
 	} else {
 		data.Tenant = types.StringNull()
 	}

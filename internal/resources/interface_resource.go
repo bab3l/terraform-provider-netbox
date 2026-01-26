@@ -598,12 +598,7 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 
 	// Device
 	device := iface.GetDevice()
-	userDevice := data.Device.ValueString()
-	if userDevice == device.GetName() || userDevice == device.GetDisplay() || userDevice == fmt.Sprintf("%d", device.GetId()) {
-		// Keep user's original value
-	} else {
-		data.Device = types.StringValue(device.GetName())
-	}
+	data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
 
 	// Type
 	ifaceType := iface.GetType()
@@ -630,12 +625,7 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 	if iface.HasParent() {
 		parent := iface.GetParent()
 		if parent.GetId() != 0 {
-			userParent := data.Parent.ValueString()
-			if userParent == parent.GetName() || userParent == parent.GetDisplay() || userParent == fmt.Sprintf("%d", parent.GetId()) {
-				// Keep user's original value
-			} else {
-				data.Parent = types.StringValue(parent.GetName())
-			}
+			data.Parent = utils.UpdateReferenceAttribute(data.Parent, parent.GetName(), "", parent.GetId())
 		} else {
 			data.Parent = types.StringNull()
 		}
@@ -647,12 +637,7 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 	if iface.HasBridge() {
 		bridge := iface.GetBridge()
 		if bridge.GetId() != 0 {
-			userBridge := data.Bridge.ValueString()
-			if userBridge == bridge.GetName() || userBridge == bridge.GetDisplay() || userBridge == fmt.Sprintf("%d", bridge.GetId()) {
-				// Keep user's original value
-			} else {
-				data.Bridge = types.StringValue(bridge.GetName())
-			}
+			data.Bridge = utils.UpdateReferenceAttribute(data.Bridge, bridge.GetName(), "", bridge.GetId())
 		} else {
 			data.Bridge = types.StringNull()
 		}
@@ -664,12 +649,7 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 	if iface.HasLag() {
 		lag := iface.GetLag()
 		if lag.GetId() != 0 {
-			userLag := data.Lag.ValueString()
-			if userLag == lag.GetName() || userLag == lag.GetDisplay() || userLag == fmt.Sprintf("%d", lag.GetId()) {
-				// Keep user's original value
-			} else {
-				data.Lag = types.StringValue(lag.GetName())
-			}
+			data.Lag = utils.UpdateReferenceAttribute(data.Lag, lag.GetName(), "", lag.GetId())
 		} else {
 			data.Lag = types.StringNull()
 		}

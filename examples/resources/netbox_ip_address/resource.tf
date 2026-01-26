@@ -58,7 +58,7 @@ resource "netbox_vrf" "test" {
 
 resource "netbox_ip_address" "test_vrf" {
   address     = "192.168.1.1/24"
-  vrf         = netbox_vrf.test.name
+  vrf         = netbox_vrf.test.id
   status      = "active"
   description = "VRF gateway address"
 
@@ -114,7 +114,7 @@ resource "netbox_device" "ip_example" {
 }
 
 resource "netbox_interface" "ip_example" {
-  device = netbox_device.ip_example.name
+  device = netbox_device.ip_example.id
   name   = "eth0"
   type   = "1000base-t"
 }
@@ -140,13 +140,13 @@ resource "netbox_cluster" "ip_vm" {
 
 resource "netbox_virtual_machine" "ip_vm" {
   name    = "ip-example-vm"
-  cluster = netbox_cluster.ip_vm.name
+  cluster = netbox_cluster.ip_vm.id
   status  = "active"
 }
 
 resource "netbox_vm_interface" "ip_vm" {
   name            = "eth0"
-  virtual_machine = netbox_virtual_machine.ip_vm.name
+  virtual_machine = netbox_virtual_machine.ip_vm.id
 }
 
 resource "netbox_ip_address" "assigned_vm" {

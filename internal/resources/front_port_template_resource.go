@@ -12,6 +12,7 @@ import (
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -133,7 +134,12 @@ func (r *FrontPortTemplateResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Build the rear port reference - required field referencing by name
-	rearPortRef := netbox.NewBriefRearPortTemplateRequest(data.RearPort.ValueString())
+	rearPortName, rearPortDiags := r.resolveRearPortTemplateName(ctx, data.RearPort)
+	resp.Diagnostics.Append(rearPortDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	rearPortRef := netbox.NewBriefRearPortTemplateRequest(rearPortName)
 
 	// Build the API request
 	apiReq := netbox.NewWritableFrontPortTemplateRequest(
@@ -240,7 +246,12 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 	templateID := data.ID.ValueInt32()
 
 	// Build the rear port reference - required field referencing by name
-	rearPortRef := netbox.NewBriefRearPortTemplateRequest(data.RearPort.ValueString())
+	rearPortName, rearPortDiags := r.resolveRearPortTemplateName(ctx, data.RearPort)
+	resp.Diagnostics.Append(rearPortDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	rearPortRef := netbox.NewBriefRearPortTemplateRequest(rearPortName)
 
 	// Build the API request
 	apiReq := netbox.NewWritableFrontPortTemplateRequest(
@@ -302,6 +313,36 @@ func (r *FrontPortTemplateResource) Update(ctx context.Context, req resource.Upd
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
+func (r *FrontPortTemplateResource) resolveRearPortTemplateName(ctx context.Context, rearPort types.String) (string, diag.Diagnostics) {
+	if rearPort.IsNull() || rearPort.IsUnknown() {
+		return "", diag.Diagnostics{diag.NewErrorDiagnostic(
+			"Missing rear port template",
+			"rear_port must be provided for front port template",
+		)}
+	}
+
+	value := rearPort.ValueString()
+	if id, err := utils.ParseID(value); err == nil {
+		template, httpResp, err := r.client.DcimAPI.DcimRearPortTemplatesRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			return "", diag.Diagnostics{diag.NewErrorDiagnostic(
+				"Error reading rear port template",
+				utils.FormatAPIError(fmt.Sprintf("read rear port template ID %d", id), err, httpResp),
+			)}
+		}
+		if template == nil {
+			return "", diag.Diagnostics{diag.NewErrorDiagnostic(
+				"Rear port template not found",
+				fmt.Sprintf("No rear port template found with ID %d", id),
+			)}
+		}
+		return template.GetName(), nil
+	}
+
+	return value, nil
+}
+
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *FrontPortTemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data FrontPortTemplateResourceModel
@@ -353,7 +394,7 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 	// Map device type - preserve user's input format
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {
 		dt := template.DeviceType.Get()
-		data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, dt.GetModel(), dt.GetSlug(), dt.Id)
+		data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, dt.GetSlug(), "", dt.Id)
 	} else {
 		data.DeviceType = types.StringNull()
 	}
@@ -375,8 +416,8 @@ func (r *FrontPortTemplateResource) mapResponseToModel(template *netbox.FrontPor
 	// Map color - always set since it's computed
 	data.Color = utils.StringFromAPI(template.HasColor(), template.GetColor, data.Color)
 
-	// Map rear port - store the name for reference
-	data.RearPort = types.StringValue(template.RearPort.GetName())
+	// Map rear port - preserve the user's reference format
+	data.RearPort = utils.UpdateReferenceAttribute(data.RearPort, template.RearPort.GetName(), "", template.RearPort.GetId())
 
 	// Map rear port position
 	if pos, ok := template.GetRearPortPositionOk(); ok && pos != nil {

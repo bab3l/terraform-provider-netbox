@@ -2219,28 +2219,28 @@ func TestUpdateReferenceAttribute(t *testing.T) {
 			expectedValue: "provider-name",
 		},
 		{
-			name:          "Set to ID when unknown (during create) - prefer ID for config consistency",
+			name:          "Set to name when unknown (during create) - prefer stable human identifiers",
 			currentValue:  types.StringUnknown(),
 			apiID:         456,
 			apiName:       "new-provider",
 			apiSlug:       "new-provider-slug",
-			expectedValue: "456", // Prefer ID for consistency with typical resource.id patterns
+			expectedValue: "new-provider",
 		},
 		{
-			name:          "Set to ID when unknown even with name/slug available",
+			name:          "Set to name when unknown even with name/slug available",
 			currentValue:  types.StringUnknown(),
 			apiID:         456,
 			apiName:       "new-provider",
 			apiSlug:       "new-provider-slug",
-			expectedValue: "456", // Prefer ID for consistency with typical resource.id patterns
+			expectedValue: "new-provider",
 		},
 		{
-			name:          "Set to ID when unknown and no name available",
+			name:          "Set to slug when unknown and no name available",
 			currentValue:  types.StringUnknown(),
 			apiID:         456,
 			apiName:       "",
 			apiSlug:       "new-provider-slug",
-			expectedValue: "456", // Always prefer ID when state is unknown
+			expectedValue: "new-provider-slug",
 		},
 		{
 			name:          "Set to ID when unknown and no name or slug available",
@@ -2342,12 +2342,12 @@ func TestPreserveReferenceFormat(t *testing.T) {
 			expectedValue: "123",
 		},
 		{
-			name:          "Unknown state returns ID",
+			name:          "Unknown state returns name",
 			stateValue:    types.StringUnknown(),
 			apiID:         123,
 			apiName:       "Test Name",
 			apiSlug:       "test-slug",
-			expectedValue: "123",
+			expectedValue: "Test Name",
 		},
 		{
 			name:          "Null state with zero ID falls back to name",

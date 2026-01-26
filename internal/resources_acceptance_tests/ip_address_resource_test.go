@@ -338,8 +338,8 @@ func TestAccReferenceNamePersistence_IPAddress_TenantVRF(t *testing.T) {
 				Config: testAccIPAddressReferenceConfig_tenantVRF(tenantName, tenantSlug, vrfName, vrfRD, address),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
-					resource.TestCheckResourceAttr("netbox_ip_address.test", "tenant", tenantName),
-					resource.TestCheckResourceAttr("netbox_ip_address.test", "vrf", vrfName),
+					resource.TestCheckResourceAttrPair("netbox_ip_address.test", "tenant", "netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_ip_address.test", "vrf", "netbox_vrf.test", "id"),
 				),
 			},
 			{
@@ -365,8 +365,8 @@ resource "netbox_vrf" "test" {
 
 resource "netbox_ip_address" "test" {
   address = %[5]q
-  tenant  = netbox_tenant.test.name
-  vrf     = netbox_vrf.test.name
+	tenant  = netbox_tenant.test.id
+	vrf     = netbox_vrf.test.id
 }
 `, tenantName, tenantSlug, vrfName, vrfRD, address)
 }
@@ -388,21 +388,19 @@ func TestAccIPAddress_TenantNameNotID(t *testing.T) {
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Step 1: Create with tenant name
+			// Step 1: Create with tenant ID
 			{
 				Config: testAccIPAddressConfig_tenantByName(tenantName, tenantSlug, address),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_ip_address.test", "address", address),
-					// Verify tenant is stored as NAME, not numeric ID
-					resource.TestCheckResourceAttr("netbox_ip_address.test", "tenant", tenantName),
+					testutil.ReferenceFieldCheck("netbox_ip_address.test", "tenant"),
 				),
 			},
 			// Step 2: Refresh state and verify no drift (tenant should still be name)
 			{
 				RefreshState: true,
 				Check: resource.ComposeTestCheckFunc(
-					// After refresh, tenant should still be the name, not a number
-					resource.TestCheckResourceAttr("netbox_ip_address.test", "tenant", tenantName),
+					testutil.ReferenceFieldCheck("netbox_ip_address.test", "tenant"),
 				),
 			},
 			// Step 3: Plan only - verify no changes detected
@@ -423,7 +421,7 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_ip_address" "test" {
   address = %[3]q
-  tenant  = netbox_tenant.test.name
+	tenant  = netbox_tenant.test.id
 }
 `, tenantName, tenantSlug, address)
 }

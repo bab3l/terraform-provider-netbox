@@ -277,10 +277,10 @@ func TestAccConsistency_VLAN(t *testing.T) {
 
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_vlan.test", "name", vlanName),
-					resource.TestCheckResourceAttr("netbox_vlan.test", "site", siteName),
-					resource.TestCheckResourceAttrSet("netbox_vlan.test", "group"),
-					resource.TestCheckResourceAttr("netbox_vlan.test", "tenant", tenantName),
-					resource.TestCheckResourceAttrSet("netbox_vlan.test", "role"),
+					resource.TestCheckResourceAttrPair("netbox_vlan.test", "site", "netbox_site.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_vlan.test", "group", "netbox_vlan_group.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_vlan.test", "tenant", "netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_vlan.test", "role", "netbox_role.test", "id"),
 				),
 			},
 			{
@@ -319,9 +319,9 @@ resource "netbox_role" "test" {
 resource "netbox_vlan" "test" {
   name = "%[1]s"
   vid  = %[2]d
-  site = netbox_site.test.name
+	site = netbox_site.test.id
   group = netbox_vlan_group.test.id
-  tenant = netbox_tenant.test.name
+	tenant = netbox_tenant.test.id
   role = netbox_role.test.id
 }
 `, vlanName, vlanVid, siteName, siteSlug, groupName, groupSlug, tenantName, tenantSlug, roleName, roleSlug)

@@ -1263,29 +1263,13 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 	// Map site
 
 	if site := rack.GetSite(); site.Id != 0 {
-		if data.Site.IsUnknown() || data.Site.IsNull() {
-			data.Site = types.StringValue(fmt.Sprintf("%d", site.GetId()))
-		} else {
-			userSite := data.Site.ValueString()
-
-			if userSite == site.GetName() || userSite == site.GetSlug() || userSite == site.GetDisplay() || userSite == fmt.Sprintf("%d", site.GetId()) {
-				// Keep user's original value
-			} else {
-				data.Site = types.StringValue(site.GetName())
-			}
-		}
+		data.Site = utils.UpdateReferenceAttribute(data.Site, site.GetName(), site.GetSlug(), site.GetId())
 	}
 
 	// Map location
 
 	if location, ok := rack.GetLocationOk(); ok && location != nil && location.Id != 0 {
-		userLocation := data.Location.ValueString()
-
-		if userLocation == location.GetName() || userLocation == location.GetSlug() || userLocation == location.GetDisplay() || userLocation == fmt.Sprintf("%d", location.GetId()) {
-			// Keep user's original value
-		} else {
-			data.Location = types.StringValue(location.GetName())
-		}
+		data.Location = utils.UpdateReferenceAttribute(data.Location, location.GetName(), location.GetSlug(), location.GetId())
 	} else {
 		data.Location = types.StringNull()
 	}
@@ -1293,13 +1277,7 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 	// Map tenant
 
 	if tenant, ok := rack.GetTenantOk(); ok && tenant != nil && tenant.Id != 0 {
-		userTenant := data.Tenant.ValueString()
-
-		if userTenant == tenant.GetName() || userTenant == tenant.GetSlug() || userTenant == tenant.GetDisplay() || userTenant == fmt.Sprintf("%d", tenant.GetId()) {
-			// Keep user's original value
-		} else {
-			data.Tenant = types.StringValue(tenant.GetName())
-		}
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 	} else {
 		data.Tenant = types.StringNull()
 	}
@@ -1319,13 +1297,7 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 	// Map role
 
 	if role, ok := rack.GetRoleOk(); ok && role != nil && role.Id != 0 {
-		userRole := data.Role.ValueString()
-
-		if userRole == role.GetName() || userRole == role.GetSlug() || userRole == role.GetDisplay() || userRole == fmt.Sprintf("%d", role.GetId()) {
-			// Keep user's original value
-		} else {
-			data.Role = types.StringValue(role.GetName())
-		}
+		data.Role = utils.UpdateReferenceAttribute(data.Role, role.GetName(), role.GetSlug(), role.GetId())
 	} else {
 		data.Role = types.StringNull()
 	}
@@ -1349,13 +1321,7 @@ func mapRackToState(ctx context.Context, rack *netbox.Rack, data *RackResourceMo
 	// Map rack_type
 
 	if rackType, ok := rack.GetRackTypeOk(); ok && rackType != nil && rackType.Id != 0 {
-		userRackType := data.RackType.ValueString()
-
-		if userRackType == rackType.GetModel() || userRackType == rackType.GetSlug() || userRackType == rackType.GetDisplay() || userRackType == fmt.Sprintf("%d", rackType.GetId()) {
-			// Keep user's original value
-		} else {
-			data.RackType = types.StringValue(rackType.GetModel())
-		}
+		data.RackType = utils.UpdateReferenceAttribute(data.RackType, rackType.GetSlug(), rackType.GetModel(), rackType.GetId())
 	} else {
 		data.RackType = types.StringNull()
 	}

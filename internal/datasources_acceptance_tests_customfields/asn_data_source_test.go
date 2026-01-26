@@ -57,7 +57,7 @@ resource "netbox_custom_field" "test" {
 
 resource "netbox_asn" "test" {
   asn = %d
-  rir = netbox_rir.test.slug
+	rir = netbox_rir.test.id
 
   custom_fields = [
     {

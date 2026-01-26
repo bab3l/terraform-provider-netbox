@@ -27,8 +27,8 @@ resource "netbox_ipsec_policy" "test" {
 resource "netbox_ipsec_profile" "test" {
   name         = "Test IPSec Profile"
   mode         = "esp"
-  ike_policy   = netbox_ike_policy.test.name
-  ipsec_policy = netbox_ipsec_policy.test.name
+  ike_policy   = netbox_ike_policy.test.id
+  ipsec_policy = netbox_ipsec_policy.test.id
 }
 
 import {

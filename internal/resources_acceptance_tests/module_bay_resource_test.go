@@ -42,10 +42,9 @@ func TestAccModuleBayResource_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_module_bay.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device"},
+				ResourceName:      "netbox_module_bay.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 				Check: resource.ComposeTestCheckFunc(
 					testutil.ReferenceFieldCheck("netbox_module_bay.test", "device"),
 				),

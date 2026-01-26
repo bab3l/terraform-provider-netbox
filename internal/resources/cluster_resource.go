@@ -135,12 +135,12 @@ func (r *ClusterResource) mapClusterToState(cluster *netbox.Cluster, data *Clust
 	data.Name = types.StringValue(cluster.GetName())
 
 	// Type (required field) - preserve user's input format (ID, name, or slug)
-	data.Type = utils.PreserveReferenceFormat(data.Type, cluster.Type.GetId(), cluster.Type.GetName(), cluster.Type.GetSlug())
+	data.Type = utils.PreserveReferenceFormat(data.Type, cluster.Type.GetId(), cluster.Type.GetSlug(), "")
 
 	// Group (optional)
 	if cluster.Group.IsSet() && cluster.Group.Get() != nil {
 		group := cluster.Group.Get()
-		data.Group = utils.PreserveOptionalReferenceFormat(data.Group, true, group.GetId(), group.GetName(), group.GetSlug())
+		data.Group = utils.PreserveOptionalReferenceFormat(data.Group, true, group.GetId(), group.GetSlug(), "")
 	} else {
 		data.Group = types.StringNull()
 	}

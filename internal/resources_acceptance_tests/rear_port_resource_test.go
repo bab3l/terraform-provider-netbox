@@ -304,7 +304,7 @@ func TestAccConsistency_RearPort(t *testing.T) {
 			{
 				Config: testAccRearPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, rearPortName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_rear_port.test", "device", deviceName),
+					testutil.ReferenceFieldCheck("netbox_rear_port.test", "device"),
 				),
 			},
 			{
@@ -344,7 +344,7 @@ func TestAccConsistency_RearPort_LiteralNames(t *testing.T) {
 				Config: testAccRearPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rear_port.test", "name", resourceName),
-					resource.TestCheckResourceAttr("netbox_rear_port.test", "device", deviceName),
+					resource.TestCheckResourceAttrPair("netbox_rear_port.test", "device", "netbox_device.test", "id"),
 				),
 			},
 			{
@@ -445,7 +445,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_rear_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = %[10]q
   type = "8p8c"
 }
@@ -699,7 +699,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_rear_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = "%[10]s"
   type = "8p8c"
   positions = 1
@@ -741,13 +741,13 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_rear_port" "test" {
-  device = %q
+	device = netbox_device.test.id
   name = %q
   type = "8p8c"
   positions = 1
   depends_on = [netbox_device.test]
 }
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, deviceName, resourceName)
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName)
 }
 
 // TestAccRearPortResource_Positions tests comprehensive scenarios for rear port positions field.
@@ -943,7 +943,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_rear_port" "test" {
-  device        = netbox_device.test.name
+	device        = netbox_device.test.id
   name          = %[10]q
   type          = "8p8c"
   label         = %[11]q

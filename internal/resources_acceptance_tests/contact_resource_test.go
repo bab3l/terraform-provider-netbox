@@ -105,7 +105,7 @@ func TestAccConsistency_Contact(t *testing.T) {
 				Config: testAccContactConsistencyConfig(contactName, contactGroupName, contactGroupSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
-					resource.TestCheckResourceAttr("netbox_contact.test", "group", contactGroupName),
+					resource.TestCheckResourceAttrPair("netbox_contact.test", "group", "netbox_contact_group.test", "id"),
 				),
 			},
 			{
@@ -135,7 +135,7 @@ func TestAccConsistency_Contact_LiteralNames(t *testing.T) {
 				Config: testAccContactConsistencyLiteralNamesConfig(contactName, contactGroupName, contactGroupSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_contact.test", "name", contactName),
-					resource.TestCheckResourceAttr("netbox_contact.test", "group", contactGroupName),
+					resource.TestCheckResourceAttrPair("netbox_contact.test", "group", "netbox_contact_group.test", "id"),
 				),
 			},
 			{
@@ -213,7 +213,7 @@ resource "netbox_contact_group" "test" {
 
 resource "netbox_contact" "test" {
   name = "%[1]s"
-  group = netbox_contact_group.test.name
+	group = netbox_contact_group.test.id
 }
 `, contactName, contactGroupName, contactGroupSlug)
 }
@@ -227,7 +227,7 @@ resource "netbox_contact_group" "test" {
 
 resource "netbox_contact" "test" {
   name = "%[1]s"
-  group = "%[2]s"
+	group = netbox_contact_group.test.id
   depends_on = [netbox_contact_group.test]
 }
 `, contactName, contactGroupName, contactGroupSlug)

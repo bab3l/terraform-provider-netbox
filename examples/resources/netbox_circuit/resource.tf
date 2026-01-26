@@ -10,14 +10,14 @@ resource "netbox_circuit_type" "test" {
 
 resource "netbox_provider_account" "test" {
   account          = "ACCT-100"
-  circuit_provider = netbox_provider.test.slug
+  circuit_provider = netbox_provider.test.id
 }
 
 resource "netbox_circuit" "test" {
   cid              = "CID-12345"
-  circuit_provider = netbox_provider.test.name
+  circuit_provider = netbox_provider.test.id
   provider_account = netbox_provider_account.test.account
-  type             = netbox_circuit_type.test.name
+  type             = netbox_circuit_type.test.id
   status           = "active"
   description      = "Main Internet Circuit"
   comments         = "Primary internet connection for datacenter"

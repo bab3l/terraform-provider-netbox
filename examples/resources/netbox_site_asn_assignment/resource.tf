@@ -15,6 +15,6 @@ resource "netbox_asn" "example" {
 }
 
 resource "netbox_site_asn_assignment" "example" {
-  site = netbox_site.example.slug
+  site = netbox_site.example.id
   asn  = netbox_asn.example.id
 }

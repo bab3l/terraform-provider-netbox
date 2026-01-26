@@ -348,7 +348,7 @@ func (r *DeviceBayTemplateResource) ImportState(ctx context.Context, req resourc
 // mapTemplateToModel maps a Netbox DeviceBayTemplate to the Terraform resource model.
 func (r *DeviceBayTemplateResource) mapTemplateToModel(template *netbox.DeviceBayTemplate, data *DeviceBayTemplateResourceModel) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", template.Id))
-	data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, template.DeviceType.GetModel(), template.DeviceType.GetSlug(), template.DeviceType.GetId())
+	data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, template.DeviceType.GetSlug(), "", template.DeviceType.GetId())
 	data.Name = types.StringValue(template.Name)
 
 	// Label

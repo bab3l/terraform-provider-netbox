@@ -364,7 +364,7 @@ resource "netbox_l2vpn" "test" {
 `, name, name, testutil.Description2)
 }
 
-func TestAccL2VPNResource_external_deletion(t *testing.T) {
+func TestAccL2VPNResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := acctest.RandomWithPrefix("test-l2vpn")

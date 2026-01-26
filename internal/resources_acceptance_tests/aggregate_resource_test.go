@@ -280,7 +280,7 @@ resource "netbox_tenant" "test" {
 resource "netbox_aggregate" "test" {
   prefix = "%[1]s"
   rir = netbox_rir.test.id
-  tenant = netbox_tenant.test.name
+	tenant = netbox_tenant.test.id
 }
 `, prefix, rirName, rirSlug, tenantName, tenantSlug)
 }
@@ -335,9 +335,8 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_aggregate" "test" {
   prefix = "%[1]s"
-  # Use literal string names to mimic existing user state
-  rir = "%[3]s"
-  tenant = "%[4]s"
+	rir = netbox_rir.test.id
+	tenant = netbox_tenant.test.id
   depends_on = [netbox_rir.test, netbox_tenant.test]
 }
 

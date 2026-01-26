@@ -506,7 +506,7 @@ func TestAccConsistency_PowerFeed(t *testing.T) {
 				Config: testAccPowerFeedConsistencyConfig(siteName, siteSlug, rackName, locationName, locationSlug, powerPanelName, feedName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_feed.test", "name", feedName),
-					resource.TestCheckResourceAttr("netbox_power_feed.test", "rack", rackName),
+					resource.TestCheckResourceAttrPair("netbox_power_feed.test", "rack", "netbox_rack.test", "id"),
 				),
 			},
 			{
@@ -544,7 +544,7 @@ resource "netbox_power_panel" "test" {
 resource "netbox_power_feed" "test" {
   name        = "%[7]s"
   power_panel = netbox_power_panel.test.id
-  rack        = netbox_rack.test.name
+	rack        = netbox_rack.test.id
 }
 `, siteName, siteSlug, rackName, locationName, locationSlug, powerPanelName, feedName)
 }
@@ -609,7 +609,7 @@ resource "netbox_power_panel" "test" {
 resource "netbox_power_feed" "test" {
   name        = "%[7]s"
   power_panel = netbox_power_panel.test.id
-  rack        = "%[3]s"
+	rack        = "%[3]s"
 
   depends_on = [netbox_rack.test]
 }

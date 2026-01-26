@@ -135,7 +135,7 @@ func TestAccDeviceBayTemplateResource_update(t *testing.T) {
 	})
 }
 
-func TestAccDeviceBayTemplateResource_external_deletion(t *testing.T) {
+func TestAccDeviceBayTemplateResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("dbt-ext-del")

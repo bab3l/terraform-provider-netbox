@@ -166,19 +166,19 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_device" "test" {
   name        = %q
-  device_type = netbox_device_type.test.slug
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
 }
 
 resource "netbox_rear_port" "rear" {
   name   = %q
-  device = netbox_device.test.name
+  device = netbox_device.test.id
   type   = "8p8c"
 }
 
@@ -251,7 +251,7 @@ resource "netbox_tag" "tag2" {
 # Main Resource
 resource "netbox_front_port" "test" {
   name               = %q
-  device             = netbox_device.test.name
+  device             = netbox_device.test.id
   type               = "8p8c"
   rear_port          = netbox_rear_port.rear.id
   rear_port_position = 1

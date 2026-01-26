@@ -49,6 +49,8 @@ func TestAccAggregateResource_importWithCustomFieldsAndTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
 					resource.TestCheckResourceAttr("netbox_aggregate.test", "prefix", prefix),
+					resource.TestCheckResourceAttrPair("netbox_aggregate.test", "rir", "netbox_rir.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_aggregate.test", "tenant", "netbox_tenant.test", "id"),
 					// Verify custom fields are applied
 					resource.TestCheckResourceAttr("netbox_aggregate.test", "custom_fields.#", "7"),
 					// Verify tags are applied
@@ -56,11 +58,27 @@ func TestAccAggregateResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				Config:            testAccAggregateResourceImportConfig_full(prefix, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:      "netbox_aggregate.test",
-				ImportState:       true,
-				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
-				ImportStateVerify: false,
+				Config:             testAccAggregateResourceImportConfig_full(prefix, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:       "netbox_aggregate.test",
+				ImportState:        true,
+				ImportStateKind:    resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify:  false,
+				ExpectNonEmptyPlan: true,
+				ImportStateVerifyIgnore: []string{
+					"custom_fields",
+					"rir",
+					"tenant",
+				},
+			},
+			{
+				Config: testAccAggregateResourceImportConfig_full(prefix, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_aggregate.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_aggregate.test", "rir", "netbox_rir.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_aggregate.test", "tenant", "netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "custom_fields.#", "7"),
+					resource.TestCheckResourceAttr("netbox_aggregate.test", "tags.#", "2"),
+				),
 			},
 			// Enhancement 1: Verify no changes after import
 			{
@@ -213,7 +231,7 @@ resource "netbox_custom_field" "owner" {
 
 resource "netbox_aggregate" "test" {
   prefix = %[1]q
-  rir    = netbox_rir.test.slug
+  rir    = netbox_rir.test.id
 
   custom_fields = [
     {
@@ -252,7 +270,7 @@ resource "netbox_custom_field" "owner" {
 
 resource "netbox_aggregate" "test" {
   prefix      = %[1]q
-  rir         = netbox_rir.test.slug
+  rir         = netbox_rir.test.id
   description = "Updated description"
 }
 `, prefix, rirName, rirSlug, cfEnv, cfOwner)
@@ -279,7 +297,7 @@ resource "netbox_custom_field" "owner" {
 
 resource "netbox_aggregate" "test" {
   prefix      = %[1]q
-  rir         = netbox_rir.test.slug
+  rir         = netbox_rir.test.id
   description = "Updated description"
 
   custom_fields = [
@@ -329,7 +347,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_aggregate" "test" {
   prefix = %[1]q
-  rir    = netbox_rir.test.slug
+  rir    = netbox_rir.test.id
 
   custom_fields = [
     {
@@ -374,7 +392,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_aggregate" "test" {
   prefix = %[1]q
-  rir    = netbox_rir.test.slug
+  rir    = netbox_rir.test.id
 
   custom_fields = [
     {
@@ -414,7 +432,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_aggregate" "test" {
   prefix = %[1]q
-  rir    = netbox_rir.test.slug
+  rir    = netbox_rir.test.id
 
   custom_fields = [
     {
@@ -459,7 +477,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_aggregate" "test" {
   prefix = %[1]q
-  rir    = netbox_rir.test.slug
+  rir    = netbox_rir.test.id
 
   custom_fields = [
     {
@@ -564,8 +582,8 @@ resource "netbox_tag" "tag2" {
 # Main Resource
 resource "netbox_aggregate" "test" {
   prefix = %q
-  rir    = netbox_rir.test.slug
-  tenant = netbox_tenant.test.slug
+  rir    = netbox_rir.test.id
+  tenant = netbox_tenant.test.id
 
   custom_fields = [
     {

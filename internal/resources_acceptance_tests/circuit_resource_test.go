@@ -38,8 +38,8 @@ func TestAccCircuitResource_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
 					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "circuit_provider", providerSlug),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "type", typeSlug),
+					resource.TestCheckResourceAttrPair("netbox_circuit.test", "circuit_provider", "netbox_provider.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_circuit.test", "type", "netbox_circuit_type.test", "id"),
 				),
 			},
 		},
@@ -71,8 +71,8 @@ func TestAccCircuitResource_full(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit.test", "id"),
 					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "circuit_provider", providerSlug),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "type", typeSlug),
+					resource.TestCheckResourceAttrPair("netbox_circuit.test", "circuit_provider", "netbox_provider.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_circuit.test", "type", "netbox_circuit_type.test", "id"),
 					resource.TestCheckResourceAttr("netbox_circuit.test", "provider_account", providerAccountID),
 					resource.TestCheckResourceAttr("netbox_circuit.test", "status", "active"),
 					resource.TestCheckResourceAttr("netbox_circuit.test", "description", testutil.Description1),
@@ -178,26 +178,45 @@ func TestAccCircuitResource_removeOptionalFields(t *testing.T) {
 	cleanup.RegisterCircuitTypeCleanup(typeSlug)
 	cleanup.RegisterTenantCleanup(tenantSlug)
 
-	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
-		ResourceName: "netbox_circuit",
-		BaseConfig: func() string {
-			return testAccCircuitResourceConfig_removeOptionalFields_base(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckCircuitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCircuitResourceConfig_removeOptionalFields_withFields(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "provider_account", providerAccountID),
+					resource.TestCheckResourceAttrPair("netbox_circuit.test", "tenant", "netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "commit_rate", "1000"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "install_date", "2024-01-15"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "termination_date", "2025-12-31"),
+				),
+			},
+			{
+				Config: testAccCircuitResourceConfig_removeOptionalFields_base(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+					resource.TestCheckNoResourceAttr("netbox_circuit.test", "provider_account"),
+					resource.TestCheckNoResourceAttr("netbox_circuit.test", "tenant"),
+					resource.TestCheckNoResourceAttr("netbox_circuit.test", "commit_rate"),
+					resource.TestCheckNoResourceAttr("netbox_circuit.test", "install_date"),
+					resource.TestCheckNoResourceAttr("netbox_circuit.test", "termination_date"),
+				),
+			},
+			{
+				Config: testAccCircuitResourceConfig_removeOptionalFields_withFields(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "provider_account", providerAccountID),
+					resource.TestCheckResourceAttrPair("netbox_circuit.test", "tenant", "netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "commit_rate", "1000"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "install_date", "2024-01-15"),
+					resource.TestCheckResourceAttr("netbox_circuit.test", "termination_date", "2025-12-31"),
+				),
+			},
 		},
-		ConfigWithFields: func() string {
-			return testAccCircuitResourceConfig_removeOptionalFields_withFields(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID)
-		},
-		OptionalFields: map[string]string{
-			"provider_account": providerAccountID,
-			"tenant":           tenantName,
-			"commit_rate":      "1000",
-			"install_date":     "2024-01-15",
-			"termination_date": "2025-12-31",
-			// Note: status is Optional+Computed - API provides default value, cannot test removal
-		},
-		RequiredFields: map[string]string{
-			"cid": cid,
-		},
-		CheckDestroy: testutil.CheckCircuitDestroy,
 	})
 }
 
@@ -210,7 +229,7 @@ resource "netbox_provider" "test" {
 
 resource "netbox_provider_account" "test" {
 	account          = %[8]q
-	circuit_provider = netbox_provider.test.slug
+		circuit_provider = netbox_provider.test.id
 }
 
 resource "netbox_circuit_type" "test" {
@@ -225,8 +244,8 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_circuit" "test" {
   cid              = %[1]q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	  circuit_provider = netbox_provider.test.id
+	type             = netbox_circuit_type.test.id
 }
 `, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug, providerAccountID)
 }
@@ -240,7 +259,7 @@ resource "netbox_provider" "test" {
 
 resource "netbox_provider_account" "test" {
 	account          = %[8]q
-	circuit_provider = netbox_provider.test.slug
+		circuit_provider = netbox_provider.test.id
 }
 
 resource "netbox_circuit_type" "test" {
@@ -255,10 +274,10 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_circuit" "test" {
   cid              = %[1]q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	  circuit_provider = netbox_provider.test.id
+	  type             = netbox_circuit_type.test.id
 	provider_account = netbox_provider_account.test.account
-  tenant           = netbox_tenant.test.name
+	tenant           = netbox_tenant.test.id
   commit_rate      = 1000
   install_date     = "2024-01-15"
   termination_date = "2025-12-31"
@@ -330,9 +349,9 @@ func TestAccConsistency_Circuit_LiteralNames(t *testing.T) {
 				Config: testAccCircuitConsistencyLiteralNamesConfig(cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_circuit.test", "cid", cid),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "circuit_provider", providerSlug),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "type", typeSlug),
-					resource.TestCheckResourceAttr("netbox_circuit.test", "tenant", tenantName),
+					resource.TestCheckResourceAttrPair("netbox_circuit.test", "circuit_provider", "netbox_provider.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_circuit.test", "type", "netbox_circuit_type.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_circuit.test", "tenant", "netbox_tenant.test", "id"),
 				),
 			},
 			{
@@ -358,8 +377,8 @@ resource "netbox_circuit_type" "test" {
 
 resource "netbox_circuit" "test" {
   cid              = %q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+		circuit_provider = netbox_provider.test.id
+	type             = netbox_circuit_type.test.id
 }
 `, providerName, providerSlug, typeName, typeSlug, cid)
 }
@@ -373,7 +392,7 @@ resource "netbox_provider" "test" {
 
 resource "netbox_provider_account" "test" {
 	account          = %q
-	circuit_provider = netbox_provider.test.slug
+		circuit_provider = netbox_provider.test.id
 }
 
 resource "netbox_circuit_type" "test" {
@@ -383,8 +402,8 @@ resource "netbox_circuit_type" "test" {
 
 resource "netbox_circuit" "test" {
   cid              = %q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	  circuit_provider = netbox_provider.test.id
+	  type             = netbox_circuit_type.test.id
 	provider_account = netbox_provider_account.test.account
   status           = "active"
   description      = %q
@@ -408,8 +427,8 @@ resource "netbox_circuit_type" "test" {
 
 resource "netbox_circuit" "test" {
   cid              = %q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	circuit_provider = netbox_provider.test.id
+	type             = netbox_circuit_type.test.id
   description      = %q
 }
 
@@ -436,9 +455,9 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_circuit" "test" {
   cid = "%[1]s"
-  circuit_provider = netbox_provider.test.slug
-  type = netbox_circuit_type.test.slug
-  tenant = netbox_tenant.test.name
+	circuit_provider = netbox_provider.test.id
+	type = netbox_circuit_type.test.id
+	tenant = netbox_tenant.test.id
 }
 `, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
 }
@@ -462,10 +481,9 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_circuit" "test" {
   cid = "%[1]s"
-  # Use literal string names to mimic existing user state
-  circuit_provider = "%[3]s"
-  type = "%[5]s"
-  tenant = "%[6]s"
+	circuit_provider = netbox_provider.test.id
+	type = netbox_circuit_type.test.id
+	tenant = netbox_tenant.test.id
   depends_on = [netbox_provider.test, netbox_circuit_type.test, netbox_tenant.test]
 }
 `, cid, providerName, providerSlug, typeName, typeSlug, tenantName, tenantSlug)
@@ -490,8 +508,8 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_circuit" "test" {
   cid              = %q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	circuit_provider = netbox_provider.test.id
+	type             = netbox_circuit_type.test.id
   tenant           = netbox_tenant.test.id
   description      = "Circuit with tenant"
 }
@@ -517,8 +535,8 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_circuit" "test" {
   cid              = %q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	circuit_provider = netbox_provider.test.id
+	type             = netbox_circuit_type.test.id
   description      = "Circuit after tenant removal"
   # tenant intentionally omitted - should be null in state
 }
@@ -625,8 +643,8 @@ resource "netbox_circuit_type" "test" {
 
 resource "netbox_circuit" "test" {
   cid              = %q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	circuit_provider = netbox_provider.test.id
+	type             = netbox_circuit_type.test.id
   description      = %q
   comments         = %q
 }
@@ -740,8 +758,8 @@ resource "netbox_tag" "tag3" {
 		return baseConfig + fmt.Sprintf(`
 resource "netbox_circuit" "test" {
   cid              = %[1]q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	circuit_provider = netbox_provider.test.id
+	type             = netbox_circuit_type.test.id
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, cid)
@@ -749,8 +767,8 @@ resource "netbox_circuit" "test" {
 		return baseConfig + fmt.Sprintf(`
 resource "netbox_circuit" "test" {
   cid              = %[1]q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	circuit_provider = netbox_provider.test.id
+	type             = netbox_circuit_type.test.id
 	tags = [netbox_tag.tag2.slug, netbox_tag.tag3.slug]
 }
 `, cid)
@@ -758,8 +776,8 @@ resource "netbox_circuit" "test" {
 		return baseConfig + fmt.Sprintf(`
 resource "netbox_circuit" "test" {
   cid              = %[1]q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	circuit_provider = netbox_provider.test.id
+	type             = netbox_circuit_type.test.id
   tags             = []
 }
 `, cid)
@@ -793,8 +811,8 @@ resource "netbox_tag" "tag2" {
 		return baseConfig + fmt.Sprintf(`
 resource "netbox_circuit" "test" {
   cid              = %[1]q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	circuit_provider = netbox_provider.test.id
+	type             = netbox_circuit_type.test.id
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
 `, cid)
@@ -803,8 +821,8 @@ resource "netbox_circuit" "test" {
 	return baseConfig + fmt.Sprintf(`
 resource "netbox_circuit" "test" {
   cid              = %[1]q
-  circuit_provider = netbox_provider.test.slug
-  type             = netbox_circuit_type.test.slug
+	circuit_provider = netbox_provider.test.id
+	type             = netbox_circuit_type.test.id
 	tags = [netbox_tag.tag2.slug, netbox_tag.tag1.slug]
 }
 `, cid)

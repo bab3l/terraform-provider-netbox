@@ -11,7 +11,7 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_device_type" "test" {
   model        = "Test Model"
   slug         = "test-model"
-  manufacturer = netbox_manufacturer.test.slug
+  manufacturer = netbox_manufacturer.test.id
   u_height     = 1
 }
 
@@ -24,14 +24,14 @@ resource "netbox_device_role" "test" {
 
 resource "netbox_device" "test" {
   name        = "Test Device"
-  device_type = netbox_device_type.test.model
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
 }
 
 resource "netbox_virtual_device_context" "test" {
   name   = "Test VDC"
-  device = netbox_device.test.name
+  device = netbox_device.test.id
   status = "active"
 }
 

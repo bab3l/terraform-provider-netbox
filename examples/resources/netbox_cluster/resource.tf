@@ -5,7 +5,7 @@ resource "netbox_cluster_type" "test" {
 
 resource "netbox_cluster" "test" {
   name        = "Test Cluster"
-  type        = netbox_cluster_type.test.name
+  type        = netbox_cluster_type.test.id
   description = "Production virtualization cluster"
   comments    = "Primary VMware cluster"
 

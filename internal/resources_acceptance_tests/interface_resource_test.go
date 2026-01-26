@@ -39,10 +39,9 @@ func TestAccInterfaceResource_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_interface.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device"},
+				ResourceName:      "netbox_interface.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config:             testAccInterfaceResourceConfig_basicWithSlugs(name, siteSlug, mfrSlug, deviceSlug, roleSlug),
@@ -602,7 +601,7 @@ func testAccInterfaceResourceConfig_consistency_device_name(name string) string 
 %s
 
 resource "netbox_interface" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name   = %q
   type   = "1000base-t"
 }

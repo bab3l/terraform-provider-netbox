@@ -417,7 +417,7 @@ func (r *FrontPortResource) ImportState(ctx context.Context, req resource.Import
 
 		var data FrontPortResourceModel
 		if device := response.GetDevice(); device.Id != 0 {
-			data.Device = types.StringValue(device.GetName())
+			data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
 		}
 		if rearPort := response.GetRearPort(); rearPort.Id != 0 {
 			data.RearPort = types.StringValue(fmt.Sprintf("%d", rearPort.GetId()))

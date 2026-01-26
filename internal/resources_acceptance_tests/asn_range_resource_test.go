@@ -193,7 +193,7 @@ func TestAccASNRangeResource_removeOptionalFields(t *testing.T) {
 	})
 }
 
-func TestAccASNRangeResource_external_deletion(t *testing.T) {
+func TestAccASNRangeResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	name := testutil.RandomName("tf-test-asn-range-ext-del")
@@ -431,7 +431,7 @@ resource "netbox_asn_range" "test" {
   name = "%[1]s"
   slug = "%[2]s"
   rir = netbox_rir.test.id
-  tenant = netbox_tenant.test.name
+	tenant = netbox_tenant.test.id
   start = 65000
   end = 65100
 }
@@ -463,8 +463,8 @@ func TestAccConsistency_ASNRange_LiteralNames(t *testing.T) {
 				Config: testAccASNRangeConsistencyLiteralNamesConfig(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_asn_range.test", "name", rangeName),
-					resource.TestCheckResourceAttr("netbox_asn_range.test", "rir", rirSlug),
-					resource.TestCheckResourceAttr("netbox_asn_range.test", "tenant", tenantName),
+					resource.TestCheckResourceAttrPair("netbox_asn_range.test", "rir", "netbox_rir.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_asn_range.test", "tenant", "netbox_tenant.test", "id"),
 				),
 			},
 			{
@@ -491,9 +491,8 @@ resource "netbox_tenant" "test" {
 resource "netbox_asn_range" "test" {
   name = "%[1]s"
   slug = "%[2]s"
-  # Use literal string names to mimic existing user state
-  rir = "%[4]s"
-  tenant = "%[5]s"
+	rir = netbox_rir.test.id
+	tenant = netbox_tenant.test.id
   start = 65000
   end = 65100
   depends_on = [netbox_rir.test, netbox_tenant.test]

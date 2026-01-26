@@ -80,7 +80,7 @@ func TestAccTenantResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_tenant.test", "slug", slug),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "comments", comments),
-					resource.TestCheckResourceAttr("netbox_tenant.test", "group", groupName),
+					resource.TestCheckResourceAttrPair("netbox_tenant.test", "group", "netbox_tenant_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_tenant.test", "tags.#", "2"),
 				),
 			},
@@ -268,7 +268,7 @@ resource "netbox_tag" "tag2" {
 resource "netbox_tenant" "test" {
 	name        = %[1]q
 	slug        = %[2]q
-	group       = netbox_tenant_group.test.name
+	group       = netbox_tenant_group.test.id
 	description = %[5]q
 	comments    = %[6]q
 
@@ -300,7 +300,7 @@ resource "netbox_tag" "tag2" {
 resource "netbox_tenant" "test" {
 	name        = %[1]q
 	slug        = %[2]q
-	group       = netbox_tenant_group.test.name
+	group       = netbox_tenant_group.test.id
 	description = %[5]q
 	comments    = %[6]q
 
@@ -383,7 +383,7 @@ func TestAccConsistency_Tenant(t *testing.T) {
 				Config: testAccTenantConsistencyConfig(tenantName, tenantSlug, groupName, groupSlug, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_tenant.test", "name", tenantName),
-					resource.TestCheckResourceAttr("netbox_tenant.test", "group", groupName),
+					testutil.ReferenceFieldCheck("netbox_tenant.test", "group"),
 				),
 			},
 			{
@@ -414,7 +414,7 @@ resource "netbox_tag" "tag2" {
 resource "netbox_tenant" "test" {
 	name  = %[3]q
 	slug  = %[4]q
-  group = netbox_tenant_group.test.name
+	group = netbox_tenant_group.test.id
 
 	tags = [
 		netbox_tag.tag1.slug,
