@@ -298,11 +298,11 @@ func (r *DeviceBayResource) ImportState(ctx context.Context, req resource.Import
 		var data DeviceBayResourceModel
 		data.Tags = types.SetNull(types.StringType)
 		if db.Device.GetId() != 0 {
-			data.Device = types.StringValue(db.Device.GetName())
+			data.Device = utils.UpdateReferenceAttribute(data.Device, db.Device.GetName(), "", db.Device.GetId())
 		}
 		if db.InstalledDevice.IsSet() && db.InstalledDevice.Get() != nil {
 			installedDevice := db.InstalledDevice.Get()
-			data.InstalledDevice = types.StringValue(installedDevice.GetName())
+			data.InstalledDevice = utils.UpdateReferenceAttribute(data.InstalledDevice, installedDevice.GetName(), "", installedDevice.GetId())
 		}
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {

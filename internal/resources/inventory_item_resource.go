@@ -494,7 +494,7 @@ func (r *InventoryItemResource) ImportState(ctx context.Context, req resource.Im
 
 		var data InventoryItemResourceModel
 		if device := response.GetDevice(); device.Id != 0 {
-			data.Device = types.StringValue(device.GetName())
+			data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
 		}
 		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, response.HasTags(), response.GetTags(), data.Tags)
 		if parsed.HasCustomFields {

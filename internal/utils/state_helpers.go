@@ -113,66 +113,65 @@ func Int64FromInt32API(hasValue bool, getValue func() int32, current types.Int64
 
 // UpdateReferenceAttribute updates a reference attribute in the state.
 // It preserves the user's input (Name or Slug) if it matches the API response.
-
-// If the user provided an ID, or if the reference changed, it updates to the new value (preferring Name/Slug if available, or ID).
-
+// If the user provided an ID, or if the reference changed, it updates to the new value.
 func UpdateReferenceAttribute(current types.String, apiName string, apiSlug string, apiID int32) types.String {
 	apiIDStr := fmt.Sprintf("%d", apiID)
 
-	// If current state is unknown or null (import scenario), prefer ID for consistency
-	// with typical Terraform config patterns where users reference resources by ID
-	// (e.g., cluster = netbox_cluster.test.id). This prevents unnecessary plan diffs
-	// after import when configs use ID references.
+	// If current state is unknown (computed reference), prefer a stable human identifier.
+	if current.IsUnknown() {
+		if apiName != "" {
+			return types.StringValue(apiName)
+		}
+		if apiSlug != "" {
+			return types.StringValue(apiSlug)
+		}
+		return types.StringValue(apiIDStr)
+	}
 
-	if current.IsUnknown() || current.IsNull() {
+	// If current state is null (import scenario), prefer ID to align with
+	// common provider behavior (e.g., AWS), where reference attributes are stored as IDs.
+	if current.IsNull() {
 		return types.StringValue(apiIDStr)
 	}
 
 	// Check if current value matches any of the API identifiers
-
 	val := current.ValueString()
 
 	// Exact matches - preserve the current format
-
 	if val == apiName {
 		return current
 	}
-
 	if val == apiSlug {
 		return current
 	}
-
 	if val == apiIDStr {
 		return current
 	}
 
 	// Case-insensitive name match - preserve the user's casing
-
 	if apiName != "" && strings.EqualFold(val, apiName) {
 		return current
 	}
 
 	// Case-insensitive slug match - preserve the user's casing
-
 	if apiSlug != "" && strings.EqualFold(val, apiSlug) {
 		return current
 	}
 
 	// If current value is not numeric but API name/slug exist, it might be an old name
 	// that still resolves to the same resource ID. Keep the current value to avoid
-
 	// unnecessary plan diffs. The lookup functions will validate it on next apply.
-
 	if _, err := strconv.ParseInt(val, 10, 32); err != nil {
 		// Current is not a number, keep it (it's likely a name/slug)
-
 		return current
 	}
+
+	// Fall back to ID when the current value doesn't match any identifier
+	return types.StringValue(apiIDStr)
 
 	// Current is a numeric ID but doesn't match the API ID - this is actual drift
 	// Update to the correct ID
 
-	return types.StringValue(apiIDStr)
 }
 
 // NullableInt64FromAPI maps a nullable API int pointer to a Terraform types.Int64.
@@ -352,12 +351,32 @@ func EnumFromAPIWithDefault[T ~string](hasValue bool, getValue func() T, current
 func PreserveReferenceFormat(stateValue types.String, apiID int32, apiName, apiSlug string) types.String {
 	apiIDStr := fmt.Sprintf("%d", apiID)
 
-	// If state is null or unknown, prefer ID (default for new/imported resources)
-	if stateValue.IsNull() || stateValue.IsUnknown() {
+	// If state is unknown (computed reference), prefer a stable human identifier
+	if stateValue.IsUnknown() {
+		if apiName != "" {
+			return types.StringValue(apiName)
+		}
+		if apiSlug != "" {
+			return types.StringValue(apiSlug)
+		}
 		if apiIDStr != "0" {
 			return types.StringValue(apiIDStr)
 		}
-		return types.StringValue(apiName)
+		return types.StringNull()
+	}
+
+	// If state is null, prefer ID (import scenario)
+	if stateValue.IsNull() {
+		if apiIDStr != "0" {
+			return types.StringValue(apiIDStr)
+		}
+		if apiName != "" {
+			return types.StringValue(apiName)
+		}
+		if apiSlug != "" {
+			return types.StringValue(apiSlug)
+		}
+		return types.StringNull()
 	}
 
 	// Check if the configured value matches any API identifier

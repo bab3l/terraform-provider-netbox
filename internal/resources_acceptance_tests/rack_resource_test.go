@@ -306,9 +306,9 @@ func TestAccConsistency_Rack(t *testing.T) {
 				Config: testAccRackConsistencyConfig(rackName, siteName, siteSlug, tenantName, tenantSlug, roleName, roleSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-					resource.TestCheckResourceAttr("netbox_rack.test", "site", siteName),
-					resource.TestCheckResourceAttr("netbox_rack.test", "tenant", tenantName),
-					resource.TestCheckResourceAttr("netbox_rack.test", "role", roleName),
+					testutil.ReferenceFieldCheck("netbox_rack.test", "site"),
+					testutil.ReferenceFieldCheck("netbox_rack.test", "tenant"),
+					testutil.ReferenceFieldCheck("netbox_rack.test", "role"),
 				),
 			},
 			{
@@ -338,7 +338,7 @@ func TestAccConsistency_Rack_LiteralNames(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_rack.test", "id"),
 					resource.TestCheckResourceAttr("netbox_rack.test", "name", rackName),
-					resource.TestCheckResourceAttr("netbox_rack.test", "site", siteName),
+					testutil.ReferenceFieldCheck("netbox_rack.test", "site"),
 				),
 			},
 			{
@@ -361,7 +361,7 @@ resource "netbox_site" "test" {
 
 resource "netbox_rack" "test" {
   name = %q
-  site = netbox_site.test.name
+	site = netbox_site.test.id
 }
 `, siteName, siteSlug, rackName)
 }
@@ -539,9 +539,9 @@ resource "netbox_rack_role" "test" {
 
 resource "netbox_rack" "test" {
   name = "%[1]s"
-  site = netbox_site.test.name
-  tenant = netbox_tenant.test.name
-  role = netbox_rack_role.test.name
+	site = netbox_site.test.id
+	tenant = netbox_tenant.test.id
+	role = netbox_rack_role.test.id
 }
 `, rackName, siteName, siteSlug, tenantName, tenantSlug, roleName, roleSlug)
 }

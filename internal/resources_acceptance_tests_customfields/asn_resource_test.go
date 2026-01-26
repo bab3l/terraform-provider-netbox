@@ -147,7 +147,7 @@ resource "netbox_custom_field" "owner" {
 
 resource "netbox_asn" "test" {
   asn = %[1]d
-  rir = netbox_rir.test.slug
+  rir = netbox_rir.test.id
   custom_fields = [
     {
       name  = netbox_custom_field.environment.name
@@ -187,7 +187,7 @@ resource "netbox_custom_field" "owner" {
 
 resource "netbox_asn" "test" {
   asn         = %[1]d
-  rir         = netbox_rir.test.slug
+  rir         = netbox_rir.test.id
   description = "Updated description"
 }
 `, asn, cfEnv, cfOwner)
@@ -216,7 +216,7 @@ resource "netbox_custom_field" "owner" {
 
 resource "netbox_asn" "test" {
   asn         = %[1]d
-  rir         = netbox_rir.test.slug
+  rir         = netbox_rir.test.id
   description = "Updated description"
 
   custom_fields = [
@@ -270,7 +270,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_asn" "test" {
   asn = %[1]d
-  rir = netbox_rir.test.slug
+  rir = netbox_rir.test.id
 
   custom_fields = [
     {
@@ -319,7 +319,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_asn" "test" {
   asn = %[1]d
-  rir = netbox_rir.test.slug
+  rir = netbox_rir.test.id
 
   custom_fields = [
     {
@@ -363,7 +363,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_asn" "test" {
   asn = %[1]d
-  rir = netbox_rir.test.slug
+  rir = netbox_rir.test.id
 
   custom_fields = [
     {
@@ -412,7 +412,7 @@ resource "netbox_custom_field" "cost" {
 
 resource "netbox_asn" "test" {
   asn = %[1]d
-  rir = netbox_rir.test.slug
+  rir = netbox_rir.test.id
 
   custom_fields = [
     {
@@ -469,6 +469,8 @@ func TestAccASNResource_importWithCustomFieldsAndTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_asn.test", "id"),
 					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
+					resource.TestCheckResourceAttrPair("netbox_asn.test", "rir", "netbox_rir.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_asn.test", "tenant", "netbox_tenant.test", "id"),
 					// Verify custom fields are applied
 					resource.TestCheckResourceAttr("netbox_asn.test", "custom_fields.#", "7"),
 					// Verify tags are applied
@@ -476,11 +478,27 @@ func TestAccASNResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				Config:            testAccASNResourceImportConfig_full(asn, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:      "netbox_asn.test",
-				ImportState:       true,
-				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
-				ImportStateVerify: false,
+				Config:             testAccASNResourceImportConfig_full(asn, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:       "netbox_asn.test",
+				ImportState:        true,
+				ImportStateKind:    resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify:  false,
+				ExpectNonEmptyPlan: true,
+				ImportStateVerifyIgnore: []string{
+					"custom_fields",
+					"rir",
+					"tenant",
+				},
+			},
+			{
+				Config: testAccASNResourceImportConfig_full(asn, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_asn.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_asn.test", "rir", "netbox_rir.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_asn.test", "tenant", "netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "custom_fields.#", "7"),
+					resource.TestCheckResourceAttr("netbox_asn.test", "tags.#", "2"),
+				),
 			},
 			{
 				Config:   testAccASNResourceImportConfig_full(asn, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
@@ -560,8 +578,8 @@ resource "netbox_tag" "tag2" {
 # Main Resource
 resource "netbox_asn" "test" {
   asn    = %d
-  rir    = netbox_rir.test.slug
-  tenant = netbox_tenant.test.slug
+  rir    = netbox_rir.test.id
+  tenant = netbox_tenant.test.id
 
   custom_fields = [
     {

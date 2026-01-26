@@ -5,7 +5,7 @@ resource "netbox_rir" "test" {
 
 resource "netbox_asn" "test" {
   asn         = 65001
-  rir         = netbox_rir.test.name
+  rir         = netbox_rir.test.id
   description = "Primary BGP ASN for datacenter"
   comments    = "Private ASN for internal BGP routing"
 

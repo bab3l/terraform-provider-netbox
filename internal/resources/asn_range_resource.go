@@ -423,18 +423,20 @@ func (r *ASNRangeResource) ImportState(ctx context.Context, req resource.ImportS
 		}
 
 		var data ASNRangeResourceModel
-		if asnRange.Rir.GetSlug() != "" {
-			data.RIR = types.StringValue(asnRange.Rir.GetSlug())
-		} else {
+		if asnRange.Rir.GetId() != 0 {
 			data.RIR = types.StringValue(fmt.Sprintf("%d", asnRange.Rir.GetId()))
+		} else {
+			data.RIR = types.StringNull()
 		}
 		if asnRange.HasTenant() && asnRange.Tenant.Get() != nil {
 			tenant := asnRange.Tenant.Get()
-			if tenant.GetSlug() != "" {
-				data.Tenant = types.StringValue(tenant.GetSlug())
-			} else {
+			if tenant.GetId() != 0 {
 				data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+			} else {
+				data.Tenant = types.StringNull()
 			}
+		} else {
+			data.Tenant = types.StringNull()
 		}
 		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, asnRange.HasTags(), asnRange.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
@@ -527,16 +529,24 @@ func (r *ASNRangeResource) mapASNRangeToState(ctx context.Context, asnRange *net
 	data.Name = types.StringValue(asnRange.Name)
 	data.Slug = types.StringValue(asnRange.Slug)
 
-	// RIR - preserve user's input format
+	// RIR (store ID to avoid import drift)
 	rir := asnRange.Rir
-	data.RIR = utils.UpdateReferenceAttribute(data.RIR, rir.GetName(), rir.GetSlug(), rir.GetId())
+	if rir.GetId() != 0 {
+		data.RIR = types.StringValue(fmt.Sprintf("%d", rir.GetId()))
+	} else {
+		data.RIR = types.StringNull()
+	}
 	data.Start = types.StringValue(fmt.Sprintf("%d", asnRange.Start))
 	data.End = types.StringValue(fmt.Sprintf("%d", asnRange.End))
 
-	// Tenant - preserve user's input format
+	// Tenant (store ID to avoid import drift)
 	if asnRange.HasTenant() && asnRange.Tenant.Get() != nil {
 		tenant := asnRange.Tenant.Get()
-		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
+		if tenant.GetId() != 0 {
+			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		} else {
+			data.Tenant = types.StringNull()
+		}
 	} else {
 		data.Tenant = types.StringNull()
 	}

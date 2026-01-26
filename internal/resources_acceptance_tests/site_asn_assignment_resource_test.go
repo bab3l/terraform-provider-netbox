@@ -36,7 +36,7 @@ func TestAccSiteASNAssignmentResource_basic(t *testing.T) {
 				Config: testAccSiteASNAssignmentResourceConfig_basic(siteName, siteSlug, rirName, rirSlug, asn),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_asn_assignment.test", "id"),
-					resource.TestCheckResourceAttrPair("netbox_site_asn_assignment.test", "site", "netbox_site.test", "slug"),
+					resource.TestCheckResourceAttrPair("netbox_site_asn_assignment.test", "site", "netbox_site.test", "id"),
 					resource.TestCheckResourceAttrPair("netbox_site_asn_assignment.test", "asn", "netbox_asn.test", "id"),
 				),
 			},
@@ -75,7 +75,7 @@ func TestAccSiteASNAssignmentResource_full(t *testing.T) {
 				Config: testAccSiteASNAssignmentResourceConfig_basic(siteName, siteSlug, rirName, rirSlug, asn),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_site_asn_assignment.test", "id"),
-					resource.TestCheckResourceAttrPair("netbox_site_asn_assignment.test", "site", "netbox_site.test", "slug"),
+					resource.TestCheckResourceAttrPair("netbox_site_asn_assignment.test", "site", "netbox_site.test", "id"),
 					resource.TestCheckResourceAttrPair("netbox_site_asn_assignment.test", "asn", "netbox_asn.test", "id"),
 				),
 			},
@@ -236,10 +236,8 @@ func TestAccSiteASNAssignmentResource_removeOptionalFields(t *testing.T) {
 			return baseConfig()
 		},
 		OptionalFields: map[string]string{},
-		RequiredFields: map[string]string{
-			"site": siteSlug,
-		},
-		CheckDestroy: testutil.CheckSiteDestroy,
+		RequiredFields: map[string]string{},
+		CheckDestroy:   testutil.CheckSiteDestroy,
 	})
 }
 
@@ -262,7 +260,7 @@ resource "netbox_asn" "test" {
 }
 
 resource "netbox_site_asn_assignment" "test" {
-  site = netbox_site.test.slug
+	site = netbox_site.test.id
   asn  = netbox_asn.test.id
 }
 `, siteName, siteSlug, rirName, rirSlug, asn)
@@ -297,7 +295,7 @@ resource "netbox_asn" "second" {
 }
 
 resource "netbox_site_asn_assignment" "test" {
-	site = netbox_site.test.slug
+	site = netbox_site.test.id
 	asn  = %s
 }
 `, siteName, siteSlug, rirName, rirSlug, asn1, asn2, assignmentASN)

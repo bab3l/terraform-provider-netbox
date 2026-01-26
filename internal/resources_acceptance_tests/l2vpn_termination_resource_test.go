@@ -510,7 +510,7 @@ resource "netbox_l2vpn_termination" "test" {
 `, tagName, tagSlug, l2vpnName, l2vpnName, l2vpnName, vlanVID)
 }
 
-func TestAccL2VPNTerminationResource_external_deletion(t *testing.T) {
+func TestAccL2VPNTerminationResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 	l2vpnName := acctest.RandomWithPrefix("test-l2vpn-term")
 	vlanVID := testutil.RandomVID()

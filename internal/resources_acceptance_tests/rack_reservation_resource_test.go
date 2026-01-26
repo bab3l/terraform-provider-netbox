@@ -519,7 +519,7 @@ data "netbox_user" "admin" {
 }
 
 resource "netbox_rack_reservation" "test" {
-  rack        = netbox_rack.test.name
+	rack        = netbox_rack.test.id
   units       = [1, 2]
   user        = data.netbox_user.admin.id
   description = %[4]q

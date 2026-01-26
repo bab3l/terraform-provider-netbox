@@ -407,7 +407,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_interface" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name   = %q
   type   = "1000base-t"
 }
@@ -420,7 +420,7 @@ resource "netbox_ip_address" "test_v4" {
 }
 %s%s
 resource "netbox_device_primary_ip" "test" {
-  device      = netbox_device.test.name
+	device      = netbox_device.test.id
   primary_ip4 = netbox_ip_address.test_v4.id%s%s
 }
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, interfaceName, ip4, primaryIP6Resource, oobResource, primaryIP6Attr, oobAttr)

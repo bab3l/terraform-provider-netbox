@@ -193,7 +193,7 @@ func TestAccASNResource_removeOptionalFields(t *testing.T) {
 	})
 }
 
-func TestAccASNResource_external_deletion(t *testing.T) {
+func TestAccASNResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	rirName := testutil.RandomName("tf-test-rir-ext-del")
@@ -332,8 +332,7 @@ resource "netbox_asn" "test" {
 `, rirName, rirSlug, asn)
 }
 
-// TestAccConsistency_ASN_LiteralNames tests that reference attributes specified as literal string names
-// are preserved and do not cause drift when the API returns numeric IDs.
+// TestAccConsistency_ASN_LiteralNames verifies normalized ID handling for references.
 func TestAccConsistency_ASN_LiteralNames(t *testing.T) {
 	t.Parallel()
 
@@ -356,8 +355,8 @@ func TestAccConsistency_ASN_LiteralNames(t *testing.T) {
 				Config: testAccASNConsistencyLiteralNamesConfig(asn, rirName, rirSlug, tenantName, tenantSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_asn.test", "asn", fmt.Sprintf("%d", asn)),
-					resource.TestCheckResourceAttr("netbox_asn.test", "rir", rirSlug),
-					resource.TestCheckResourceAttr("netbox_asn.test", "tenant", tenantName),
+					resource.TestCheckResourceAttrPair("netbox_asn.test", "rir", "netbox_rir.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_asn.test", "tenant", "netbox_tenant.test", "id"),
 				),
 			},
 			{
@@ -383,9 +382,8 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_asn" "test" {
   asn = %[1]d
-  # Use literal string names to mimic existing user state
-  rir = "%[3]s"
-  tenant = "%[4]s"
+	rir = netbox_rir.test.id
+	tenant = netbox_tenant.test.id
   depends_on = [netbox_rir.test, netbox_tenant.test]
 }
 `, asn, rirName, rirSlug, tenantName, tenantSlug)

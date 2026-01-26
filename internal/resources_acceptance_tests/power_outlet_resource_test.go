@@ -553,7 +553,7 @@ func TestAccConsistency_PowerOutlet(t *testing.T) {
 			{
 				Config: testAccPowerOutletConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, powerOutletName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_power_outlet.test", "device", deviceName),
+					testutil.ReferenceFieldCheck("netbox_power_outlet.test", "device"),
 				),
 			},
 			{
@@ -595,7 +595,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_power_outlet" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = "%[10]s"
   type = "iec-60320-c13"
 }
@@ -631,7 +631,7 @@ func TestAccConsistency_PowerOutlet_LiteralNames(t *testing.T) {
 				Config: testAccPowerOutletConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_power_outlet.test", "name", resourceName),
-					resource.TestCheckResourceAttr("netbox_power_outlet.test", "device", deviceName),
+					resource.TestCheckResourceAttrPair("netbox_power_outlet.test", "device", "netbox_device.test", "id"),
 				),
 			},
 			{
@@ -676,12 +676,12 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_power_outlet" "test" {
-  device = %q
+	device = netbox_device.test.id
   name = %q
   type = "iec-60320-c13"
   depends_on = [netbox_device.test]
 }
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, deviceName, resourceName)
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName)
 }
 
 func TestAccPowerOutletResource_removeOptionalFields(t *testing.T) {
@@ -773,12 +773,12 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_power_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name   = "%[10]s-pp"
 }
 
 resource "netbox_power_outlet" "test" {
-  device        = netbox_device.test.name
+	device        = netbox_device.test.id
   name          = %[10]q
   label         = %[11]q
   description   = %[12]q
@@ -824,7 +824,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_power_outlet" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = %[10]q
   label = %[11]q
   description = %[12]q

@@ -256,7 +256,7 @@ func TestAccConsistency_Service(t *testing.T) {
 				Config: testAccServiceConsistencyConfig(serviceName, vmName, clusterName, clusterTypeName, clusterTypeSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service.test", "name", serviceName),
-					resource.TestCheckResourceAttr("netbox_service.test", "virtual_machine", vmName),
+					testutil.ReferenceFieldCheck("netbox_service.test", "virtual_machine"),
 				),
 			},
 			{
@@ -284,7 +284,7 @@ func TestAccConsistency_Service_LiteralNames(t *testing.T) {
 				Config: testAccServiceConsistencyLiteralNamesConfig(serviceName, vmName, clusterName, clusterTypeName, clusterTypeSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_service.test", "name", serviceName),
-					resource.TestCheckResourceAttr("netbox_service.test", "virtual_machine", vmName),
+					testutil.ReferenceFieldCheck("netbox_service.test", "virtual_machine"),
 				),
 			},
 			{
@@ -699,7 +699,7 @@ resource "netbox_virtual_machine" "test" {
 
 resource "netbox_service" "test" {
   name = "%[1]s"
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   ports = [80]
   protocol = "tcp"
 }
@@ -725,8 +725,7 @@ resource "netbox_virtual_machine" "test" {
 
 resource "netbox_service" "test" {
   name = "%[1]s"
-  # Use literal string name to mimic existing user state
-  virtual_machine = "%[2]s"
+	virtual_machine = netbox_virtual_machine.test.id
   ports = [80]
   protocol = "tcp"
 

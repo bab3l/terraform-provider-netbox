@@ -247,7 +247,7 @@ func TestAccIPRangeResource_tagOrderInvariance(t *testing.T) {
 	})
 }
 
-func TestAccIPRangeResource_external_deletion(t *testing.T) {
+func TestAccIPRangeResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	secondOctet := acctest.RandIntRange(201, 250)

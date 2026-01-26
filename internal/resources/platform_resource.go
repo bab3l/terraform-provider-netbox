@@ -108,7 +108,7 @@ func (r *PlatformResource) Create(ctx context.Context, req resource.CreateReques
 	if platform.HasManufacturer() {
 		m, ok := platform.GetManufacturerOk()
 		if ok && m != nil {
-			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Name, m.Slug, m.Id)
+			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Slug, "", m.Id)
 		}
 	}
 	if platform.HasDescription() {
@@ -160,7 +160,7 @@ func (r *PlatformResource) Read(ctx context.Context, req resource.ReadRequest, r
 	if platform.HasManufacturer() {
 		m, ok := platform.GetManufacturerOk()
 		if ok && m != nil {
-			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Name, m.Slug, m.Id)
+			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Slug, "", m.Id)
 		} else {
 			data.Manufacturer = types.StringNull()
 		}
@@ -229,7 +229,7 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 	if platform.HasManufacturer() {
 		m, ok := platform.GetManufacturerOk()
 		if ok && m != nil {
-			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Name, m.Slug, m.Id)
+			data.Manufacturer = utils.UpdateReferenceAttribute(data.Manufacturer, m.Slug, "", m.Id)
 		} else {
 			data.Manufacturer = types.StringNull()
 		}

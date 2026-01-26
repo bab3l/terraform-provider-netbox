@@ -294,7 +294,7 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = %q
-  cluster = netbox_cluster.test.name
+	cluster = netbox_cluster.test.id
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName)
 }
@@ -349,7 +349,7 @@ resource "netbox_config_template" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name        = %q
-  cluster     = netbox_cluster.test.name
+	cluster     = netbox_cluster.test.id
   status      = "active"
   vcpus       = 2
   memory      = 2048
@@ -393,7 +393,7 @@ func TestAccConsistency_VirtualMachine_PlatformNamePersistence(t *testing.T) {
 				Config: testAccVirtualMachineResourceConfig_platformNamePersistence(clusterTypeName, clusterTypeSlug, clusterName, platformName, platformSlug, vmName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
-					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "platform", platformName),
+					testutil.ReferenceFieldCheck("netbox_virtual_machine.test", "platform"),
 				),
 			},
 			{
@@ -612,7 +612,7 @@ resource "netbox_platform" "test" {
 resource "netbox_virtual_machine" "test" {
   name     = %q
   cluster  = netbox_cluster.test.id
-  platform = netbox_platform.test.name
+	platform = netbox_platform.test.id
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, platformName, platformSlug, vmName)
 }
@@ -631,7 +631,7 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = %[4]q
-  cluster = netbox_cluster.test.name
+	cluster = netbox_cluster.test.id
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName)
 }
@@ -935,16 +935,16 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_platform" "test" {
   name         = "%s"
   slug         = "%s"
-  manufacturer = netbox_manufacturer.test.name
+	manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_virtual_machine" "test" {
   name     = "%s"
-  cluster  = netbox_cluster.test.name
-  site     = netbox_site.test.name
-  tenant   = netbox_tenant.test.name
-  role     = netbox_device_role.test.name
-  platform = netbox_platform.test.name
+	cluster  = netbox_cluster.test.id
+	site     = netbox_site.test.id
+	tenant   = netbox_tenant.test.id
+	role     = netbox_device_role.test.id
+	platform = netbox_platform.test.id
   status   = "staged"
   vcpus    = 4
   memory   = 8192
@@ -1003,12 +1003,12 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_platform" "test" {
   name         = "%s"
   slug         = "%s"
-  manufacturer = netbox_manufacturer.test.name
+	manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_virtual_machine" "test" {
   name    = "%s"
-  cluster = netbox_cluster.test.name
+	cluster = netbox_cluster.test.id
 }
 `, clusterTypeName, clusterTypeSlug, clusterName,
 		siteName, siteSlug,

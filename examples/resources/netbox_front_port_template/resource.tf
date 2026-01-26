@@ -19,9 +19,9 @@ resource "netbox_rear_port_template" "test" {
 
 resource "netbox_front_port_template" "test" {
   name               = "Front Port Template"
-  device_type        = netbox_device_type.test.model
+  device_type        = netbox_device_type.test.id
   type               = "8p8c"
-  rear_port          = netbox_rear_port_template.test.name
+  rear_port          = netbox_rear_port_template.test.id
   rear_port_position = 1
 
   # Partial custom fields management

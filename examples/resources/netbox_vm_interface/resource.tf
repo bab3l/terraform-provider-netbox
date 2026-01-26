@@ -5,17 +5,17 @@ resource "netbox_cluster_type" "test" {
 
 resource "netbox_cluster" "test" {
   name = "Test Cluster"
-  type = netbox_cluster_type.test.name
+  type = netbox_cluster_type.test.id
 }
 
 resource "netbox_virtual_machine" "test" {
   name    = "Test VM"
-  cluster = netbox_cluster.test.name
+  cluster = netbox_cluster.test.id
 }
 
 resource "netbox_vm_interface" "test" {
   name            = "eth0"
-  virtual_machine = netbox_virtual_machine.test.name
+  virtual_machine = netbox_virtual_machine.test.id
 }
 
 # VM interface linked using VM ID

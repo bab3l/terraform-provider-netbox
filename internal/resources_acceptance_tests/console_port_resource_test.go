@@ -44,10 +44,9 @@ func TestAccConsolePortResource_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_console_port.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device"},
+				ResourceName:      "netbox_console_port.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 				Check: resource.ComposeTestCheckFunc(
 					testutil.ReferenceFieldCheck("netbox_console_port.test", "device"),
 				),
@@ -134,7 +133,7 @@ func TestAccConsistency_ConsolePort(t *testing.T) {
 			{
 				Config: testAccConsolePortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, portName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_console_port.test", "device", deviceName),
+					testutil.ReferenceFieldCheck("netbox_console_port.test", "device"),
 				),
 			},
 			{
@@ -176,7 +175,7 @@ func TestAccConsistency_ConsolePort_LiteralNames(t *testing.T) {
 				Config: testAccConsolePortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_console_port.test", "name", resourceName),
-					resource.TestCheckResourceAttr("netbox_console_port.test", "device", deviceName),
+					resource.TestCheckResourceAttrPair("netbox_console_port.test", "device", "netbox_device.test", "id"),
 				),
 			},
 			{
@@ -401,7 +400,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_console_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = "%[10]s"
   type = "rj-45"
 }
@@ -442,13 +441,12 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_console_port" "test" {
-  # Use literal string name to mimic existing user state
-  device = %q
+	device = netbox_device.test.id
   name = %q
   type = "rj-45"
   depends_on = [netbox_device.test]
 }
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, deviceName, resourceName)
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName)
 }
 
 func TestAccConsolePortResource_removeOptionalFields(t *testing.T) {
@@ -524,7 +522,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_console_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = %[10]q
 }
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, cpName)
@@ -591,7 +589,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_console_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = %[10]q
 %[11]s}
 `, siteName, siteSlug, mfgName, mfgSlug, dtModel, dtSlug, roleName, roleSlug, deviceName, cpName, optionalFields)
@@ -631,7 +629,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_console_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = %[10]q
   label = %[11]q
   description = %[12]q

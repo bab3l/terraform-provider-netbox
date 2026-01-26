@@ -46,6 +46,8 @@ func TestAccASNRangeResource_importWithCustomFieldsAndTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "id"),
 					resource.TestCheckResourceAttr("netbox_asn_range.test", "name", rangeName),
+					resource.TestCheckResourceAttrPair("netbox_asn_range.test", "rir", "netbox_rir.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_asn_range.test", "tenant", "netbox_tenant.test", "id"),
 					// Verify custom fields are applied
 					resource.TestCheckResourceAttr("netbox_asn_range.test", "custom_fields.#", "7"),
 					// Verify tags are applied
@@ -53,15 +55,33 @@ func TestAccASNRangeResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				Config:            testAccASNRangeResourceImportConfig_full(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:      "netbox_asn_range.test",
-				ImportState:       true,
-				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
-				ImportStateVerify: false,
-			}, {
+				Config:             testAccASNRangeResourceImportConfig_full(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:       "netbox_asn_range.test",
+				ImportState:        true,
+				ImportStateKind:    resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify:  false,
+				ExpectNonEmptyPlan: true,
+				ImportStateVerifyIgnore: []string{
+					"custom_fields",
+					"rir",
+					"tenant",
+				},
+			},
+			{
+				Config: testAccASNRangeResourceImportConfig_full(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_asn_range.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_asn_range.test", "rir", "netbox_rir.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_asn_range.test", "tenant", "netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "custom_fields.#", "7"),
+					resource.TestCheckResourceAttr("netbox_asn_range.test", "tags.#", "2"),
+				),
+			},
+			{
 				Config:   testAccASNRangeResourceImportConfig_full(rangeName, rangeSlug, rirName, rirSlug, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
 				PlanOnly: true,
-			}},
+			},
+		},
 	})
 }
 
@@ -148,8 +168,8 @@ resource "netbox_tag" "tag2" {
 resource "netbox_asn_range" "test" {
   name    = %q
   slug    = %q
-  rir     = netbox_rir.test.slug
-  tenant  = netbox_tenant.test.slug
+  rir     = netbox_rir.test.id
+  tenant  = netbox_tenant.test.id
   start   = 64512
   end     = 64600
 

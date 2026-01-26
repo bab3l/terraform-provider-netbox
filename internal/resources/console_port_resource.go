@@ -399,7 +399,7 @@ func (r *ConsolePortResource) ImportState(ctx context.Context, req resource.Impo
 		var data ConsolePortResourceModel
 		data.Tags = types.SetNull(types.StringType)
 		if device := response.GetDevice(); device.Id != 0 {
-			data.Device = types.StringValue(device.GetName())
+			data.Device = utils.UpdateReferenceAttribute(data.Device, device.GetName(), "", device.GetId())
 		}
 		if parsed.HasCustomFields {
 			if len(parsed.CustomFields) == 0 {

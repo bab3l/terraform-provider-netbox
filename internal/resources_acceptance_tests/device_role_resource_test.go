@@ -254,29 +254,51 @@ func TestAccDeviceRoleResource_removeDescription(t *testing.T) {
 	cleanup.RegisterDeviceRoleCleanup(slug)
 	cleanup.RegisterConfigTemplateCleanup(configTemplateName)
 
-	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
-		ResourceName: "netbox_device_role",
-		BaseConfig: func() string {
-			return testAccDeviceRoleResourceConfig_baseWithTemplate(name, slug, configTemplateName, configTemplateCode)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckDeviceRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceRoleResourceConfig_withDescription(
+					name,
+					slug,
+					"Test description",
+					configTemplateName,
+					configTemplateCode,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_device_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_device_role.test", "description", "Test description"),
+					resource.TestCheckResourceAttrPair("netbox_device_role.test", "config_template", "netbox_config_template.test", "id"),
+				),
+			},
+			{
+				Config: testAccDeviceRoleResourceConfig_baseWithTemplate(name, slug, configTemplateName, configTemplateCode),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_device_role.test", "slug", slug),
+					resource.TestCheckNoResourceAttr("netbox_device_role.test", "description"),
+					resource.TestCheckNoResourceAttr("netbox_device_role.test", "config_template"),
+				),
+			},
+			{
+				Config: testAccDeviceRoleResourceConfig_withDescription(
+					name,
+					slug,
+					"Test description",
+					configTemplateName,
+					configTemplateCode,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device_role.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_device_role.test", "slug", slug),
+					resource.TestCheckResourceAttr("netbox_device_role.test", "description", "Test description"),
+					resource.TestCheckResourceAttrPair("netbox_device_role.test", "config_template", "netbox_config_template.test", "id"),
+				),
+			},
 		},
-		ConfigWithFields: func() string {
-			return testAccDeviceRoleResourceConfig_withDescription(
-				name,
-				slug,
-				"Test description",
-				configTemplateName,
-				configTemplateCode,
-			)
-		},
-		OptionalFields: map[string]string{
-			"description":     "Test description",
-			"config_template": configTemplateName,
-		},
-		RequiredFields: map[string]string{
-			"name": name,
-			"slug": slug,
-		},
-		CheckDestroy: testutil.CheckDeviceRoleDestroy,
 	})
 }
 
@@ -292,7 +314,7 @@ resource "netbox_device_role" "test" {
 	slug            = %[4]q
 	color           = "aa1409"
 	description     = %[5]q
-	config_template = netbox_config_template.test.name
+	config_template = netbox_config_template.test.id
 }
 `, configTemplateName, configTemplateCode, name, slug, description)
 }

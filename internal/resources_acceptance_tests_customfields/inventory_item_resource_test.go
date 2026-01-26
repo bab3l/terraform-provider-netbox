@@ -101,14 +101,14 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.slug
+	manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_device" "test" {
   name        = %q
-  device_type = netbox_device_type.test.slug
-  role        = netbox_device_role.test.slug
-  site        = netbox_site.test.slug
+	device_type = netbox_device_type.test.id
+	role        = netbox_device_role.test.id
+	site        = netbox_site.test.id
 }
 
 # Custom Fields
@@ -180,7 +180,7 @@ resource "netbox_tag" "tag2" {
 # Main Resource
 resource "netbox_inventory_item" "test" {
   name   = %q
-  device = netbox_device.test.name
+	device = netbox_device.test.id
 
   custom_fields = [
     {
@@ -366,7 +366,7 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.slug
+	manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_custom_field" "text" {
@@ -383,15 +383,15 @@ resource "netbox_custom_field" "integer" {
 
 resource "netbox_device" "test" {
   name        = %q
-  site        = netbox_site.test.slug
-  role        = netbox_device_role.test.slug
-  device_type = netbox_device_type.test.slug
-  tenant      = netbox_tenant.test.slug
+	site        = netbox_site.test.id
+	role        = netbox_device_role.test.id
+	device_type = netbox_device_type.test.id
+	tenant      = netbox_tenant.test.id
   status      = "active"
 }
 
 resource "netbox_inventory_item" "test" {
-  device      = netbox_device.test.name
+	device      = netbox_device.test.id
   name        = %q
   description = "Initial description"
 
@@ -450,7 +450,7 @@ resource "netbox_device_role" "test" {
 resource "netbox_device_type" "test" {
   model        = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.slug
+	manufacturer = netbox_manufacturer.test.id
 }
 
 resource "netbox_custom_field" "text" {
@@ -467,15 +467,15 @@ resource "netbox_custom_field" "integer" {
 
 resource "netbox_device" "test" {
   name        = %q
-  site        = netbox_site.test.slug
-  role        = netbox_device_role.test.slug
-  device_type = netbox_device_type.test.slug
-  tenant      = netbox_tenant.test.slug
+	site        = netbox_site.test.id
+	role        = netbox_device_role.test.id
+	device_type = netbox_device_type.test.id
+	tenant      = netbox_tenant.test.id
   status      = "active"
 }
 
 resource "netbox_inventory_item" "test" {
-  device      = netbox_device.test.name
+	device      = netbox_device.test.id
   name        = %q
   description = %q
 }

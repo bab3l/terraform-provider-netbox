@@ -454,14 +454,17 @@ func (r *CircuitTerminationResource) buildCreateRequest(ctx context.Context, dat
 
 	// Handle provider_network (optional) - reference by name
 	if !data.ProviderNetwork.IsNull() && !data.ProviderNetwork.IsUnknown() {
-		// Provider network is referenced by name
-		pnReq := netbox.NewBriefProviderNetworkRequest(data.ProviderNetwork.ValueString())
+		pnName, pnDiags := r.resolveProviderNetworkName(ctx, data.ProviderNetwork)
+		diags.Append(pnDiags...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		pnReq := netbox.NewBriefProviderNetworkRequest(pnName)
 		createReq.SetProviderNetwork(*pnReq)
 	} else if data.ProviderNetwork.IsNull() {
 		// Explicitly clear provider_network
 		createReq.SetProviderNetworkNil()
 	}
-
 	// Handle port_speed (optional)
 	if !data.PortSpeed.IsNull() && !data.PortSpeed.IsUnknown() {
 		portSpeed, err := utils.SafeInt32FromValue(data.PortSpeed)
@@ -601,4 +604,34 @@ func (r *CircuitTerminationResource) mapResponseToModel(ctx context.Context, ter
 	if termination.HasCustomFields() {
 		data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, termination.CustomFields, diags)
 	}
+}
+
+func (r *CircuitTerminationResource) resolveProviderNetworkName(ctx context.Context, providerNetwork types.String) (string, diag.Diagnostics) {
+	if providerNetwork.IsNull() || providerNetwork.IsUnknown() {
+		return "", diag.Diagnostics{diag.NewErrorDiagnostic(
+			"Missing provider network",
+			"provider_network must be provided when set",
+		)}
+	}
+
+	value := providerNetwork.ValueString()
+	if id, err := utils.ParseID(value); err == nil {
+		pn, httpResp, err := r.client.CircuitsAPI.CircuitsProviderNetworksRetrieve(ctx, id).Execute()
+		defer utils.CloseResponseBody(httpResp)
+		if err != nil {
+			return "", diag.Diagnostics{diag.NewErrorDiagnostic(
+				"Error reading provider network",
+				utils.FormatAPIError(fmt.Sprintf("read provider network ID %d", id), err, httpResp),
+			)}
+		}
+		if pn == nil {
+			return "", diag.Diagnostics{diag.NewErrorDiagnostic(
+				"Provider network not found",
+				fmt.Sprintf("No provider network found with ID %d", id),
+			)}
+		}
+		return pn.GetName(), nil
+	}
+
+	return value, nil
 }

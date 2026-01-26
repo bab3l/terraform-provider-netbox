@@ -345,14 +345,14 @@ func (r *AggregateResource) ImportState(ctx context.Context, req resource.Import
 
 		var data AggregateResourceModel
 		if rir := aggregate.GetRir(); rir.Id != 0 {
-			if rir.Slug != "" {
-				data.RIR = types.StringValue(rir.Slug)
-			}
+			data.RIR = types.StringValue(fmt.Sprintf("%d", rir.Id))
+		} else {
+			data.RIR = types.StringNull()
 		}
 		if tenant, ok := aggregate.GetTenantOk(); ok && tenant != nil && tenant.Id != 0 {
-			if tenant.GetSlug() != "" {
-				data.Tenant = types.StringValue(tenant.GetSlug())
-			}
+			data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		} else {
+			data.Tenant = types.StringNull()
 		}
 		data.Tags = utils.PopulateTagsSlugFromAPI(ctx, aggregate.HasTags(), aggregate.GetTags(), data.Tags)
 		if parsed.HasCustomFields {
@@ -477,14 +477,16 @@ func (r *AggregateResource) mapResponseToModel(ctx context.Context, aggregate *n
 	data.ID = types.StringValue(fmt.Sprintf("%d", aggregate.GetId()))
 	data.Prefix = types.StringValue(aggregate.GetPrefix())
 
-	// Map RIR
+	// Map RIR (store ID to avoid import drift)
 	if rir := aggregate.GetRir(); rir.Id != 0 {
-		data.RIR = utils.UpdateReferenceAttribute(data.RIR, rir.Name, rir.Slug, rir.Id)
+		data.RIR = types.StringValue(fmt.Sprintf("%d", rir.Id))
+	} else {
+		data.RIR = types.StringNull()
 	}
 
-	// Map tenant
+	// Map tenant (store ID to avoid import drift)
 	if tenant, ok := aggregate.GetTenantOk(); ok && tenant != nil && tenant.Id != 0 {
-		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
+		data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
 	} else {
 		data.Tenant = types.StringNull()
 	}

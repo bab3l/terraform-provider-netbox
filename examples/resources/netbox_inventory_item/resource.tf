@@ -24,15 +24,15 @@ resource "netbox_manufacturer" "test" {
 
 resource "netbox_device" "test" {
   name        = "test-device-1"
-  device_type = netbox_device_type.test.model
-  role        = netbox_device_role.test.name
-  site        = netbox_site.test.name
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
   status      = "active"
 }
 
 resource "netbox_inventory_item" "test" {
   name        = "Inventory Item 1"
-  device      = netbox_device.test.name
+  device      = netbox_device.test.id
   description = "Power supply module"
 
   # Partial custom fields management

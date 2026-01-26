@@ -835,14 +835,12 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	}
 
 	// Handle device_type - preserve the original input value (slug or ID)
-	if data.DeviceType.IsNull() || data.DeviceType.IsUnknown() {
-		data.DeviceType = types.StringValue(device.DeviceType.GetModel())
-	}
+	data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, device.DeviceType.GetSlug(), device.DeviceType.GetModel(), device.DeviceType.GetId())
 
 	// Otherwise keep the original value the user provided
 	// Handle role - preserve the original input value (slug or ID)
 	if data.Role.IsNull() || data.Role.IsUnknown() {
-		data.Role = types.StringValue(device.Role.GetName())
+		data.Role = utils.UpdateReferenceAttribute(data.Role, device.Role.GetSlug(), "", device.Role.GetId())
 	}
 
 	// Otherwise keep the original value the user provided
@@ -850,7 +848,8 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	switch {
 	case device.HasTenant() && device.Tenant.Get() != nil:
 		if data.Tenant.IsNull() || data.Tenant.IsUnknown() {
-			data.Tenant = types.StringValue(device.Tenant.Get().GetName())
+			tenantObj := device.Tenant.Get()
+			data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenantObj.GetName(), tenantObj.GetSlug(), tenantObj.GetId())
 		}
 
 	case !data.Tenant.IsNull() && !data.Tenant.IsUnknown():
@@ -864,7 +863,8 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	switch {
 	case device.HasPlatform() && device.Platform.Get() != nil:
 		if data.Platform.IsNull() || data.Platform.IsUnknown() {
-			data.Platform = types.StringValue(device.Platform.Get().GetName())
+			platformObj := device.Platform.Get()
+			data.Platform = utils.UpdateReferenceAttribute(data.Platform, platformObj.GetSlug(), "", platformObj.GetId())
 		}
 
 	case !data.Platform.IsNull() && !data.Platform.IsUnknown():
@@ -903,7 +903,7 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 	// Handle site - preserve the original input value
 	if data.Site.IsNull() || data.Site.IsUnknown() {
-		data.Site = types.StringValue(device.Site.GetName())
+		data.Site = utils.UpdateReferenceAttribute(data.Site, device.Site.GetName(), device.Site.GetSlug(), device.Site.GetId())
 	}
 
 	// Otherwise keep the original value the user provided
@@ -911,7 +911,8 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 	switch {
 	case device.HasLocation() && device.Location.Get() != nil:
 		if data.Location.IsNull() || data.Location.IsUnknown() {
-			data.Location = types.StringValue(device.Location.Get().GetName())
+			locationObj := device.Location.Get()
+			data.Location = utils.UpdateReferenceAttribute(data.Location, locationObj.GetName(), locationObj.GetSlug(), locationObj.GetId())
 		}
 
 	case !data.Location.IsNull() && !data.Location.IsUnknown():

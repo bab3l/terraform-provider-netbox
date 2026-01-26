@@ -6,13 +6,13 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_device_type" "test" {
   model        = "Test Model"
   slug         = "test-model"
-  manufacturer = netbox_manufacturer.test.name
+  manufacturer = netbox_manufacturer.test.id
   u_height     = 1
 }
 
 resource "netbox_inventory_item_template" "test" {
   name        = "Inventory Item Template"
-  device_type = netbox_device_type.test.model
+  device_type = netbox_device_type.test.id
 
   # Partial custom fields management
   # Only specified custom fields are managed, others preserved

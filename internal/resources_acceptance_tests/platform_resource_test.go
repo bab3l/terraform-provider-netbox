@@ -35,7 +35,7 @@ func TestAccPlatformResource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
 					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
 					resource.TestCheckResourceAttr("netbox_platform.test", "slug", platformSlug),
-					resource.TestCheckResourceAttr("netbox_platform.test", "manufacturer", manufacturerSlug),
+					resource.TestCheckResourceAttrPair("netbox_platform.test", "manufacturer", "netbox_manufacturer.test_manufacturer", "id"),
 				),
 			},
 			{
@@ -73,7 +73,7 @@ func TestAccPlatformResource_full(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_platform.test", "id"),
 					resource.TestCheckResourceAttr("netbox_platform.test", "name", platformName),
 					resource.TestCheckResourceAttr("netbox_platform.test", "slug", platformSlug),
-					resource.TestCheckResourceAttr("netbox_platform.test", "manufacturer", manufacturerSlug),
+					resource.TestCheckResourceAttrPair("netbox_platform.test", "manufacturer", "netbox_manufacturer.test_manufacturer", "id"),
 					resource.TestCheckResourceAttr("netbox_platform.test", "description", description),
 				),
 			},
@@ -197,7 +197,7 @@ resource "netbox_manufacturer" "test_manufacturer" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test_manufacturer.slug
+	manufacturer = netbox_manufacturer.test_manufacturer.id
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug)
 }
@@ -263,7 +263,7 @@ resource "netbox_manufacturer" "test_manufacturer" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test_manufacturer.slug
+	manufacturer = netbox_manufacturer.test_manufacturer.id
   description  = %q
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug, description)
@@ -319,7 +319,7 @@ resource "netbox_manufacturer" "test_manufacturer" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test_manufacturer.slug
+	manufacturer = netbox_manufacturer.test_manufacturer.id
   description  = %q
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug, description)
@@ -334,7 +334,7 @@ resource "netbox_manufacturer" "test" {
 resource "netbox_platform" "test" {
   name         = %q
   slug         = %q
-  manufacturer = netbox_manufacturer.test.slug
+	manufacturer = netbox_manufacturer.test.id
 }
 `, manufacturerName, manufacturerSlug, platformName, platformSlug)
 }

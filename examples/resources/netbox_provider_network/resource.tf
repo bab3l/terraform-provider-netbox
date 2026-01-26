@@ -5,7 +5,7 @@ resource "netbox_provider" "test" {
 
 resource "netbox_provider_network" "test" {
   name             = "Test Provider Network"
-  circuit_provider = netbox_provider.test.name
+  circuit_provider = netbox_provider.test.id
   description      = "Provider backbone network"
   comments         = "Redundant provider network with multiple POPs"
 

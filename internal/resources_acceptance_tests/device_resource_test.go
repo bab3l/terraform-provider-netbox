@@ -816,32 +816,57 @@ func TestAccDeviceResource_removeOptionalFields(t *testing.T) {
 	cleanup.RegisterClusterCleanup(clusterName)
 	cleanup.RegisterConfigTemplateCleanup(configTemplateName)
 
-	testutil.TestRemoveOptionalFields(t, testutil.MultiFieldOptionalTestConfig{
-		ResourceName: "netbox_device",
-		BaseConfig: func() string {
-			return testAccDeviceResourceConfig_removeOptionalFields_base(
-				deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
-				deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode,
-			)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testutil.CheckDeviceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeviceResourceConfig_removeOptionalFields_withFields(
+					deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
+					deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
+					resource.TestCheckResourceAttr("netbox_device.test", "latitude", "37.7749"),
+					resource.TestCheckResourceAttr("netbox_device.test", "longitude", "-122.4194"),
+					resource.TestCheckResourceAttr("netbox_device.test", "vc_position", "1"),
+					resource.TestCheckResourceAttr("netbox_device.test", "vc_priority", "100"),
+					resource.TestCheckResourceAttrPair("netbox_device.test", "cluster", "netbox_cluster.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_device.test", "config_template", "netbox_config_template.test", "id"),
+				),
+			},
+			{
+				Config: testAccDeviceResourceConfig_removeOptionalFields_base(
+					deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
+					deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
+					resource.TestCheckNoResourceAttr("netbox_device.test", "latitude"),
+					resource.TestCheckNoResourceAttr("netbox_device.test", "longitude"),
+					resource.TestCheckNoResourceAttr("netbox_device.test", "vc_position"),
+					resource.TestCheckNoResourceAttr("netbox_device.test", "vc_priority"),
+					resource.TestCheckNoResourceAttr("netbox_device.test", "cluster"),
+					resource.TestCheckNoResourceAttr("netbox_device.test", "config_template"),
+				),
+			},
+			{
+				Config: testAccDeviceResourceConfig_removeOptionalFields_withFields(
+					deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
+					deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
+					resource.TestCheckResourceAttr("netbox_device.test", "latitude", "37.7749"),
+					resource.TestCheckResourceAttr("netbox_device.test", "longitude", "-122.4194"),
+					resource.TestCheckResourceAttr("netbox_device.test", "vc_position", "1"),
+					resource.TestCheckResourceAttr("netbox_device.test", "vc_priority", "100"),
+					resource.TestCheckResourceAttrPair("netbox_device.test", "cluster", "netbox_cluster.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_device.test", "config_template", "netbox_config_template.test", "id"),
+				),
+			},
 		},
-		ConfigWithFields: func() string {
-			return testAccDeviceResourceConfig_removeOptionalFields_withFields(
-				deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug,
-				deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode,
-			)
-		},
-		OptionalFields: map[string]string{
-			"latitude":        "37.7749",
-			"longitude":       "-122.4194",
-			"vc_position":     "1",
-			"vc_priority":     "100",
-			"cluster":         clusterName,
-			"config_template": configTemplateName,
-		},
-		RequiredFields: map[string]string{
-			"name": deviceName,
-		},
-		CheckDestroy: testutil.CheckDeviceDestroy,
 	})
 }
 
@@ -941,8 +966,8 @@ resource "netbox_device" "test" {
   longitude   = -122.4194
   vc_position = 1
   vc_priority = 100
-	cluster     = netbox_cluster.test.name
-	config_template = netbox_config_template.test.name
+	cluster     = netbox_cluster.test.id
+	config_template = netbox_config_template.test.id
 }
 `, deviceName, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode)
 }

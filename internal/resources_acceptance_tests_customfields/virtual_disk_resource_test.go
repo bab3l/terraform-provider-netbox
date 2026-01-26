@@ -100,12 +100,12 @@ resource "netbox_cluster_type" "test" {
 
 resource "netbox_cluster" "test" {
   name = %q
-  type = netbox_cluster_type.test.slug
+	type = netbox_cluster_type.test.id
 }
 
 resource "netbox_virtual_machine" "test" {
   name    = %q
-  cluster = netbox_cluster.test.name
+	cluster = netbox_cluster.test.id
 
   lifecycle {
     ignore_changes = [disk]
@@ -308,12 +308,12 @@ resource "netbox_cluster_type" "test" {
 
 resource "netbox_cluster" "test" {
   name = %q
-  type = netbox_cluster_type.test.slug
+	type = netbox_cluster_type.test.id
 }
 
 resource "netbox_virtual_machine" "test" {
   name    = %q
-  cluster = netbox_cluster.test.name
+	cluster = netbox_cluster.test.id
 
   lifecycle {
     ignore_changes = [disk]
@@ -362,12 +362,12 @@ resource "netbox_cluster_type" "test" {
 
 resource "netbox_cluster" "test" {
   name = %q
-  type = netbox_cluster_type.test.slug
+	type = netbox_cluster_type.test.id
 }
 
 resource "netbox_virtual_machine" "test" {
   name    = %q
-  cluster = netbox_cluster.test.name
+	cluster = netbox_cluster.test.id
 
   lifecycle {
     ignore_changes = [disk]

@@ -121,6 +121,14 @@ func (r *SiteASNAssignmentResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
+	site, httpResp, err := r.client.DcimAPI.DcimSitesRetrieve(ctx, siteID).Execute()
+	defer utils.CloseResponseBody(httpResp)
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %d", siteID), err, httpResp))
+		return
+	}
+	data.Site = utils.UpdateReferenceAttribute(data.Site, site.GetName(), site.GetSlug(), site.GetId())
+
 	data.ID = types.StringValue(fmt.Sprintf("%d:%d", siteID, asnID))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -152,6 +160,7 @@ func (r *SiteASNAssignmentResource) Read(ctx context.Context, req resource.ReadR
 		resp.State.RemoveResource(ctx)
 		return
 	}
+	data.Site = utils.UpdateReferenceAttribute(data.Site, site.GetName(), site.GetSlug(), site.GetId())
 
 	data.ID = types.StringValue(fmt.Sprintf("%d:%d", siteID, asnID))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -184,6 +193,14 @@ func (r *SiteASNAssignmentResource) Update(ctx context.Context, req resource.Upd
 			return
 		}
 	}
+
+	site, httpResp, err := r.client.DcimAPI.DcimSitesRetrieve(ctx, newSiteID).Execute()
+	defer utils.CloseResponseBody(httpResp)
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %d", newSiteID), err, httpResp))
+		return
+	}
+	plan.Site = utils.UpdateReferenceAttribute(plan.Site, site.GetName(), site.GetSlug(), site.GetId())
 
 	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", newSiteID, newAsnID))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

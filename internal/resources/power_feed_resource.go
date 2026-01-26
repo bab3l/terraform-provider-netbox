@@ -665,8 +665,10 @@ func (r *PowerFeedResource) mapResponseToModel(ctx context.Context, pf *netbox.P
 	data.ID = types.StringValue(fmt.Sprintf("%d", pf.GetId()))
 	data.Name = types.StringValue(pf.GetName())
 
-	// Map power panel
-	data.PowerPanel = types.StringValue(fmt.Sprintf("%d", pf.PowerPanel.GetId()))
+	// Map power panel - preserve user's input format
+	if panel := pf.GetPowerPanel(); panel.Id != 0 {
+		data.PowerPanel = utils.UpdateReferenceAttribute(data.PowerPanel, panel.GetName(), "", panel.GetId())
+	}
 
 	// Map rack - preserve user's input format
 	if pf.Rack.IsSet() && pf.Rack.Get() != nil {

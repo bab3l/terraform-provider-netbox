@@ -44,10 +44,9 @@ func TestAccFrontPortResource_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_front_port.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device", "rear_port"},
+				ResourceName:      "netbox_front_port.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 				Check: resource.ComposeTestCheckFunc(
 					testutil.ReferenceFieldCheck("netbox_front_port.test", "device"),
 					testutil.ReferenceFieldCheck("netbox_front_port.test", "rear_port"),
@@ -102,10 +101,9 @@ func TestAccFrontPortResource_full(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_front_port.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"device", "rear_port"},
+				ResourceName:      "netbox_front_port.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 				Check: resource.ComposeTestCheckFunc(
 					testutil.ReferenceFieldCheck("netbox_front_port.test", "device"),
 					testutil.ReferenceFieldCheck("netbox_front_port.test", "rear_port"),
@@ -149,7 +147,7 @@ func TestAccConsistency_FrontPort(t *testing.T) {
 			{
 				Config: testAccFrontPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, frontPortName, rearPortName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_front_port.test", "device", deviceName),
+					testutil.ReferenceFieldCheck("netbox_front_port.test", "device"),
 				),
 			},
 			{
@@ -189,7 +187,7 @@ func TestAccConsistency_FrontPort_LiteralNames(t *testing.T) {
 				Config: testAccFrontPortConsistencyLiteralNamesConfig(manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_front_port.test", "name", resourceName),
-					resource.TestCheckResourceAttr("netbox_front_port.test", "device", deviceName),
+					resource.TestCheckResourceAttrPair("netbox_front_port.test", "device", "netbox_device.test", "id"),
 				),
 			},
 			{
@@ -425,14 +423,14 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_rear_port" "rear" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = %[10]q
   type = "8p8c"
   positions = 1
 }
 
 resource "netbox_front_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = %[11]q
   type = "8p8c"
   rear_port = netbox_rear_port.rear.id
@@ -718,7 +716,7 @@ resource "netbox_rear_port" "test" {
 }
 
 resource "netbox_front_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = "%[10]s"
   type = "8p8c"
   rear_port = netbox_rear_port.test.id
@@ -761,7 +759,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_rear_port" "rear" {
-  device    = %q
+	device    = netbox_device.test.id
   name      = "rear-port"
   type      = "8p8c"
   positions = 1
@@ -770,7 +768,7 @@ resource "netbox_rear_port" "rear" {
 }
 
 resource "netbox_front_port" "test" {
-  device = %q
+	device = netbox_device.test.id
   name = %q
   type = "8p8c"
   rear_port = netbox_rear_port.rear.id
@@ -778,7 +776,7 @@ resource "netbox_front_port" "test" {
 
   depends_on = [netbox_device.test]
 }
-`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, deviceName, deviceName, resourceName)
+`, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, roleName, roleSlug, siteName, siteSlug, deviceName, resourceName)
 }
 
 func TestAccFrontPortResource_removeOptionalFields(t *testing.T) {
@@ -869,14 +867,14 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_rear_port" "rear" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = %[10]q
   type = "8p8c"
   positions = 2
 }
 
 resource "netbox_front_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = %[11]q
   type = "8p8c"
   rear_port = netbox_rear_port.rear.id

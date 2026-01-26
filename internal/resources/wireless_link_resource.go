@@ -859,14 +859,7 @@ func (r *WirelessLinkResource) mapToState(result *netbox.WirelessLink, data *Wir
 
 	if result.HasTenant() && result.GetTenant().Id != 0 {
 		tenant := result.GetTenant()
-
-		userTenant := data.Tenant.ValueString()
-
-		if userTenant == tenant.GetName() || userTenant == tenant.GetSlug() || userTenant == tenant.GetDisplay() || userTenant == fmt.Sprintf("%d", tenant.GetId()) {
-			// Keep user's original value
-		} else {
-			data.Tenant = types.StringValue(tenant.GetName())
-		}
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 	} else {
 		data.Tenant = types.StringNull()
 	}

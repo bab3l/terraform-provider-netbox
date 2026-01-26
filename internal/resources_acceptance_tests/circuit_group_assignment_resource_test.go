@@ -326,8 +326,8 @@ func TestAccConsistency_CircuitGroupAssignment_LiteralNames(t *testing.T) {
 					groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_circuit_group_assignment.test", "id"),
-					resource.TestCheckResourceAttr("netbox_circuit_group_assignment.test", "group_id", groupName),
-					resource.TestCheckResourceAttr("netbox_circuit_group_assignment.test", "circuit_id", circuitCid),
+					resource.TestCheckResourceAttrPair("netbox_circuit_group_assignment.test", "group_id", "netbox_circuit_group.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_circuit_group_assignment.test", "circuit_id", "netbox_circuit.test", "id"),
 				),
 			},
 			{
@@ -363,8 +363,8 @@ resource "netbox_circuit" "test" {
 }
 
 resource "netbox_circuit_group_assignment" "test" {
-  group_id   = netbox_circuit_group.test.name
-  circuit_id = netbox_circuit.test.cid
+	group_id   = netbox_circuit_group.test.id
+	circuit_id = netbox_circuit.test.id
 }
 `, groupName, groupSlug, providerName, providerSlug, circuitTypeName, circuitTypeSlug, circuitCid)
 }

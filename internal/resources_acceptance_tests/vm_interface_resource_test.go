@@ -47,7 +47,7 @@ func TestAccVMInterfaceResource_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "virtual_machine", vmName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "virtual_machine"),
 				),
 			},
 		},
@@ -100,7 +100,7 @@ func TestAccVMInterfaceResource_full(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVMInterfaceResourceConfig_full(
+				Config: testAccVMInterfaceResourceConfig_fullIDs(
 					clusterTypeName,
 					clusterTypeSlug,
 					clusterName,
@@ -123,7 +123,7 @@ func TestAccVMInterfaceResource_full(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "virtual_machine", vmName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "virtual_machine"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "enabled", "true"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mtu", "1500"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mac_address", "00:11:22:33:44:55"),
@@ -227,7 +227,7 @@ func TestAccVMInterfaceResource_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccVMInterfaceResourceConfig_full(
+				Config: testAccVMInterfaceResourceConfig_fullIDs(
 					clusterTypeName,
 					clusterTypeSlug,
 					clusterName,
@@ -510,10 +510,9 @@ func TestAccVMInterfaceResource_import(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "netbox_vm_interface.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"virtual_machine"},
+				ResourceName:      "netbox_vm_interface.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 				Check: resource.ComposeTestCheckFunc(
 					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "virtual_machine"),
 					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "untagged_vlan"),
@@ -599,11 +598,11 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = %q
-  cluster = netbox_cluster.test.name
+	cluster = netbox_cluster.test.id
 }
 
 resource "netbox_vm_interface" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   name            = %q
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName)
@@ -623,7 +622,7 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
 	name    = %q
-	cluster = netbox_cluster.test.name
+	cluster = netbox_cluster.test.id
 }
 
 resource "netbox_tag" "tag1" {
@@ -642,7 +641,7 @@ resource "netbox_tag" "tag3" {
 }
 
 resource "netbox_vm_interface" "test" {
-	virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
 	name            = %q
 	tags            = [%s]
 }
@@ -668,8 +667,8 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = %q
-  cluster = netbox_cluster.test.name
-	site    = netbox_site.test.name
+	cluster = netbox_cluster.test.id
+	site    = netbox_site.test.id
 }
 
 resource "netbox_vlan" "untagged" {
@@ -695,17 +694,89 @@ resource "netbox_vrf" "test" {
 }
 
 resource "netbox_vm_interface" "parent" {
-	virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
 	name            = %q
 }
 
 resource "netbox_vm_interface" "bridge" {
-	virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
 	name            = %q
 }
 
 resource "netbox_vm_interface" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
+  name            = %q
+  enabled         = true
+  mtu             = 1500
+	mac_address     = "00:11:22:33:44:55"
+  description     = %q
+	mode            = "tagged"
+	parent          = netbox_vm_interface.parent.id
+	bridge          = netbox_vm_interface.bridge.id
+	untagged_vlan   = netbox_vlan.untagged.id
+	tagged_vlans    = [netbox_vlan.tagged_1.id, netbox_vlan.tagged_2.id]
+	vrf             = netbox_vrf.test.id
+}
+`, clusterTypeName, clusterTypeSlug, siteName, siteSlug, clusterName, vmName, untaggedVLANName, untaggedVLANVID, taggedVLANOneName, taggedVLANOneVID, taggedVLANTwoName, taggedVLANTwoVID, vrfName, parentIfaceName, bridgeIfaceName, ifaceName, description)
+}
+
+func testAccVMInterfaceResourceConfig_fullIDs(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, description, siteName, siteSlug, untaggedVLANName string, untaggedVLANVID int32, taggedVLANOneName string, taggedVLANOneVID int32, taggedVLANTwoName string, taggedVLANTwoVID int32, vrfName, parentIfaceName, bridgeIfaceName string) string {
+	return fmt.Sprintf(`
+resource "netbox_cluster_type" "test" {
+  name = %q
+  slug = %q
+}
+
+resource "netbox_site" "test" {
+	name = %q
+	slug = %q
+}
+
+resource "netbox_cluster" "test" {
+  name = %q
+  type = netbox_cluster_type.test.id
+}
+
+resource "netbox_virtual_machine" "test" {
+  name    = %q
+  cluster = netbox_cluster.test.id
+	site    = netbox_site.test.id
+}
+
+resource "netbox_vlan" "untagged" {
+	name = %q
+	vid  = %d
+	site = netbox_site.test.id
+}
+
+resource "netbox_vlan" "tagged_1" {
+	name = %q
+	vid  = %d
+	site = netbox_site.test.id
+}
+
+resource "netbox_vlan" "tagged_2" {
+	name = %q
+	vid  = %d
+	site = netbox_site.test.id
+}
+
+resource "netbox_vrf" "test" {
+	name = %q
+}
+
+resource "netbox_vm_interface" "parent" {
+	virtual_machine = netbox_virtual_machine.test.id
+	name            = %q
+}
+
+resource "netbox_vm_interface" "bridge" {
+	virtual_machine = netbox_virtual_machine.test.id
+	name            = %q
+}
+
+resource "netbox_vm_interface" "test" {
+  virtual_machine = netbox_virtual_machine.test.id
   name            = %q
   enabled         = true
   mtu             = 1500
@@ -752,7 +823,7 @@ func TestAccConsistency_VMInterface(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", interfaceName),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mac_address", macAddress),
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "untagged_vlan", vlanName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "untagged_vlan"),
 				),
 			},
 			{
@@ -795,11 +866,11 @@ resource "netbox_vlan" "test" {
 }
 
 resource "netbox_vm_interface" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   name = "%[5]s"
   mac_address = "%[6]s"
   mode = "access"
-  untagged_vlan = netbox_vlan.test.name
+	untagged_vlan = netbox_vlan.test.id
 }
 `, vmName, clusterName, clusterTypeName, clusterTypeSlug, interfaceName, macAddress, vlanName, vlanVid, siteName, siteSlug)
 }
@@ -818,11 +889,11 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = %[4]q
-  cluster = netbox_cluster.test.name
+	cluster = netbox_cluster.test.id
 }
 
 resource "netbox_vm_interface" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   name            = %[5]q
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, interfaceName)
@@ -857,17 +928,16 @@ func TestAccVMInterface_WithVRF(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "name", ifaceName),
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "virtual_machine", vmName),
-					// VRF should be stored as name, not ID
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "vrf", vrfName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "virtual_machine"),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "vrf"),
 				),
 			},
 			// Step 2: Refresh state and verify no drift
 			{
 				RefreshState: true,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "vrf", vrfName),
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "virtual_machine", vmName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "vrf"),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "virtual_machine"),
 				),
 			},
 			// Step 3: Plan only - verify no changes detected
@@ -893,7 +963,7 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = %[4]q
-  cluster = netbox_cluster.test.name
+	cluster = netbox_cluster.test.id
 }
 
 resource "netbox_vrf" "test" {
@@ -902,15 +972,15 @@ resource "netbox_vrf" "test" {
 }
 
 resource "netbox_vm_interface" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   name            = %[5]q
-  vrf             = netbox_vrf.test.name
+	vrf             = netbox_vrf.test.id
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, vrfName, vrfRD)
 }
 
-// TestAccVMInterface_VirtualMachineNameNotID verifies that when virtual_machine is specified by name,
-// the state stores the name (not the numeric ID) and remains consistent after refresh.
+// TestAccVMInterface_VirtualMachineNameNotID verifies that virtual_machine uses IDs consistently
+// and remains stable after refresh.
 func TestAccVMInterface_VirtualMachineNameNotID(t *testing.T) {
 	t.Parallel()
 
@@ -930,21 +1000,19 @@ func TestAccVMInterface_VirtualMachineNameNotID(t *testing.T) {
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Step 1: Create with VM name
+			// Step 1: Create with VM ID
 			{
 				Config: testAccVMInterfaceConfig_vmByName(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
-					// virtual_machine should be stored as NAME, not numeric ID
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "virtual_machine", vmName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "virtual_machine"),
 				),
 			},
 			// Step 2: Refresh state and verify no drift
 			{
 				RefreshState: true,
 				Check: resource.ComposeTestCheckFunc(
-					// After refresh, virtual_machine should still be the name
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "virtual_machine", vmName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "virtual_machine"),
 				),
 			},
 			// Step 3: Plan only - verify no changes detected
@@ -970,18 +1038,18 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = %[4]q
-  cluster = netbox_cluster.test.name
+	cluster = netbox_cluster.test.id
 }
 
 resource "netbox_vm_interface" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   name            = %[5]q
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName)
 }
 
-// TestAccVMInterface_UntaggedVLANNameNotID verifies that when untagged_vlan is specified by name,
-// the state stores the name (not the numeric ID) and remains consistent after refresh.
+// TestAccVMInterface_UntaggedVLANNameNotID verifies that untagged_vlan uses IDs consistently
+// and remains stable after refresh.
 func TestAccVMInterface_UntaggedVLANNameNotID(t *testing.T) {
 	t.Parallel()
 
@@ -1007,13 +1075,12 @@ func TestAccVMInterface_UntaggedVLANNameNotID(t *testing.T) {
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Step 1: Create with VLAN name
+			// Step 1: Create with VLAN ID
 			{
 				Config: testAccVMInterfaceConfig_untaggedVLANByName(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, vlanName, vlanVid, siteName, siteSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
-					// untagged_vlan should be stored as NAME, not numeric ID
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "untagged_vlan", vlanName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "untagged_vlan"),
 					resource.TestCheckResourceAttr("netbox_vm_interface.test", "mode", "access"),
 				),
 			},
@@ -1021,8 +1088,7 @@ func TestAccVMInterface_UntaggedVLANNameNotID(t *testing.T) {
 			{
 				RefreshState: true,
 				Check: resource.ComposeTestCheckFunc(
-					// After refresh, untagged_vlan should still be the name
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "untagged_vlan", vlanName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "untagged_vlan"),
 				),
 			},
 			// Step 3: Plan only - verify no changes detected
@@ -1054,21 +1120,21 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = %[4]q
-  cluster = netbox_cluster.test.name
-  site    = netbox_site.test.name
+	cluster = netbox_cluster.test.id
+	site    = netbox_site.test.id
 }
 
 resource "netbox_vlan" "test" {
   name = %[6]q
   vid  = %[7]d
-  site = netbox_site.test.name
+	site = netbox_site.test.id
 }
 
 resource "netbox_vm_interface" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   name            = %[5]q
   mode            = "access"
-  untagged_vlan   = netbox_vlan.test.name
+	untagged_vlan   = netbox_vlan.test.id
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, vlanName, vlanVid, siteName, siteSlug)
 }
@@ -1145,18 +1211,18 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = %[4]q
-  cluster = netbox_cluster.test.name
-  site    = netbox_site.test.name
+	cluster = netbox_cluster.test.id
+	site    = netbox_site.test.id
 }
 
 resource "netbox_vlan" "test" {
   name = %[6]q
   vid  = %[7]d
-  site = netbox_site.test.name
+	site = netbox_site.test.id
 }
 
 resource "netbox_vm_interface" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   name            = %[5]q
   mode            = "access"
   untagged_vlan   = netbox_vlan.test.id
@@ -1166,7 +1232,7 @@ resource "netbox_vm_interface" "test" {
 
 // TestAccVMInterface_UnknownValueResolution tests that when a reference value
 // starts as unknown (computed from another resource), it resolves correctly.
-// This simulates the real-world scenario where netbox_vlan.test.name is unknown
+// This simulates the real-world scenario where netbox_vlan.test.id is unknown
 // during planning and only becomes known during apply.
 func TestAccVMInterface_UnknownValueResolution(t *testing.T) {
 	t.Parallel()
@@ -1194,21 +1260,19 @@ func TestAccVMInterface_UnknownValueResolution(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Step 1: Create all resources - the key here is that untagged_vlan
-			// uses netbox_vlan.test.name which is unknown during planning
+			// uses netbox_vlan.test.id which is unknown during planning
 			{
 				Config: testAccVMInterfaceConfig_untaggedVLANByName(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, vlanName, vlanVid, siteName, siteSlug),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_vm_interface.test", "id"),
-					// After create, untagged_vlan should be the NAME, not numeric ID
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "untagged_vlan", vlanName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "untagged_vlan"),
 				),
 			},
 			// Step 2: Run another apply with the same config - this checks for drift
 			{
 				Config: testAccVMInterfaceConfig_untaggedVLANByName(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, vlanName, vlanVid, siteName, siteSlug),
 				Check: resource.ComposeTestCheckFunc(
-					// After second apply, untagged_vlan should STILL be the name
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "untagged_vlan", vlanName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "untagged_vlan"),
 				),
 			},
 			// Step 3: Plan only - verify no changes detected (critical test for drift)
@@ -1260,8 +1324,7 @@ func TestAccVMInterface_SwitchFromIDToName(t *testing.T) {
 			{
 				Config: testAccVMInterfaceConfig_untaggedVLANByName(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, vlanName, vlanVid, siteName, siteSlug),
 				Check: resource.ComposeTestCheckFunc(
-					// After switching to name, untagged_vlan should now be stored as NAME
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "untagged_vlan", vlanName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "untagged_vlan"),
 				),
 			},
 			// Step 3: Verify no drift after switch
@@ -1318,8 +1381,7 @@ func TestAccVMInterface_ImportThenUseByName(t *testing.T) {
 			{
 				Config: testAccVMInterfaceConfig_untaggedVLANByName(clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, vlanName, vlanVid, siteName, siteSlug),
 				Check: resource.ComposeTestCheckFunc(
-					// After apply with name, state should have the name
-					resource.TestCheckResourceAttr("netbox_vm_interface.test", "untagged_vlan", vlanName),
+					testutil.ReferenceFieldCheck("netbox_vm_interface.test", "untagged_vlan"),
 				),
 			},
 			// Step 4: Verify no drift
@@ -1406,21 +1468,21 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = %[4]q
-  cluster = netbox_cluster.test.name
-  site    = netbox_site.test.name
+	cluster = netbox_cluster.test.id
+	site    = netbox_site.test.id
 }
 
 resource "netbox_vlan" "test" {
   name = %[6]q
   vid  = %[7]d
-  site = netbox_site.test.name
+	site = netbox_site.test.id
 }
 
 resource "netbox_vm_interface" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   name            = %[5]q
   mode            = "access"
-  untagged_vlan   = netbox_vlan.test.name
+	untagged_vlan   = netbox_vlan.test.id
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, vlanName, vlanVid, siteName, siteSlug)
 }
@@ -1445,12 +1507,12 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = %[4]q
-  cluster = netbox_cluster.test.name
-  site    = netbox_site.test.name
+	cluster = netbox_cluster.test.id
+	site    = netbox_site.test.id
 }
 
 resource "netbox_vm_interface" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   name            = %[5]q
 }
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName, ifaceName, siteName, siteSlug)
@@ -1578,7 +1640,7 @@ resource "netbox_cluster" "test" {
 resource "netbox_virtual_machine" "test" {
   name    = %q
   cluster = netbox_cluster.test.id
-	site    = netbox_site.test.name
+	site    = netbox_site.test.id
 }
 
 resource "netbox_vlan" "test" {
@@ -1650,7 +1712,7 @@ resource "netbox_cluster" "test" {
 resource "netbox_virtual_machine" "test" {
   name    = %q
   cluster = netbox_cluster.test.id
-	site    = netbox_site.test.name
+	site    = netbox_site.test.id
 }
 
 resource "netbox_vlan" "test" {

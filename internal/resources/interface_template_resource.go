@@ -407,7 +407,7 @@ func (r *InterfaceTemplateResource) mapResponseToModel(template *netbox.Interfac
 	// Map device type - preserve user's input format
 	if template.DeviceType.IsSet() && template.DeviceType.Get() != nil {
 		dt := template.DeviceType.Get()
-		data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, dt.GetModel(), dt.GetSlug(), dt.Id)
+		data.DeviceType = utils.UpdateReferenceAttribute(data.DeviceType, dt.GetSlug(), "", dt.Id)
 	} else {
 		data.DeviceType = types.StringNull()
 	}

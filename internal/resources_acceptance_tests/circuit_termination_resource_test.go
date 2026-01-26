@@ -574,7 +574,7 @@ resource "netbox_provider_network" "test" {
 resource "netbox_circuit_termination" "test" {
   circuit          = netbox_circuit.test.id
   term_side        = "A"
-  provider_network = netbox_provider_network.test.name
+	provider_network = netbox_provider_network.test.id
   port_speed       = 1000000
   upstream_speed   = 512000
   xconnect_id      = "XCON-123"

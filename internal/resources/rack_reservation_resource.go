@@ -637,16 +637,9 @@ func (r *RackReservationResource) ImportState(ctx context.Context, req resource.
 func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox.RackReservation, data *RackReservationResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", result.GetId()))
 
-	// Map rack (required field)
+	// Map rack (required field) - preserve user's input format
 	rack := result.GetRack()
-
-	// During import (data.Rack is null), default to ID for consistency with typical usage
-	// During normal operations, UpdateReferenceAttribute will preserve user's format
-	if data.Rack.IsNull() {
-		data.Rack = types.StringValue(fmt.Sprintf("%d", rack.GetId()))
-	} else {
-		data.Rack = utils.UpdateReferenceAttribute(data.Rack, rack.GetName(), "", rack.GetId())
-	}
+	data.Rack = utils.UpdateReferenceAttribute(data.Rack, rack.GetName(), "", rack.GetId())
 
 	// Map units
 
@@ -664,18 +657,14 @@ func (r *RackReservationResource) mapToState(ctx context.Context, result *netbox
 
 	data.Units = unitsValue
 
-	// Map user (required field)
-
+	// Map user (required field) - preserve user's input format (ID or username)
 	user := result.GetUser()
+	data.User = utils.UpdateReferenceAttribute(data.User, user.GetUsername(), "", user.GetId())
 
-	data.User = types.StringValue(fmt.Sprintf("%d", user.GetId()))
-
-	// Map tenant
-
+	// Map tenant - preserve user's input format
 	if result.HasTenant() && result.GetTenant().Id != 0 {
 		tenant := result.GetTenant()
-
-		data.Tenant = types.StringValue(fmt.Sprintf("%d", tenant.GetId()))
+		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 	} else {
 		data.Tenant = types.StringNull()
 	}

@@ -433,6 +433,7 @@ func TestAccIPRangeResource_importWithCustomFieldsAndTags(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
 					resource.TestCheckResourceAttr("netbox_ip_range.test", "start_address", startAddress),
 					resource.TestCheckResourceAttr("netbox_ip_range.test", "end_address", endAddress),
+					resource.TestCheckResourceAttrPair("netbox_ip_range.test", "tenant", "netbox_tenant.test", "id"),
 					// Verify custom fields are applied
 					resource.TestCheckResourceAttr("netbox_ip_range.test", "custom_fields.#", "7"),
 					// Verify tags are applied
@@ -440,11 +441,26 @@ func TestAccIPRangeResource_importWithCustomFieldsAndTags(t *testing.T) {
 				),
 			},
 			{
-				Config:            testAccIPRangeResourceImportConfig_full(startAddress, endAddress, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
-				ResourceName:      "netbox_ip_range.test",
-				ImportState:       true,
-				ImportStateKind:   resource.ImportBlockWithResourceIdentity,
-				ImportStateVerify: false,
+				Config:             testAccIPRangeResourceImportConfig_full(startAddress, endAddress, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				ResourceName:       "netbox_ip_range.test",
+				ImportState:        true,
+				ImportStateKind:    resource.ImportBlockWithResourceIdentity,
+				ImportStateVerify:  false,
+				ExpectNonEmptyPlan: true,
+				ImportStateVerifyIgnore: []string{
+					"custom_fields",
+					"size",
+					"tenant",
+				},
+			},
+			{
+				Config: testAccIPRangeResourceImportConfig_full(startAddress, endAddress, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_ip_range.test", "id"),
+					resource.TestCheckResourceAttrPair("netbox_ip_range.test", "tenant", "netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "custom_fields.#", "7"),
+					resource.TestCheckResourceAttr("netbox_ip_range.test", "tags.#", "2"),
+				),
 			},
 			{
 				Config:   testAccIPRangeResourceImportConfig_full(startAddress, endAddress, tenantName, tenantSlug, cfText, cfLongtext, cfInteger, cfBoolean, cfDate, cfUrl, cfJson, tag1, tag1Slug, tag2, tag2Slug),
@@ -520,7 +536,7 @@ resource "netbox_tag" "tag2" {
 resource "netbox_ip_range" "test" {
   start_address = %q
   end_address   = %q
-  tenant        = netbox_tenant.test.slug
+  tenant        = netbox_tenant.test.id
 
   custom_fields = [
     {

@@ -543,7 +543,7 @@ func TestAccConsistency_PowerPort(t *testing.T) {
 			{
 				Config: testAccPowerPortConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, powerPortName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_power_port.test", "device", deviceName),
+					resource.TestCheckResourceAttrPair("netbox_power_port.test", "device", "netbox_device.test", "id"),
 				),
 			},
 			{
@@ -585,7 +585,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_power_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = "%[10]s"
   type = "iec-60320-c14"
 }
@@ -885,7 +885,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_power_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = %[10]q
   label = %[11]q
   description = %[12]q
@@ -931,7 +931,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_power_port" "test" {
-  device = netbox_device.test.name
+	device = netbox_device.test.id
   name = %[10]q
   label = %[11]q
   description = %[12]q

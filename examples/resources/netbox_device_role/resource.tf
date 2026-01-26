@@ -9,7 +9,7 @@ resource "netbox_device_role" "test" {
   color           = "ff0000"
   vm_role         = false
   description     = "Network switch role"
-  config_template = netbox_config_template.test.name
+  config_template = netbox_config_template.test.id
 
   # Partial custom fields management
   # Only specified custom fields are managed, others preserved

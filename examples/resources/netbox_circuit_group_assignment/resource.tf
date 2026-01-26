@@ -10,8 +10,8 @@ resource "netbox_provider" "test" {
 
 resource "netbox_circuit" "test" {
   cid              = "123456789"
-  circuit_provider = netbox_provider.test.name
-  type             = netbox_circuit_type.test.name
+  circuit_provider = netbox_provider.test.id
+  type             = netbox_circuit_type.test.id
   status           = "active"
 }
 
@@ -22,7 +22,7 @@ resource "netbox_circuit_group" "test" {
 
 resource "netbox_circuit_group_assignment" "test" {
   circuit_id = netbox_circuit.test.id
-  group      = netbox_circuit_group.test.name
+  group      = netbox_circuit_group.test.id
   priority   = "primary"
 
   # Note: circuit_group_assignment is tags-only (no custom_fields support)

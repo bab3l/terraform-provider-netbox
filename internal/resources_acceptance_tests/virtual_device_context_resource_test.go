@@ -196,8 +196,8 @@ func TestAccConsistency_VirtualDeviceContext(t *testing.T) {
 			{
 				Config: testAccVirtualDeviceContextConsistencyConfig(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, vdcName, tenantName, tenantSlug),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "device", deviceName),
-					resource.TestCheckResourceAttr("netbox_virtual_device_context.test", "tenant", tenantName),
+					testutil.ReferenceFieldCheck("netbox_virtual_device_context.test", "device"),
+					testutil.ReferenceFieldCheck("netbox_virtual_device_context.test", "tenant"),
 				),
 			},
 			{
@@ -541,8 +541,8 @@ resource "netbox_tenant" "test" {
 
 resource "netbox_virtual_device_context" "test" {
   name = "%[10]s"
-  device = netbox_device.test.name
-  tenant = netbox_tenant.test.name
+	device = netbox_device.test.id
+	tenant = netbox_tenant.test.id
   status = "active"
 }
 `, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceTypeName, deviceTypeSlug, deviceRoleName, deviceRoleSlug, deviceName, vdcName, tenantName, tenantSlug)

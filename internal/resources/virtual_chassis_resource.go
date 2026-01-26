@@ -525,14 +525,7 @@ func (r *VirtualChassisResource) mapResponseToModel(ctx context.Context, vc *net
 
 	if vc.Master.IsSet() && vc.Master.Get() != nil {
 		master := vc.Master.Get()
-
-		userMaster := data.Master.ValueString()
-
-		if userMaster == master.GetName() || userMaster == master.GetDisplay() || userMaster == fmt.Sprintf("%d", master.GetId()) {
-			// Keep user's original value
-		} else {
-			data.Master = types.StringValue(master.GetName())
-		}
+		data.Master = utils.UpdateReferenceAttribute(data.Master, master.GetName(), "", master.GetId())
 	} else {
 		data.Master = types.StringNull()
 	}

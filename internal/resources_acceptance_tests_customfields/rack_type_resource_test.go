@@ -208,7 +208,7 @@ resource "netbox_custom_field" "owner" {
 resource "netbox_rack_type" "test" {
   model        = %[1]q
   slug         = %[2]q
-  manufacturer = netbox_manufacturer.test.slug
+	manufacturer = netbox_manufacturer.test.id
   form_factor  = "4-post-frame"
 
   custom_fields = [
@@ -249,7 +249,7 @@ resource "netbox_custom_field" "owner" {
 resource "netbox_rack_type" "test" {
   model        = %[1]q
   slug         = %[2]q
-  manufacturer = netbox_manufacturer.test.slug
+	manufacturer = netbox_manufacturer.test.id
   form_factor  = "4-post-frame"
   description  = "Updated description"
   # custom_fields intentionally omitted - testing preservation
@@ -279,7 +279,7 @@ resource "netbox_custom_field" "owner" {
 resource "netbox_rack_type" "test" {
   model        = %[1]q
   slug         = %[2]q
-  manufacturer = netbox_manufacturer.test.slug
+	manufacturer = netbox_manufacturer.test.id
   form_factor  = "4-post-frame"
   description  = "Updated description"
 

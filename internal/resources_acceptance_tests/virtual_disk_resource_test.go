@@ -201,7 +201,7 @@ func TestAccConsistency_VirtualDisk(t *testing.T) {
 			{
 				Config: testAccVirtualDiskConsistencyConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "virtual_machine", vmName),
+					testutil.ReferenceFieldCheck("netbox_virtual_disk.test", "virtual_machine"),
 				),
 			},
 			{
@@ -228,7 +228,7 @@ func TestAccConsistency_VirtualDisk_LiteralNames(t *testing.T) {
 			{
 				Config: testAccVirtualDiskConsistencyLiteralNamesConfig(clusterTypeName, clusterTypeSlug, clusterName, vmName, diskName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netbox_virtual_disk.test", "virtual_machine", vmName),
+					testutil.ReferenceFieldCheck("netbox_virtual_disk.test", "virtual_machine"),
 				),
 			},
 			{
@@ -383,7 +383,7 @@ resource "netbox_virtual_machine" "test" {
 }
 
 resource "netbox_virtual_disk" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+	virtual_machine = netbox_virtual_machine.test.id
   name = "%[5]s"
   size = 100
 }
@@ -412,7 +412,7 @@ resource "netbox_virtual_machine" "test" {
 
 resource "netbox_virtual_disk" "test" {
   name = "%[5]s"
-  virtual_machine = "%[4]s"
+	virtual_machine = netbox_virtual_machine.test.id
   size = 100
   depends_on = [netbox_virtual_machine.test]
 }
