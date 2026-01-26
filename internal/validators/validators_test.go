@@ -10,8 +10,8 @@ import (
 )
 
 func TestValidSlug(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidSlug()
 
@@ -121,8 +121,8 @@ func TestValidSlug(t *testing.T) {
 }
 
 func TestValidSlugWithNullValue(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidSlug()
 
@@ -140,8 +140,8 @@ func TestValidSlugWithNullValue(t *testing.T) {
 }
 
 func TestValidSlugWithUnknownValue(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidSlug()
 
@@ -284,8 +284,8 @@ func TestValidCustomFieldValue(t *testing.T) {
 }
 
 func TestValidIPAddress(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidIPAddress()
 
@@ -337,8 +337,8 @@ func TestValidIPAddress(t *testing.T) {
 }
 
 func TestValidIPAddressWithPrefix(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidIPAddressWithPrefix()
 
@@ -390,8 +390,8 @@ func TestValidIPAddressWithPrefix(t *testing.T) {
 }
 
 func TestValidIPPrefix(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidIPPrefix()
 
@@ -443,8 +443,8 @@ func TestValidIPPrefix(t *testing.T) {
 }
 
 func TestValidLatitude(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidLatitude()
 
@@ -481,8 +481,8 @@ func TestValidLatitude(t *testing.T) {
 }
 
 func TestValidLongitude(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidLongitude()
 
@@ -519,8 +519,8 @@ func TestValidLongitude(t *testing.T) {
 }
 
 func TestValidVLANIDInt64(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidVLANIDInt64()
 
@@ -556,8 +556,8 @@ func TestValidVLANIDInt64(t *testing.T) {
 }
 
 func TestValidVLANIDInt32(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidVLANIDInt32()
 
@@ -593,8 +593,8 @@ func TestValidVLANIDInt32(t *testing.T) {
 }
 
 func TestValidASNInt64(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidASNInt64()
 
@@ -630,8 +630,8 @@ func TestValidASNInt64(t *testing.T) {
 }
 
 func TestValidASNString(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidASNString()
 
@@ -668,8 +668,8 @@ func TestValidASNString(t *testing.T) {
 }
 
 func TestValidMACAddress(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	v := ValidMACAddress()
 

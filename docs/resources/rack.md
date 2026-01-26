@@ -26,9 +26,9 @@ resource "netbox_rack_role" "test" {
 
 resource "netbox_rack" "test" {
   name        = "test-rack-1"
-  site        = netbox_site.test.name
+  site        = netbox_site.test.id
   status      = "active"
-  role        = netbox_rack_role.test.name
+  role        = netbox_rack_role.test.id
   facility_id = "FAC-01"
   u_height    = 42
   width       = 19

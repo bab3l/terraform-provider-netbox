@@ -45,7 +45,7 @@ resource "netbox_device" "test" {
 }
 
 resource "netbox_interface" "test" {
-  device = netbox_device.test.name
+  device = netbox_device.test.id
   name   = "eth0"
   type   = "1000base-t"
 }
@@ -58,7 +58,7 @@ resource "netbox_ip_address" "test" {
 }
 
 resource "netbox_device_primary_ip" "test" {
-  device      = netbox_device.test.name
+  device      = netbox_device.test.id
   primary_ip4 = netbox_ip_address.test.id
 }
 

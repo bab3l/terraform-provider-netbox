@@ -20,7 +20,7 @@ resource "netbox_provider" "test" {
 resource "netbox_provider_account" "test" {
   name             = "Test Account"
   account          = "1234567890"
-  circuit_provider = netbox_provider.test.name
+  circuit_provider = netbox_provider.test.id
   description      = "Main provider account for datacenter services"
   comments         = "Primary account with billing contact"
 

@@ -74,9 +74,11 @@ output "asn_public" {
 - `display_name` (String) The display name of the ASN.
 - `provider_count` (Number) Number of providers using this ASN.
 - `rir` (String) The Regional Internet Registry (RIR) that manages this ASN.
+- `rir_id` (String) ID of the Regional Internet Registry (RIR) that manages this ASN.
 - `site_count` (Number) Number of sites using this ASN.
 - `tags` (Attributes Set) Tags assigned to this resource. (see [below for nested schema](#nestedatt--tags))
 - `tenant` (String) The tenant this ASN is assigned to.
+- `tenant_id` (String) ID of the tenant this ASN is assigned to.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

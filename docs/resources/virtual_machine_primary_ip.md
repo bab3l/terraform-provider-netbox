@@ -24,13 +24,13 @@ resource "netbox_cluster" "test" {
 
 resource "netbox_virtual_machine" "test" {
   name    = "primary-ip-vm-1"
-  cluster = netbox_cluster.test.name
+  cluster = netbox_cluster.test.id
   status  = "active"
 }
 
 resource "netbox_vm_interface" "test" {
   name            = "eth0"
-  virtual_machine = netbox_virtual_machine.test.name
+  virtual_machine = netbox_virtual_machine.test.id
 }
 
 resource "netbox_ip_address" "test" {
@@ -41,7 +41,7 @@ resource "netbox_ip_address" "test" {
 }
 
 resource "netbox_virtual_machine_primary_ip" "test" {
-  virtual_machine = netbox_virtual_machine.test.name
+  virtual_machine = netbox_virtual_machine.test.id
   primary_ip4     = netbox_ip_address.test.id
 }
 

@@ -62,8 +62,8 @@ import {
 
 ### Required
 
-- `end_address` (String) The ending IP address of the range (e.g., 192.168.1.20/24).
-- `start_address` (String) The starting IP address of the range (e.g., 192.168.1.10/24).
+- `end_address` (String) The ending IP address of the range (e.g., 192.168.1.20).
+- `start_address` (String) The starting IP address of the range (e.g., 192.168.1.10).
 
 ### Optional
 
