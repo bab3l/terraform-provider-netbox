@@ -9,6 +9,7 @@
 
 ### 🧪 Testing
 - Updated acceptance and customfields tests to use ID-based references where normalization applies.
+- Acceptance and unit test suites executed successfully.
 
 ### 📚 Docs
 - Regenerated documentation and refreshed resource examples to align with ID-based references.
