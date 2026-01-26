@@ -82,7 +82,7 @@ import {
 # Example: Route target with tenant association
 resource "netbox_route_target" "tenant_rt" {
   name        = "65001:100"
-  tenant      = netbox_tenant.example.slug
+  tenant      = netbox_tenant.example.id
   description = "Route target for tenant VRF"
 
   # Partial custom fields management

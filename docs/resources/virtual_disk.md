@@ -14,7 +14,7 @@ Manages a virtual disk attached to a virtual machine in Netbox. Virtual disks re
 ```terraform
 # Example: Basic virtual disk
 resource "netbox_virtual_disk" "root" {
-  virtual_machine = netbox_virtual_machine.example.name
+  virtual_machine = netbox_virtual_machine.example.id
   name            = "disk0"
   size            = "50" # 50 GB
 }
@@ -34,7 +34,7 @@ import {
 
 # Example: Virtual disk with description
 resource "netbox_virtual_disk" "data" {
-  virtual_machine = netbox_virtual_machine.example.name
+  virtual_machine = netbox_virtual_machine.example.id
   name            = "disk1"
   size            = "500"
   description     = "Primary data disk for application storage"
@@ -42,21 +42,21 @@ resource "netbox_virtual_disk" "data" {
 
 # Example: Multiple disks for a VM
 resource "netbox_virtual_disk" "os" {
-  virtual_machine = netbox_virtual_machine.db.name
+  virtual_machine = netbox_virtual_machine.db.id
   name            = "os-disk"
   size            = "100"
   description     = "Operating system disk"
 }
 
 resource "netbox_virtual_disk" "db_data" {
-  virtual_machine = netbox_virtual_machine.db.name
+  virtual_machine = netbox_virtual_machine.db.id
   name            = "data-disk"
   size            = "2000"
   description     = "Database data files"
 }
 
 resource "netbox_virtual_disk" "db_logs" {
-  virtual_machine = netbox_virtual_machine.db.name
+  virtual_machine = netbox_virtual_machine.db.id
   name            = "log-disk"
   size            = "500"
   description     = "Database transaction logs"

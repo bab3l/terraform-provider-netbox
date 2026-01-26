@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## v0.0.19 (2026-01-26)
+
+### 🐛 Fixes
+- Normalize reference attributes to store numeric IDs in state after read/import, preventing inconsistent results when configs use names or slugs.
+
+### 🧪 Testing
+- Updated acceptance and customfields tests to use ID-based references where normalization applies.
+
+### 📚 Docs
+- Regenerated documentation and refreshed resource examples to align with ID-based references.
+
 ## v0.0.18 (2026-01-21)
 
 ### 🐛 Fixes

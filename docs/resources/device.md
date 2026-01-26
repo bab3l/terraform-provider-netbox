@@ -53,16 +53,16 @@ resource "netbox_config_template" "test" {
 
 resource "netbox_device" "test" {
   name        = "test-device-1"
-  device_type = netbox_device_type.test.model
-  role        = netbox_device_role.test.name
-  site        = netbox_site.test.name
+  device_type = netbox_device_type.test.id
+  role        = netbox_device_role.test.id
+  site        = netbox_site.test.id
   status      = "active"
 
   serial    = "1234567890"
   asset_tag = "asset-123"
 
-  cluster         = netbox_cluster.test.name
-  config_template = netbox_config_template.test.name
+  cluster         = netbox_cluster.test.id
+  config_template = netbox_config_template.test.id
 
   # Partial custom fields management (recommended pattern)
   # Only the custom fields specified here are managed by Terraform

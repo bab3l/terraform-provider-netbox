@@ -28,8 +28,8 @@ resource "netbox_vlan_group" "test" {
 resource "netbox_vlan" "test" {
   vid         = 100
   name        = "Test VLAN"
-  site        = netbox_site.test.slug
-  group       = netbox_vlan_group.test.slug
+  site        = netbox_site.test.id
+  group       = netbox_vlan_group.test.id
   status      = "active"
   description = "Production server VLAN"
   comments    = "Primary VLAN for datacenter servers"
