@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/bab3l/terraform-provider-netbox/internal/testutil"
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -17,8 +16,7 @@ func TestAccFHRPGroupResource_basic(t *testing.T) {
 	t.Parallel()
 
 	protocol := fhrpGroupProtocolVRRP2
-	// Use non-overlapping range to prevent parallel test collisions
-	groupID := int32(acctest.RandIntRange(106, 140)) // nolint:gosec
+	groupID := testutil.RandomFHRPGroupID()
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
@@ -47,8 +45,7 @@ func TestAccFHRPGroupResource_full(t *testing.T) {
 	t.Parallel()
 
 	protocol := "hsrp"
-	// Use non-overlapping range to prevent parallel test collisions
-	groupID := int32(acctest.RandIntRange(36, 70)) // nolint:gosec
+	groupID := testutil.RandomFHRPGroupID()
 	name := testutil.RandomName("tf-test-fhrp")
 	description := testutil.RandomName("description")
 	authType := "plaintext"
@@ -85,8 +82,7 @@ func TestAccFHRPGroupResource_update(t *testing.T) {
 	t.Parallel()
 
 	protocol := fhrpGroupProtocol
-	// Use non-overlapping range to prevent parallel test collisions
-	groupID := int32(acctest.RandIntRange(71, 105)) // nolint:gosec
+	groupID := testutil.RandomFHRPGroupID()
 	updatedName := testutil.RandomName("tf-test-fhrp-updated")
 
 	cleanup := testutil.NewCleanupResource(t)
@@ -130,8 +126,7 @@ func TestAccFHRPGroupResource_externalDeletion(t *testing.T) {
 	t.Parallel()
 
 	protocol := fhrpGroupProtocol
-	// Use non-overlapping range to prevent parallel test collisions
-	groupID := int32(acctest.RandIntRange(106, 140)) // nolint:gosec
+	groupID := testutil.RandomFHRPGroupID()
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
@@ -176,7 +171,7 @@ func TestAccFHRPGroupResource_import(t *testing.T) {
 	t.Parallel()
 
 	protocol := "vrrp2"
-	groupID := int32(acctest.RandIntRange(1, 254)) // nolint:gosec
+	groupID := testutil.RandomFHRPGroupID()
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterFHRPGroupCleanup(protocol, groupID)
@@ -210,7 +205,7 @@ func TestAccFHRPGroupResource_tagLifecycle(t *testing.T) {
 	t.Parallel()
 
 	protocol := fhrpGroupProtocolVRRP2
-	groupID := int32(acctest.RandIntRange(3000, 3100)) // nolint:gosec,G115
+	groupID := testutil.RandomFHRPGroupID()
 	tag1Name := testutil.RandomName("tag1")
 	tag1Slug := testutil.RandomSlug("tag1")
 	tag2Name := testutil.RandomName("tag2")
@@ -245,7 +240,7 @@ func TestAccFHRPGroupResource_tagOrderInvariance(t *testing.T) {
 	t.Parallel()
 
 	protocol := fhrpGroupProtocolVRRP2
-	groupID := int32(acctest.RandIntRange(3100, 3200)) // nolint:gosec,G115
+	groupID := testutil.RandomFHRPGroupID()
 	tag1Name := testutil.RandomName("tag1")
 	tag1Slug := testutil.RandomSlug("tag1")
 	tag2Name := testutil.RandomName("tag2")
@@ -358,7 +353,7 @@ func TestAccConsistency_FHRPGroup_LiteralNames(t *testing.T) {
 	t.Parallel()
 
 	protocol := fhrpGroupProtocol
-	groupID := int32(123)
+	groupID := testutil.RandomFHRPGroupID()
 	name := testutil.RandomName("tf-test-fhrp-group-lit")
 	description := testutil.RandomName("description")
 
@@ -375,7 +370,7 @@ func TestAccConsistency_FHRPGroup_LiteralNames(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_fhrp_group.test", "id"),
 					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "protocol", protocol),
-					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "group_id", "123"),
+					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "group_id", fmt.Sprintf("%d", groupID)),
 					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "name", name),
 					resource.TestCheckResourceAttr("netbox_fhrp_group.test", "description", description),
 				),
@@ -406,7 +401,7 @@ func TestAccFHRPGroupResource_removeOptionalFields(t *testing.T) {
 	t.Parallel()
 
 	protocol := "vrrp3"
-	groupID := int32(acctest.RandIntRange(141, 175)) // nolint:gosec
+	groupID := testutil.RandomFHRPGroupID()
 	name := testutil.RandomName("tf-test-fhrp-opt")
 	authType := "md5"
 	authKey := "secret123"

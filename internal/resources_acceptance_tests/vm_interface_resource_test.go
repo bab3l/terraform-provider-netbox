@@ -802,7 +802,7 @@ func TestAccConsistency_VMInterface(t *testing.T) {
 	interfaceName := vmInterfaceNameEth0
 	macAddress := "AA:BB:CC:DD:EE:FF" // Uppercase to test case sensitivity
 	vlanName := testutil.RandomName("vlan")
-	vlanVid := int32(100)
+	vlanVid := testutil.RandomVID()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 

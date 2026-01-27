@@ -136,7 +136,7 @@ func TestAccVLANResource_import(t *testing.T) {
 	t.Parallel()
 
 	name := "test-vlan-" + testutil.GenerateSlug("vlan")
-	vid := int32(100)
+	vid := testutil.RandomVID()
 	siteName := testutil.RandomName("site")
 	siteSlug := testutil.RandomSlug("site")
 	groupName := testutil.RandomName("group")
@@ -668,6 +668,7 @@ resource "netbox_vlan" "test" {
 
 func TestAccVLANResource_validationErrors(t *testing.T) {
 	t.Parallel()
+	vid := testutil.RandomVID()
 
 	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
 		ResourceName: "netbox_vlan",
@@ -684,11 +685,11 @@ resource "netbox_vlan" "test" {
 			},
 			"missing_name": {
 				Config: func() string {
-					return `
+					return fmt.Sprintf(`
 resource "netbox_vlan" "test" {
-  vid = 100
+  vid = %d
 }
-`
+`, vid)
 				},
 				ExpectedError: testutil.ErrPatternRequired,
 			},
@@ -716,49 +717,49 @@ resource "netbox_vlan" "test" {
 			},
 			"invalid_status": {
 				Config: func() string {
-					return `
+					return fmt.Sprintf(`
 resource "netbox_vlan" "test" {
   name   = "Test VLAN"
-  vid    = 100
+  vid    = %d
   status = "invalid_status"
 }
-`
+`, vid)
 				},
 				ExpectedError: testutil.ErrPatternInvalidEnum,
 			},
 			"invalid_site_reference": {
 				Config: func() string {
-					return `
+					return fmt.Sprintf(`
 resource "netbox_vlan" "test" {
   name = "Test VLAN"
-  vid  = 100
+  vid  = %d
   site = "99999999"
 }
-`
+`, vid)
 				},
 				ExpectedError: testutil.ErrPatternNotFound,
 			},
 			"invalid_group_reference": {
 				Config: func() string {
-					return `
+					return fmt.Sprintf(`
 resource "netbox_vlan" "test" {
   name  = "Test VLAN"
-  vid   = 100
+  vid   = %d
   group = "99999999"
 }
-`
+`, vid)
 				},
 				ExpectedError: testutil.ErrPatternNotFound,
 			},
 			"invalid_tenant_reference": {
 				Config: func() string {
-					return `
+					return fmt.Sprintf(`
 resource "netbox_vlan" "test" {
   name   = "Test VLAN"
-  vid    = 100
+  vid    = %d
   tenant = "99999999"
 }
-`
+`, vid)
 				},
 				ExpectedError: testutil.ErrPatternNotFound,
 			},

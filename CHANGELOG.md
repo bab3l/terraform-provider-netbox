@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### 🐛 Fixes
+- Stabilized virtual machine context handling by preserving null local context values and exposing computed config context.
+- Reduced acceptance test flakiness by avoiding shared test identifiers for VLANs, IPs, and FHRP group IDs.
+
+### 🧪 Testing
+- Updated acceptance tests to use randomized VLAN VIDs, FHRP group IDs, and IP addresses for parallel safety.
+
+### 📚 Docs
+- Regenerated VM documentation and refreshed the VM example to include local context usage.
+
 ## v0.0.19 (2026-01-26)
 
 ### 🐛 Fixes

@@ -111,10 +111,9 @@ func TestAccVirtualMachinePrimaryIPResource_update(t *testing.T) {
 	clusterName := testutil.RandomName("tf-test-cluster")
 	vmName := testutil.RandomName("tf-test-vm")
 	interfaceName := testutil.RandomName("eth")
-	ip4a := fmt.Sprintf("192.0.2.%d/24", acctest.RandIntRange(1, 254))
-	ip4b := fmt.Sprintf("192.0.2.%d/24", acctest.RandIntRange(1, 254))
-	// IPv6 groups must be 1-4 hex digits (0-ffff). Use %x to format as hex.
-	ip6 := fmt.Sprintf("2001:db8:%x::1/64", acctest.RandIntRange(1, 65535))
+	ip4a := testutil.RandomIPv4Address()
+	ip4b := testutil.RandomIPv4Address()
+	ip6 := testutil.RandomIPv6Address()
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVirtualMachineCleanup(vmName)

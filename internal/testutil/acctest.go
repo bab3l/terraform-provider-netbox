@@ -76,6 +76,12 @@ func RandomVID() int32 {
 	return int32(acctest.RandIntRange(2, 4094)) // #nosec G115 -- test value in safe range
 }
 
+// RandomFHRPGroupID generates a random FHRP group ID between 1 and 4094.
+// Range is limited to avoid reserved values and reduce collisions.
+func RandomFHRPGroupID() int32 {
+	return int32(acctest.RandIntRange(1, 4094)) // #nosec G115 -- test value in safe range
+}
+
 // RandomIPv4Prefix generates a random private IPv4 prefix.
 // Uses 10.x.x.0/24 format to avoid conflicts.
 func RandomIPv4Prefix() string {

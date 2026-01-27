@@ -83,6 +83,7 @@ func TestAccPrefixResource_full(t *testing.T) {
 	tenantSlug := testutil.RandomSlug("tenant")
 	vrfName := testutil.RandomName("vrf")
 	vlanName := testutil.RandomName("vlan")
+	vlanVid := testutil.RandomVID()
 	roleName := testutil.RandomName("role")
 	roleSlug := testutil.RandomSlug("role")
 	description := testutil.RandomName("description")
@@ -105,7 +106,7 @@ func TestAccPrefixResource_full(t *testing.T) {
 		CheckDestroy:             testutil.CheckPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVid, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
 					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
@@ -122,7 +123,7 @@ func TestAccPrefixResource_full(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccPrefixResourceConfig_fullUpdate(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccPrefixResourceConfig_fullUpdate(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVid, roleName, roleSlug, updatedDescription, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_prefix.test", "description", updatedDescription),
 					resource.TestCheckResourceAttr("netbox_prefix.test", "is_pool", "false"),
@@ -258,7 +259,7 @@ resource "netbox_prefix" "test" {
 `, prefix, status, isPool, description)
 }
 
-func testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+func testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName string, vlanVid int32, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name   = %[2]q
@@ -277,23 +278,23 @@ resource "netbox_vrf" "test" {
 
 resource "netbox_vlan" "test" {
   name = %[7]q
-  vid  = 100
+	vid  = %[8]d
   site = netbox_site.test.id
 }
 
 resource "netbox_role" "test" {
-  name = %[8]q
-  slug = %[9]q
+	name = %[9]q
+	slug = %[10]q
 }
 
 resource "netbox_tag" "tag1" {
-  name = %[11]q
-  slug = %[12]q
+	name = %[12]q
+	slug = %[13]q
 }
 
 resource "netbox_tag" "tag2" {
-  name = %[13]q
-  slug = %[14]q
+	name = %[14]q
+	slug = %[15]q
 }
 
 resource "netbox_prefix" "test" {
@@ -303,17 +304,17 @@ resource "netbox_prefix" "test" {
   vrf           = netbox_vrf.test.id
   vlan          = netbox_vlan.test.id
   role          = netbox_role.test.id
-  description   = %[10]q
+	description   = %[11]q
   status        = "active"
   is_pool       = true
   mark_utilized = true
 
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
-`, prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2)
+`, prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVid, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
-func testAccPrefixResourceConfig_fullUpdate(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
+func testAccPrefixResourceConfig_fullUpdate(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName string, vlanVid int32, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2 string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
   name   = %[2]q
@@ -332,23 +333,23 @@ resource "netbox_vrf" "test" {
 
 resource "netbox_vlan" "test" {
   name = %[7]q
-  vid  = 100
+	vid  = %[8]d
   site = netbox_site.test.id
 }
 
 resource "netbox_role" "test" {
-  name = %[8]q
-  slug = %[9]q
+	name = %[9]q
+	slug = %[10]q
 }
 
 resource "netbox_tag" "tag1" {
-  name = %[11]q
-  slug = %[12]q
+	name = %[12]q
+	slug = %[13]q
 }
 
 resource "netbox_tag" "tag2" {
-  name = %[13]q
-  slug = %[14]q
+	name = %[14]q
+	slug = %[15]q
 }
 
 resource "netbox_prefix" "test" {
@@ -358,14 +359,14 @@ resource "netbox_prefix" "test" {
   vrf           = netbox_vrf.test.id
   vlan          = netbox_vlan.test.id
   role          = netbox_role.test.id
-  description   = %[10]q
+	description   = %[11]q
   status        = "active"
   is_pool       = false
   mark_utilized = false
 
 	tags = [netbox_tag.tag1.slug, netbox_tag.tag2.slug]
 }
-`, prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2)
+`, prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVid, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2)
 }
 
 func testAccPrefixResourceConfig_withVRF(prefix, vrfName string) string {
@@ -391,7 +392,7 @@ func TestAccPrefixResource_import(t *testing.T) {
 	tenantSlug := testutil.RandomSlug("tenant")
 	vrfName := testutil.RandomName("vrf")
 	vlanName := testutil.RandomName("vlan")
-	vlanVid := int32(100)
+	vlanVid := testutil.RandomVID()
 	roleName := testutil.RandomName("role")
 	roleSlug := testutil.RandomSlug("role")
 	description := testutil.RandomName("description")
@@ -416,7 +417,7 @@ func TestAccPrefixResource_import(t *testing.T) {
 		CheckDestroy:             testutil.CheckPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config: testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVid, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_prefix.test", "id"),
 					resource.TestCheckResourceAttr("netbox_prefix.test", "prefix", prefix),
@@ -438,7 +439,7 @@ func TestAccPrefixResource_import(t *testing.T) {
 				),
 			},
 			{
-				Config:   testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2),
+				Config:   testAccPrefixResourceConfig_full(prefix, siteName, siteSlug, tenantName, tenantSlug, vrfName, vlanName, vlanVid, roleName, roleSlug, description, tagName1, tagSlug1, tagName2, tagSlug2),
 				PlanOnly: true,
 			},
 		},
@@ -454,7 +455,7 @@ func TestAccConsistency_Prefix(t *testing.T) {
 	tenantName := testutil.RandomName("tenant")
 	tenantSlug := testutil.RandomSlug("tenant")
 	vlanName := testutil.RandomName("vlan")
-	vlanVid := 100
+	vlanVid := int(testutil.RandomVID())
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterPrefixCleanup(prefix)

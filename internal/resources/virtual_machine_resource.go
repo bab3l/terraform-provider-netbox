@@ -4,6 +4,7 @@ package resources
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"maps"
 
@@ -83,6 +84,8 @@ type VirtualMachineResourceModel struct {
 	ConfigTemplate types.String `tfsdk:"config_template"`
 
 	LocalContextData types.String `tfsdk:"local_context_data"`
+
+	ConfigContext types.String `tfsdk:"config_context"`
 
 	Tags types.Set `tfsdk:"tags"`
 
@@ -166,6 +169,14 @@ func (r *VirtualMachineResource) Schema(ctx context.Context, req resource.Schema
 			"config_template": nbschema.ReferenceAttributeWithDiffSuppress("config template", "ID or name of the config template assigned to this virtual machine."),
 			"local_context_data": schema.StringAttribute{
 				MarkdownDescription: "Local config context data for this virtual machine, serialized as JSON.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"config_context": schema.StringAttribute{
+				MarkdownDescription: "Rendered config context data for this virtual machine, serialized as JSON.",
 				Computed:            true,
 			},
 		},
@@ -344,13 +355,33 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(vm *netbox.VirtualMach
 			diags.AddError("Failed to serialize local_context_data", fmt.Sprintf("Unable to serialize local_context_data to JSON: %s", err))
 			return
 		}
-		if localContextJSON != "" {
+		switch {
+		case localContextJSON == "{}" && data.LocalContextData.IsNull():
+			data.LocalContextData = types.StringNull()
+		case localContextJSON != "":
 			data.LocalContextData = types.StringValue(localContextJSON)
-		} else {
+		default:
 			data.LocalContextData = types.StringNull()
 		}
 	} else {
 		data.LocalContextData = types.StringNull()
+	}
+
+	// Config context (rendered)
+
+	if vm.ConfigContext != nil {
+		configContextJSON, err := utils.ToJSONString(vm.ConfigContext)
+		if err != nil {
+			diags.AddError("Failed to serialize config_context", fmt.Sprintf("Unable to serialize config_context to JSON: %s", err))
+			return
+		}
+		if configContextJSON != "" {
+			data.ConfigContext = types.StringValue(configContextJSON)
+		} else {
+			data.ConfigContext = types.StringNull()
+		}
+	} else {
+		data.ConfigContext = types.StringNull()
 	}
 
 	// Tags and custom fields are now handled in Create/Read/Update with filter-to-owned pattern
@@ -506,6 +537,17 @@ func (r *VirtualMachineResource) buildVirtualMachineRequest(ctx context.Context,
 		vmRequest.ConfigTemplate = *netbox.NewNullableBriefConfigTemplateRequest(configTemplate)
 	}
 
+	// Local context data
+
+	if utils.IsSet(data.LocalContextData) {
+		var localContext interface{}
+		if err := json.Unmarshal([]byte(data.LocalContextData.ValueString()), &localContext); err != nil {
+			diags.AddError("Invalid local_context_data", fmt.Sprintf("local_context_data must be valid JSON: %s", err))
+			return nil
+		}
+		vmRequest.LocalContextData = localContext
+	}
+
 	// Set common fields (description, comments, tags, custom_fields)
 	utils.ApplyDescription(vmRequest, data.Description)
 	utils.ApplyComments(vmRequest, data.Comments)
@@ -657,6 +699,19 @@ func (r *VirtualMachineResource) buildVirtualMachineRequestWithState(ctx context
 		vmRequest.ConfigTemplate = *netbox.NewNullableBriefConfigTemplateRequest(configTemplate)
 	} else if plan.ConfigTemplate.IsNull() {
 		vmRequest.SetConfigTemplateNil()
+	}
+
+	// Local context data
+
+	if utils.IsSet(plan.LocalContextData) {
+		var localContext interface{}
+		if err := json.Unmarshal([]byte(plan.LocalContextData.ValueString()), &localContext); err != nil {
+			diags.AddError("Invalid local_context_data", fmt.Sprintf("local_context_data must be valid JSON: %s", err))
+			return nil
+		}
+		vmRequest.LocalContextData = localContext
+	} else if plan.LocalContextData.IsNull() && !state.LocalContextData.IsNull() && !state.LocalContextData.IsUnknown() {
+		vmRequest.LocalContextData = map[string]interface{}{}
 	}
 
 	// Apply description and comments
