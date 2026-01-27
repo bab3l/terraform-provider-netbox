@@ -34,6 +34,8 @@ var (
 	_ resource.ResourceWithImportState = &VirtualMachineResource{}
 
 	_ resource.ResourceWithIdentity = &VirtualMachineResource{}
+
+	_ resource.ResourceWithModifyPlan = &VirtualMachineResource{}
 )
 
 // NewVirtualMachineResource returns a new Virtual Machine resource.
@@ -215,6 +217,37 @@ func (r *VirtualMachineResource) Configure(ctx context.Context, req resource.Con
 	}
 
 	r.client = client
+}
+
+// ModifyPlan updates the plan to avoid inconsistent config_context values when local_context_data changes.
+func (r *VirtualMachineResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var plan, state VirtualMachineResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	localContextChanged := false
+	switch {
+	case plan.LocalContextData.IsUnknown() || state.LocalContextData.IsUnknown():
+		localContextChanged = true
+	case plan.LocalContextData.IsNull() != state.LocalContextData.IsNull():
+		localContextChanged = true
+	case !plan.LocalContextData.IsNull() && plan.LocalContextData.ValueString() != state.LocalContextData.ValueString():
+		localContextChanged = true
+	}
+
+	if localContextChanged {
+		plan.ConfigContext = types.StringUnknown()
+		resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
+	}
 }
 
 // mapVirtualMachineToState maps a VirtualMachine from the API to the Terraform state model.
