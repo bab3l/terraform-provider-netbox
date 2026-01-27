@@ -590,17 +590,19 @@ resource "netbox_l2vpn_termination" "test" {
 }
 
 func TestAccL2VPNTerminationResource_validationErrors(t *testing.T) {
+	vid := testutil.RandomVID()
+
 	testutil.RunMultiValidationErrorTest(t, testutil.MultiValidationErrorTestConfig{
 		ResourceName: "netbox_l2vpn_termination",
 		TestCases: map[string]testutil.ValidationErrorCase{
 			"missing_l2vpn": {
 				Config: func() string {
-					return `
+					return fmt.Sprintf(`
 provider "netbox" {}
 
 resource "netbox_vlan" "test" {
   name = "test-vlan"
-  vid  = 100
+  vid  = %d
 }
 
 resource "netbox_l2vpn_termination" "test" {
@@ -608,13 +610,13 @@ resource "netbox_l2vpn_termination" "test" {
   assigned_object_type = "ipam.vlan"
   assigned_object_id   = netbox_vlan.test.id
 }
-`
+`, vid)
 				},
 				ExpectedError: testutil.ErrPatternRequired,
 			},
 			"missing_assigned_object_type": {
 				Config: func() string {
-					return `
+					return fmt.Sprintf(`
 provider "netbox" {}
 
 resource "netbox_l2vpn" "test" {
@@ -625,7 +627,7 @@ resource "netbox_l2vpn" "test" {
 
 resource "netbox_vlan" "test" {
   name = "test-vlan"
-  vid  = 100
+  vid  = %d
 }
 
 resource "netbox_l2vpn_termination" "test" {
@@ -633,7 +635,7 @@ resource "netbox_l2vpn_termination" "test" {
   # assigned_object_type missing
   assigned_object_id = netbox_vlan.test.id
 }
-`
+`, vid)
 				},
 				ExpectedError: testutil.ErrPatternRequired,
 			},

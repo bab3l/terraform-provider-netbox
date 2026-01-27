@@ -26,6 +26,11 @@ resource "netbox_virtual_machine" "test" {
 
   config_template = netbox_config_template.test.id
 
+  local_context_data = jsonencode({
+    environment = "production"
+    role        = "web"
+  })
+
   # Partial custom fields management
   # Only specified custom fields are managed, others in NetBox preserved
   custom_fields = [

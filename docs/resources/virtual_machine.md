@@ -40,6 +40,11 @@ resource "netbox_virtual_machine" "test" {
 
   config_template = netbox_config_template.test.id
 
+  local_context_data = jsonencode({
+    environment = "production"
+    role        = "web"
+  })
+
   # Partial custom fields management
   # Only specified custom fields are managed, others in NetBox preserved
   custom_fields = [
@@ -100,6 +105,7 @@ import {
 - `description` (String) Description of the virtual machine.
 - `device` (String) ID or name of the device hosting this virtual machine.
 - `disk` (Number) The total disk space (in GB) allocated to this virtual machine.
+- `local_context_data` (String) Local config context data for this virtual machine, serialized as JSON.
 - `memory` (Number) The amount of memory (in MB) allocated to this virtual machine.
 - `platform` (String) ID or slug of the platform (operating system) running on this virtual machine.
 - `role` (String) ID or slug of the device role for this virtual machine.
@@ -112,8 +118,8 @@ import {
 
 ### Read-Only
 
+- `config_context` (String) Rendered config context data for this virtual machine, serialized as JSON.
 - `id` (String) The unique numeric ID of the virtual machine.
-- `local_context_data` (String) Local config context data for this virtual machine, serialized as JSON.
 
 <a id="nestedatt--custom_fields"></a>
 ### Nested Schema for `custom_fields`

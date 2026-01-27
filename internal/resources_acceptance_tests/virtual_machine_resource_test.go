@@ -112,6 +112,7 @@ func TestAccVirtualMachineResource_full(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-device")
 	configTemplateName := testutil.RandomName("tf-test-config-template")
 	serial := "VM-serial-12345"
+	localContextValue := "local-value"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
@@ -134,7 +135,7 @@ func TestAccVirtualMachineResource_full(t *testing.T) {
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, configTemplateName, serial),
+				Config: testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, configTemplateName, serial, localContextValue),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "id"),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", vmName),
@@ -144,6 +145,8 @@ func TestAccVirtualMachineResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "disk", "50"),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "comments", comments),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "local_context_data", fmt.Sprintf("{\"local_key\":\"%s\"}", localContextValue)),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_context"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_template"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "device"),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "serial", serial),
@@ -172,6 +175,8 @@ func TestAccVirtualMachineResource_update(t *testing.T) {
 	deviceName := testutil.RandomName("tf-test-device-update")
 	configTemplateName := testutil.RandomName("tf-test-config-template-update")
 	serial := "VM-serial-update"
+	localContextValue := "local-value"
+	updatedLocalContextValue := "updated-value"
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterVirtualMachineCleanup(vmName)
@@ -201,13 +206,23 @@ func TestAccVirtualMachineResource_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, updatedName, "Updated description", "Updated comments", siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, configTemplateName, serial),
+				Config: testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, updatedName, "Updated description", "Updated comments", siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, configTemplateName, serial, localContextValue),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", updatedName),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "description", "Updated description"),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "local_context_data", fmt.Sprintf("{\"local_key\":\"%s\"}", localContextValue)),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_context"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_template"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "device"),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "serial", serial),
+				),
+			},
+			{
+				Config: testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, updatedName, "Updated description", "Updated comments", siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, configTemplateName, serial, updatedLocalContextValue),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", updatedName),
+					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "local_context_data", fmt.Sprintf("{\"local_key\":\"%s\"}", updatedLocalContextValue)),
+					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_context"),
 				),
 			},
 		},
@@ -299,7 +314,7 @@ resource "netbox_virtual_machine" "test" {
 `, clusterTypeName, clusterTypeSlug, clusterName, vmName)
 }
 
-func testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, configTemplateName, serial string) string {
+func testAccVirtualMachineResourceConfig_full(clusterTypeName, clusterTypeSlug, clusterName, vmName, description, comments, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, configTemplateName, serial, localContextValue string) string {
 	return fmt.Sprintf(`
 resource "netbox_site" "test" {
 	name = %q
@@ -359,8 +374,11 @@ resource "netbox_virtual_machine" "test" {
 	serial      = %q
 	device      = netbox_device.test.id
 	config_template = netbox_config_template.test.id
+	local_context_data = jsonencode({
+		local_key = %q
+	})
 }
-`, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, clusterTypeName, clusterTypeSlug, clusterName, deviceName, configTemplateName, vmName, description, comments, serial)
+`, siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, clusterTypeName, clusterTypeSlug, clusterName, deviceName, configTemplateName, vmName, description, comments, serial, localContextValue)
 }
 
 func TestAccConsistency_VirtualMachine_PlatformNamePersistence(t *testing.T) {
