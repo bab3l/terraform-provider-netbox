@@ -34,8 +34,6 @@ var (
 	_ resource.ResourceWithImportState = &VirtualMachineResource{}
 
 	_ resource.ResourceWithIdentity = &VirtualMachineResource{}
-
-	_ resource.ResourceWithModifyPlan = &VirtualMachineResource{}
 )
 
 // NewVirtualMachineResource returns a new Virtual Machine resource.
@@ -86,8 +84,6 @@ type VirtualMachineResourceModel struct {
 	ConfigTemplate types.String `tfsdk:"config_template"`
 
 	LocalContextData types.String `tfsdk:"local_context_data"`
-
-	ConfigContext types.String `tfsdk:"config_context"`
 
 	Tags types.Set `tfsdk:"tags"`
 
@@ -177,10 +173,6 @@ func (r *VirtualMachineResource) Schema(ctx context.Context, req resource.Schema
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"config_context": schema.StringAttribute{
-				MarkdownDescription: "Rendered config context data for this virtual machine, serialized as JSON.",
-				Computed:            true,
-			},
 		},
 	}
 
@@ -217,37 +209,6 @@ func (r *VirtualMachineResource) Configure(ctx context.Context, req resource.Con
 	}
 
 	r.client = client
-}
-
-// ModifyPlan updates the plan to avoid inconsistent config_context values when local_context_data changes.
-func (r *VirtualMachineResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
-		return
-	}
-
-	var plan, state VirtualMachineResourceModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	localContextChanged := false
-	switch {
-	case plan.LocalContextData.IsUnknown() || state.LocalContextData.IsUnknown():
-		localContextChanged = true
-	case plan.LocalContextData.IsNull() != state.LocalContextData.IsNull():
-		localContextChanged = true
-	case !plan.LocalContextData.IsNull() && plan.LocalContextData.ValueString() != state.LocalContextData.ValueString():
-		localContextChanged = true
-	}
-
-	if localContextChanged {
-		plan.ConfigContext = types.StringUnknown()
-		resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
-	}
 }
 
 // mapVirtualMachineToState maps a VirtualMachine from the API to the Terraform state model.
@@ -398,23 +359,6 @@ func (r *VirtualMachineResource) mapVirtualMachineToState(vm *netbox.VirtualMach
 		}
 	} else {
 		data.LocalContextData = types.StringNull()
-	}
-
-	// Config context (rendered)
-
-	if vm.ConfigContext != nil {
-		configContextJSON, err := utils.ToJSONString(vm.ConfigContext)
-		if err != nil {
-			diags.AddError("Failed to serialize config_context", fmt.Sprintf("Unable to serialize config_context to JSON: %s", err))
-			return
-		}
-		if configContextJSON != "" {
-			data.ConfigContext = types.StringValue(configContextJSON)
-		} else {
-			data.ConfigContext = types.StringNull()
-		}
-	} else {
-		data.ConfigContext = types.StringNull()
 	}
 
 	// Tags and custom fields are now handled in Create/Read/Update with filter-to-owned pattern

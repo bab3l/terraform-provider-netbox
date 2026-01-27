@@ -4,6 +4,7 @@ package resources
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"maps"
 	"net/http"
@@ -20,7 +21,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -42,31 +45,32 @@ type DeviceResource struct {
 
 // DeviceResourceModel describes the resource data model.
 type DeviceResourceModel struct {
-	ID             types.String  `tfsdk:"id"`
-	Name           types.String  `tfsdk:"name"`
-	DeviceType     types.String  `tfsdk:"device_type"`
-	Role           types.String  `tfsdk:"role"`
-	Tenant         types.String  `tfsdk:"tenant"`
-	Platform       types.String  `tfsdk:"platform"`
-	Cluster        types.String  `tfsdk:"cluster"`
-	Serial         types.String  `tfsdk:"serial"`
-	AssetTag       types.String  `tfsdk:"asset_tag"`
-	Site           types.String  `tfsdk:"site"`
-	Location       types.String  `tfsdk:"location"`
-	Rack           types.String  `tfsdk:"rack"`
-	Position       types.Float64 `tfsdk:"position"`
-	Face           types.String  `tfsdk:"face"`
-	Latitude       types.Float64 `tfsdk:"latitude"`
-	Longitude      types.Float64 `tfsdk:"longitude"`
-	Status         types.String  `tfsdk:"status"`
-	Airflow        types.String  `tfsdk:"airflow"`
-	VcPosition     types.Int64   `tfsdk:"vc_position"`
-	VcPriority     types.Int64   `tfsdk:"vc_priority"`
-	Description    types.String  `tfsdk:"description"`
-	Comments       types.String  `tfsdk:"comments"`
-	ConfigTemplate types.String  `tfsdk:"config_template"`
-	Tags           types.Set     `tfsdk:"tags"`
-	CustomFields   types.Set     `tfsdk:"custom_fields"`
+	ID               types.String  `tfsdk:"id"`
+	Name             types.String  `tfsdk:"name"`
+	DeviceType       types.String  `tfsdk:"device_type"`
+	Role             types.String  `tfsdk:"role"`
+	Tenant           types.String  `tfsdk:"tenant"`
+	Platform         types.String  `tfsdk:"platform"`
+	Cluster          types.String  `tfsdk:"cluster"`
+	Serial           types.String  `tfsdk:"serial"`
+	AssetTag         types.String  `tfsdk:"asset_tag"`
+	Site             types.String  `tfsdk:"site"`
+	Location         types.String  `tfsdk:"location"`
+	Rack             types.String  `tfsdk:"rack"`
+	Position         types.Float64 `tfsdk:"position"`
+	Face             types.String  `tfsdk:"face"`
+	Latitude         types.Float64 `tfsdk:"latitude"`
+	Longitude        types.Float64 `tfsdk:"longitude"`
+	Status           types.String  `tfsdk:"status"`
+	Airflow          types.String  `tfsdk:"airflow"`
+	VcPosition       types.Int64   `tfsdk:"vc_position"`
+	VcPriority       types.Int64   `tfsdk:"vc_priority"`
+	Description      types.String  `tfsdk:"description"`
+	Comments         types.String  `tfsdk:"comments"`
+	ConfigTemplate   types.String  `tfsdk:"config_template"`
+	LocalContextData types.String  `tfsdk:"local_context_data"`
+	Tags             types.Set     `tfsdk:"tags"`
+	CustomFields     types.Set     `tfsdk:"custom_fields"`
 }
 
 func (r *DeviceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -148,6 +152,14 @@ func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 			"config_template": nbschema.ReferenceAttributeWithDiffSuppress("config template", "ID or name of the config template assigned to this device."),
+			"local_context_data": schema.StringAttribute{
+				MarkdownDescription: "Local config context data for this device, serialized as JSON.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
 		},
 	}
 
@@ -311,6 +323,15 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 			return
 		}
 		deviceRequest.SetConfigTemplate(*configTemplate)
+	}
+
+	if utils.IsSet(data.LocalContextData) {
+		var localContext interface{}
+		if err := json.Unmarshal([]byte(data.LocalContextData.ValueString()), &localContext); err != nil {
+			resp.Diagnostics.AddError("Invalid local_context_data", fmt.Sprintf("local_context_data must be valid JSON: %s", err))
+			return
+		}
+		deviceRequest.LocalContextData = localContext
 	}
 
 	if !data.VcPosition.IsNull() && !data.VcPosition.IsUnknown() {
@@ -605,6 +626,17 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		deviceRequest.SetConfigTemplateNil()
 	}
 
+	if utils.IsSet(plan.LocalContextData) {
+		var localContext interface{}
+		if err := json.Unmarshal([]byte(plan.LocalContextData.ValueString()), &localContext); err != nil {
+			resp.Diagnostics.AddError("Invalid local_context_data", fmt.Sprintf("local_context_data must be valid JSON: %s", err))
+			return
+		}
+		deviceRequest.LocalContextData = localContext
+	} else if plan.LocalContextData.IsNull() && !state.LocalContextData.IsNull() && !state.LocalContextData.IsUnknown() {
+		deviceRequest.LocalContextData = map[string]interface{}{}
+	}
+
 	if !plan.VcPosition.IsNull() && !plan.VcPosition.IsUnknown() {
 		vcPosition, err := utils.SafeInt32FromValue(plan.VcPosition)
 		if err != nil {
@@ -785,6 +817,7 @@ func (r *DeviceResource) ImportState(ctx context.Context, req resource.ImportSta
 		} else {
 			data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 		}
+		data.LocalContextData = types.StringNull()
 
 		r.mapDeviceToState(ctx, device, &data, &resp.Diagnostics)
 		if resp.Diagnostics.HasError() {
@@ -820,6 +853,7 @@ func (r *DeviceResource) ImportState(ctx context.Context, req resource.ImportSta
 	data.ID = types.StringValue(req.ID)
 	data.Tags = types.SetNull(types.StringType)
 	data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
+	data.LocalContextData = types.StringNull()
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -1021,6 +1055,25 @@ func (r *DeviceResource) mapDeviceToState(ctx context.Context, device *netbox.De
 
 	default:
 		data.ConfigTemplate = types.StringNull()
+	}
+
+	// Handle local context data
+	if device.LocalContextData != nil {
+		localContextJSON, err := utils.ToJSONString(device.LocalContextData)
+		if err != nil {
+			diags.AddError("Failed to serialize local_context_data", fmt.Sprintf("Unable to serialize local_context_data to JSON: %s", err))
+			return
+		}
+		switch {
+		case localContextJSON == "{}" && data.LocalContextData.IsNull():
+			data.LocalContextData = types.StringNull()
+		case localContextJSON != "":
+			data.LocalContextData = types.StringValue(localContextJSON)
+		default:
+			data.LocalContextData = types.StringNull()
+		}
+	} else {
+		data.LocalContextData = types.StringNull()
 	}
 
 	// Handle custom fields using consolidated helper

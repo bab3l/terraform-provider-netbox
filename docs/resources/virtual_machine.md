@@ -118,7 +118,6 @@ import {
 
 ### Read-Only
 
-- `config_context` (String) Rendered config context data for this virtual machine, serialized as JSON.
 - `id` (String) The unique numeric ID of the virtual machine.
 
 <a id="nestedatt--custom_fields"></a>

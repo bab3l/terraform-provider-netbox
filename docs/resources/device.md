@@ -64,6 +64,11 @@ resource "netbox_device" "test" {
   cluster         = netbox_cluster.test.id
   config_template = netbox_config_template.test.id
 
+  local_context_data = jsonencode({
+    environment = "production"
+    role        = "edge"
+  })
+
   # Partial custom fields management (recommended pattern)
   # Only the custom fields specified here are managed by Terraform
   # Other custom fields set in NetBox (via UI, API, or automation) are preserved
@@ -118,6 +123,7 @@ import {
 - `description` (String) Description of the device.
 - `face` (String) Which face of the rack the device is mounted on. Valid values: 'front', 'rear'.
 - `latitude` (Number) GPS latitude coordinate in decimal format (xx.yyyyyy).
+- `local_context_data` (String) Local config context data for this device, serialized as JSON.
 - `location` (String) ID or slug of the location within the site where this device is installed.
 - `longitude` (Number) GPS longitude coordinate in decimal format (xx.yyyyyy).
 - `name` (String) Name of the device.
