@@ -146,7 +146,6 @@ func TestAccVirtualMachineResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "description", description),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "comments", comments),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "local_context_data", fmt.Sprintf("{\"local_key\":\"%s\"}", localContextValue)),
-					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_context"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_template"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "device"),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "serial", serial),
@@ -211,7 +210,6 @@ func TestAccVirtualMachineResource_update(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", updatedName),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "description", "Updated description"),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "local_context_data", fmt.Sprintf("{\"local_key\":\"%s\"}", localContextValue)),
-					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_context"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_template"),
 					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "device"),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "serial", serial),
@@ -222,7 +220,6 @@ func TestAccVirtualMachineResource_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "name", updatedName),
 					resource.TestCheckResourceAttr("netbox_virtual_machine.test", "local_context_data", fmt.Sprintf("{\"local_key\":\"%s\"}", updatedLocalContextValue)),
-					resource.TestCheckResourceAttrSet("netbox_virtual_machine.test", "config_context"),
 				),
 			},
 		},

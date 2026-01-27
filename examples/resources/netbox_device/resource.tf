@@ -50,6 +50,11 @@ resource "netbox_device" "test" {
   cluster         = netbox_cluster.test.id
   config_template = netbox_config_template.test.id
 
+  local_context_data = jsonencode({
+    environment = "production"
+    role        = "edge"
+  })
+
   # Partial custom fields management (recommended pattern)
   # Only the custom fields specified here are managed by Terraform
   # Other custom fields set in NetBox (via UI, API, or automation) are preserved

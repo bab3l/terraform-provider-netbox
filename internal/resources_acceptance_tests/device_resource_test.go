@@ -180,6 +180,7 @@ func TestAccDeviceResource_full(t *testing.T) {
 	clusterName := testutil.RandomName("tf-test-cluster")
 	configTemplateName := testutil.RandomName("tf-test-config-template")
 	configTemplateCode := configTemplateCode
+	localContextValue := testutil.RandomName("local-context")
 
 	cleanup := testutil.NewCleanupResource(t)
 	cleanup.RegisterSiteCleanup(siteSlug)
@@ -196,7 +197,7 @@ func TestAccDeviceResource_full(t *testing.T) {
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDeviceResourceConfig_full(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, assetTag, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode),
+				Config: testAccDeviceResourceConfig_full(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, assetTag, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode, localContextValue),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("netbox_device.test", "id"),
 					resource.TestCheckResourceAttr("netbox_device.test", "name", deviceName),
@@ -211,6 +212,7 @@ func TestAccDeviceResource_full(t *testing.T) {
 					resource.TestCheckResourceAttr("netbox_device.test", "airflow", "front-to-rear"),
 					resource.TestCheckResourceAttrSet("netbox_device.test", "cluster"),
 					resource.TestCheckResourceAttrSet("netbox_device.test", "config_template"),
+					resource.TestCheckResourceAttr("netbox_device.test", "local_context_data", fmt.Sprintf("{\"local_key\":\"%s\"}", localContextValue)),
 					resource.TestCheckResourceAttr("netbox_device.test", "tags.#", "0"),
 				),
 			},
@@ -463,7 +465,7 @@ resource "netbox_device" "test" {
 `, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial, description, status)
 }
 
-func testAccDeviceResourceConfig_full(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, assetTag, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode string) string {
+func testAccDeviceResourceConfig_full(deviceName, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, serial, assetTag, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode, localContextValue string) string {
 	return fmt.Sprintf(`
 resource "netbox_manufacturer" "test" {
   name = %[1]q
@@ -515,9 +517,12 @@ resource "netbox_device" "test" {
   airflow     = "front-to-rear"
 	cluster     = netbox_cluster.test.id
 	config_template = netbox_config_template.test.id
+	local_context_data = jsonencode({
+		local_key = %[17]q
+	})
   tags        = []
 }
-`, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial, assetTag, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode)
+`, manufacturerName, manufacturerSlug, deviceTypeModel, deviceTypeSlug, deviceRoleName, deviceRoleSlug, siteName, siteSlug, deviceName, serial, assetTag, clusterTypeName, clusterTypeSlug, clusterName, configTemplateName, configTemplateCode, localContextValue)
 }
 
 func testAccDeviceConsistencyConfig(deviceName, deviceTypeName, deviceTypeSlug, manufacturerName, manufacturerSlug, roleName, roleSlug, siteName, siteSlug, tenantName, tenantSlug string) string {
