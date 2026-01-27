@@ -89,11 +89,10 @@ func (r *RackReservationResource) Schema(ctx context.Context, req resource.Schem
 				},
 			},
 
-			"rack": schema.StringAttribute{
-				MarkdownDescription: "The rack containing the reserved units (ID or name).",
-
-				Required: true,
-			},
+			"rack": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"rack",
+				"The rack containing the reserved units (ID or name).",
+			),
 
 			"units": schema.SetAttribute{
 				MarkdownDescription: "The rack units (U positions) to reserve. Must be a set of integers.",
@@ -103,17 +102,15 @@ func (r *RackReservationResource) Schema(ctx context.Context, req resource.Schem
 				ElementType: types.Int64Type,
 			},
 
-			"user": schema.StringAttribute{
-				MarkdownDescription: "The user who owns this reservation (ID or username).",
+			"user": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"user",
+				"The user who owns this reservation (ID or username).",
+			),
 
-				Required: true,
-			},
-
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "The tenant associated with this reservation (ID or slug).",
-
-				Optional: true,
-			},
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress(
+				"tenant",
+				"The tenant associated with this reservation (ID or slug).",
+			),
 
 			"description": schema.StringAttribute{
 				MarkdownDescription: "A description of the reservation purpose.",

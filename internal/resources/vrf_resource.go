@@ -82,7 +82,7 @@ func (r *VRFResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Optional: true,
 			},
 
-			"tenant": nbschema.ReferenceAttribute("tenant", "Name, Slug, or ID of the tenant this VRF belongs to."),
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "Name, Slug, or ID of the tenant this VRF belongs to."),
 
 			"enforce_unique": schema.BoolAttribute{
 				MarkdownDescription: "Prevent duplicate prefixes/IP addresses within this VRF. Defaults to `true`.",

@@ -86,14 +86,14 @@ func (r *InventoryItemTemplateResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "Physical label of the inventory item template.",
 				Optional:            true,
 			},
-			"role": schema.StringAttribute{
-				MarkdownDescription: "The inventory item role (ID or slug).",
-				Optional:            true,
-			},
-			"manufacturer": schema.StringAttribute{
-				MarkdownDescription: "The manufacturer of the inventory item (ID or slug).",
-				Optional:            true,
-			},
+			"role": nbschema.ReferenceAttributeWithDiffSuppress(
+				"inventory item role",
+				"The inventory item role (ID or slug).",
+			),
+			"manufacturer": nbschema.ReferenceAttributeWithDiffSuppress(
+				"manufacturer",
+				"The manufacturer of the inventory item (ID or slug).",
+			),
 			"part_id": schema.StringAttribute{
 				MarkdownDescription: "Manufacturer-assigned part identifier.",
 				Optional:            true,

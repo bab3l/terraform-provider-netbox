@@ -92,7 +92,7 @@ func (r *RouteTargetResource) Schema(ctx context.Context, req resource.SchemaReq
 				Required: true,
 			},
 
-			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this route target."),
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant that owns this route target."),
 		},
 	}
 

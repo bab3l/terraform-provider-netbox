@@ -69,10 +69,10 @@ func (r *ModuleBayResource) Schema(ctx context.Context, req resource.SchemaReque
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"device": schema.StringAttribute{
-				MarkdownDescription: "The device this module bay belongs to (ID or name).",
-				Required:            true,
-			},
+			"device": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"device",
+				"The device this module bay belongs to (ID or name).",
+			),
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the module bay.",
 				Required:            true,

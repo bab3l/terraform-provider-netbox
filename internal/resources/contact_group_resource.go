@@ -57,7 +57,7 @@ func (r *ContactGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 			"id":     nbschema.IDAttribute("contact group"),
 			"name":   nbschema.NameAttribute("contact group", 100),
 			"slug":   nbschema.SlugAttribute("contact group"),
-			"parent": nbschema.ReferenceAttribute("contact group", "ID or slug of the parent contact group. Leave empty for top-level groups."),
+			"parent": nbschema.ReferenceAttributeWithDiffSuppress("contact group", "ID or slug of the parent contact group. Leave empty for top-level groups."),
 			"parent_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The numeric ID of the parent contact group.",

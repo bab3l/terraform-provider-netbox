@@ -90,11 +90,10 @@ func (r *VirtualDiskResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 
-			"virtual_machine": schema.StringAttribute{
-				MarkdownDescription: "ID or name of the virtual machine this disk belongs to. Required.",
-
-				Required: true,
-			},
+			"virtual_machine": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"virtual machine",
+				"ID or name of the virtual machine this disk belongs to. Required.",
+			),
 
 			"name": nbschema.NameAttribute("virtual disk", 64),
 

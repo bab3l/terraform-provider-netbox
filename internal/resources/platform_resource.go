@@ -47,7 +47,7 @@ func (r *PlatformResource) Schema(ctx context.Context, req resource.SchemaReques
 			"id":           nbschema.IDAttribute("platform"),
 			"name":         nbschema.NameAttribute("platform", 100),
 			"slug":         nbschema.SlugAttribute("platform"),
-			"manufacturer": nbschema.ReferenceAttribute("manufacturer", "Reference to the manufacturer (ID or slug)."),
+			"manufacturer": nbschema.ReferenceAttributeWithDiffSuppress("manufacturer", "Reference to the manufacturer (ID or slug)."),
 		},
 	}
 

@@ -88,17 +88,15 @@ func (r *PowerPanelResource) Schema(ctx context.Context, req resource.SchemaRequ
 				},
 			},
 
-			"site": schema.StringAttribute{
-				MarkdownDescription: "The site this power panel belongs to (ID or slug).",
+			"site": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"site",
+				"The site this power panel belongs to (ID or slug).",
+			),
 
-				Required: true,
-			},
-
-			"location": schema.StringAttribute{
-				MarkdownDescription: "The location within the site (ID or slug).",
-
-				Optional: true,
-			},
+			"location": nbschema.ReferenceAttributeWithDiffSuppress(
+				"location",
+				"The location within the site (ID or slug).",
+			),
 
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the power panel.",

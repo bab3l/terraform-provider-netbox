@@ -65,6 +65,7 @@ func (r *SiteASNAssignmentResource) Schema(ctx context.Context, req resource.Sch
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					nbschema.ReferenceResolveToIDPlanModifier("site"),
 					nbschema.ReferenceEquivalencePlanModifier(),
 					stringplanmodifier.RequiresReplace(),
 				},
