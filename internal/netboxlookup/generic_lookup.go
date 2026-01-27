@@ -20,6 +20,130 @@ import (
 
 const unknownErrorMsg = "unknown error"
 
+// LookupReferenceID looks up a reference value (ID or slug) and returns the resolved ID.
+// If the resourceType is not supported, it returns 0 with no diagnostics.
+func LookupReferenceID(ctx context.Context, client *netbox.APIClient, resourceType, value string) (int32, diag.Diagnostics) {
+	if value == "" {
+		return 0, nil
+	}
+
+	switch resourceType {
+	case "tenant":
+		return GenericLookupID(ctx, value, TenantLookupConfig(client), func(t *netbox.Tenant) int32 {
+			return t.GetId()
+		})
+	case "tenant_group":
+		return LookupTenantGroupID(ctx, client, value)
+	case "region":
+		return LookupRegionID(ctx, client, value)
+	case "site_group":
+		return LookupSiteGroupID(ctx, client, value)
+	case "site":
+		return GenericLookupID(ctx, value, SiteLookupConfig(client), func(s *netbox.Site) int32 {
+			return s.GetId()
+		})
+	case "location":
+		return LookupLocationID(ctx, client, value)
+	case "rack":
+		return GenericLookupID(ctx, value, RackLookupConfig(client), func(r *netbox.Rack) int32 {
+			return r.GetId()
+		})
+	case "device":
+		return GenericLookupID(ctx, value, DeviceLookupConfig(client), func(d *netbox.Device) int32 {
+			return d.GetId()
+		})
+	case "device_type":
+		return GenericLookupID(ctx, value, DeviceTypeLookupConfig(client), func(dt *netbox.DeviceType) int32 {
+			return dt.GetId()
+		})
+	case "device_role":
+		return GenericLookupID(ctx, value, DeviceRoleLookupConfig(client), func(dr *netbox.DeviceRole) int32 {
+			return dr.GetId()
+		})
+	case "platform":
+		return GenericLookupID(ctx, value, PlatformLookupConfig(client), func(p *netbox.Platform) int32 {
+			return p.GetId()
+		})
+	case "virtual_machine":
+		return GenericLookupID(ctx, value, VirtualMachineLookupConfig(client), func(vm *netbox.VirtualMachineWithConfigContext) int32 {
+			return vm.GetId()
+		})
+	case "cluster":
+		return GenericLookupID(ctx, value, ClusterLookupConfig(client), func(c *netbox.Cluster) int32 {
+			return c.GetId()
+		})
+	case "vlan":
+		return GenericLookupID(ctx, value, VLANLookupConfig(client), func(v *netbox.VLAN) int32 {
+			return v.GetId()
+		})
+	case "vlan_group":
+		return GenericLookupID(ctx, value, VLANGroupLookupConfig(client), func(vg *netbox.VLANGroup) int32 {
+			return vg.GetId()
+		})
+	case "vrf":
+		return GenericLookupID(ctx, value, VRFLookupConfig(client), func(v *netbox.VRF) int32 {
+			return v.GetId()
+		})
+	case "manufacturer":
+		return GenericLookupID(ctx, value, ManufacturerLookupConfig(client), func(m *netbox.Manufacturer) int32 {
+			return m.GetId()
+		})
+	case "module_type":
+		return GenericLookupID(ctx, value, ModuleTypeLookupConfig(client), func(mt *netbox.ModuleType) int32 {
+			return mt.GetId()
+		})
+	case "circuit":
+		return GenericLookupID(ctx, value, CircuitLookupConfig(client), func(c *netbox.Circuit) int32 {
+			return c.GetId()
+		})
+	case "provider":
+		return GenericLookupID(ctx, value, ProviderLookupConfig(client), func(p *netbox.Provider) int32 {
+			return p.GetId()
+		})
+	case "rir":
+		return GenericLookupID(ctx, value, RIRLookupConfig(client), func(r *netbox.RIR) int32 {
+			return r.GetId()
+		})
+	case "role":
+		return GenericLookupID(ctx, value, RoleLookupConfig(client), func(r *netbox.Role) int32 {
+			return r.GetId()
+		})
+	case "inventory_item_role":
+		return GenericLookupID(ctx, value, InventoryItemRoleLookupConfig(client), func(r *netbox.InventoryItemRole) int32 {
+			return r.GetId()
+		})
+	case "power_panel":
+		return GenericLookupID(ctx, value, PowerPanelLookupConfig(client), func(p *netbox.PowerPanel) int32 {
+			return p.GetId()
+		})
+	case "contact_group":
+		return LookupContactGroupID(ctx, client, value)
+	case "wireless_lan_group":
+		return GenericLookupID(ctx, value, WirelessLANGroupLookupConfig(client), func(wg *netbox.WirelessLANGroup) int32 {
+			return wg.GetId()
+		})
+	case "user":
+		return GenericLookupID(ctx, value, UserLookupConfig(client), func(u *netbox.User) int32 {
+			return u.GetId()
+		})
+	case "config_template":
+		return GenericLookupID(ctx, value, ConfigTemplateLookupConfig(client), func(ct *netbox.ConfigTemplate) int32 {
+			return ct.GetId()
+		})
+	case "rack_role":
+		return GenericLookupID(ctx, value, RackRoleLookupConfig(client), func(r *netbox.RackRole) int32 {
+			return r.GetId()
+		})
+	case "rack_type":
+		return GenericLookupID(ctx, value, RackTypeLookupConfig(client), func(r *netbox.RackType) int32 {
+			return r.GetId()
+		})
+	default:
+		return 0, nil
+	}
+
+}
+
 // =====================================================
 
 // GENERIC LOOKUP INFRASTRUCTURE

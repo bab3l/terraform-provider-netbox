@@ -64,7 +64,7 @@ func (r *CircuitGroupResource) Schema(ctx context.Context, req resource.SchemaRe
 			"id":     nbschema.IDAttribute("circuit group"),
 			"name":   nbschema.NameAttribute("circuit group", 100),
 			"slug":   nbschema.SlugAttribute("circuit group"),
-			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant."),
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant."),
 			"tenant_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The numeric ID of the tenant.",

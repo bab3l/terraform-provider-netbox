@@ -107,11 +107,10 @@ func (r *VLANResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				Default: stringdefault.StaticString("active"),
 			},
 
-			"role": schema.StringAttribute{
-				MarkdownDescription: "ID or slug of the role assigned to this VLAN.",
-
-				Optional: true,
-			},
+			"role": nbschema.ReferenceAttributeWithDiffSuppress(
+				"role",
+				"ID or slug of the role assigned to this VLAN.",
+			),
 		},
 	}
 

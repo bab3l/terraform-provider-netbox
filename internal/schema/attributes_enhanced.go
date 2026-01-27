@@ -19,6 +19,7 @@ func ReferenceAttributeWithDiffSuppress(targetResource string, description strin
 		Optional:            true,
 		PlanModifiers: []planmodifier.String{
 			stringplanmodifier.UseStateForUnknown(),
+			ReferenceResolveToIDPlanModifier(targetResource),
 			ReferenceEquivalencePlanModifier(),
 		},
 	}
@@ -35,6 +36,7 @@ func RequiredReferenceAttributeWithDiffSuppress(targetResource string, descripti
 		Required:            true,
 		PlanModifiers: []planmodifier.String{
 			stringplanmodifier.UseStateForUnknown(),
+			ReferenceResolveToIDPlanModifier(targetResource),
 			ReferenceEquivalencePlanModifier(),
 		},
 	}

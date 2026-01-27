@@ -364,12 +364,11 @@ func TestAccFHRPGroupAssignmentResource_externalDeletion(t *testing.T) {
 						t.Fatalf("Failed to find FHRP group assignment for external deletion: %v", err)
 					}
 
-					// Find the assignment by checking the interface - we need to match by priority
-					// since we can't easily filter by device name here
+					// Find the assignment for this test's group ID to avoid cross-test deletion
 					var assignmentID int32
 					found := false
 					for _, assignment := range items.Results {
-						if assignment.Priority == 100 {
+						if assignment.Priority == 100 && assignment.Group.GetGroupId() == groupID {
 							assignmentID = assignment.Id
 							found = true
 							break

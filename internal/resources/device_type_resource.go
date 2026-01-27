@@ -67,10 +67,10 @@ func (r *DeviceTypeResource) Schema(ctx context.Context, req resource.SchemaRequ
 		MarkdownDescription: "Manages a device type in Netbox. Device types define the make and model of physical hardware, including specifications like rack height, airflow direction, and weight. Device types serve as templates when creating new devices.",
 		Attributes: map[string]schema.Attribute{
 			"id":               nbschema.IDAttribute("device type"),
-			"manufacturer":     nbschema.RequiredReferenceAttribute("manufacturer", "ID or slug of the manufacturer of this device type. Required."),
+			"manufacturer":     nbschema.RequiredReferenceAttributeWithDiffSuppress("manufacturer", "ID or slug of the manufacturer of this device type. Required."),
 			"model":            nbschema.ModelAttribute("device type", 100),
 			"slug":             nbschema.SlugAttribute("device type"),
-			"default_platform": nbschema.ReferenceAttribute("platform", "ID or slug of the default platform for devices of this type."),
+			"default_platform": nbschema.ReferenceAttributeWithDiffSuppress("platform", "ID or slug of the default platform for devices of this type."),
 			"part_number": schema.StringAttribute{
 				MarkdownDescription: "Discrete manufacturer part number for ordering/inventory purposes.",
 				Optional:            true,

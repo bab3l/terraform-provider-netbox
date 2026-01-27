@@ -102,7 +102,7 @@ func (r *RackTypeResource) Schema(ctx context.Context, req resource.SchemaReques
 		Attributes: map[string]schema.Attribute{
 			"id": nbschema.IDAttribute("rack type"),
 
-			"manufacturer": nbschema.RequiredReferenceAttribute("manufacturer", "The manufacturer of this rack type."),
+			"manufacturer": nbschema.RequiredReferenceAttributeWithDiffSuppress("manufacturer", "The manufacturer of this rack type."),
 
 			"model": nbschema.ModelAttribute("rack type", 100),
 

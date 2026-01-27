@@ -72,18 +72,18 @@ func (r *ModuleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"device": schema.StringAttribute{
-				MarkdownDescription: "The device this module is installed in (ID or name).",
-				Required:            true,
-			},
+			"device": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"device",
+				"The device this module is installed in (ID or name).",
+			),
 			"module_bay": schema.Int32Attribute{
 				MarkdownDescription: "The module bay ID where this module is installed.",
 				Required:            true,
 			},
-			"module_type": schema.StringAttribute{
-				MarkdownDescription: "The module type (ID or model name).",
-				Required:            true,
-			},
+			"module_type": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"module type",
+				"The module type (ID or model name).",
+			),
 			"status": schema.StringAttribute{
 				MarkdownDescription: "Operational status. Valid values: `offline`, `active`, `planned`, `staged`, `failed`, `decommissioning`.",
 				Optional:            true,

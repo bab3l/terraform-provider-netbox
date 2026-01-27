@@ -112,11 +112,10 @@ func (r *WirelessLANResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional: true,
 			},
 
-			"group": schema.StringAttribute{
-				MarkdownDescription: "The wireless LAN group this network belongs to (ID or slug).",
-
-				Optional: true,
-			},
+			"group": nbschema.ReferenceAttributeWithDiffSuppress(
+				"wireless LAN group",
+				"The wireless LAN group this network belongs to (ID or slug).",
+			),
 
 			"status": schema.StringAttribute{
 				MarkdownDescription: "Status of the wireless LAN. Valid values: `active`, `reserved`, `disabled`, `deprecated`. Default: `active`.",
@@ -128,17 +127,15 @@ func (r *WirelessLANResource) Schema(ctx context.Context, req resource.SchemaReq
 				Default: stringdefault.StaticString("active"),
 			},
 
-			"vlan": schema.StringAttribute{
-				MarkdownDescription: "The VLAN associated with this wireless LAN (ID or name).",
+			"vlan": nbschema.ReferenceAttributeWithDiffSuppress(
+				"vlan",
+				"The VLAN associated with this wireless LAN (ID or name).",
+			),
 
-				Optional: true,
-			},
-
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "The tenant this wireless LAN belongs to (ID or slug).",
-
-				Optional: true,
-			},
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress(
+				"tenant",
+				"The tenant this wireless LAN belongs to (ID or slug).",
+			),
 
 			"auth_type": schema.StringAttribute{
 				MarkdownDescription: "Authentication type. Valid values: `open`, `wep`, `wpa-personal`, `wpa-enterprise`.",

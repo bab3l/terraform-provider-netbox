@@ -76,7 +76,7 @@ func (r *ASNRangeResource) Schema(ctx context.Context, req resource.SchemaReques
 			},
 			"name": nbschema.NameAttribute("ASN range", 100),
 			"slug": nbschema.SlugAttribute("ASN range"),
-			"rir":  nbschema.RequiredReferenceAttribute("RIR", "ID or slug of the Regional Internet Registry (RIR) responsible for this ASN range. Required."),
+			"rir":  nbschema.RequiredReferenceAttributeWithDiffSuppress("RIR", "ID or slug of the Regional Internet Registry (RIR) responsible for this ASN range. Required."),
 			"start": schema.StringAttribute{
 				MarkdownDescription: "The starting ASN in this range. Required.",
 				Required:            true,
@@ -91,7 +91,7 @@ func (r *ASNRangeResource) Schema(ctx context.Context, req resource.SchemaReques
 					validators.ValidASNString(),
 				},
 			},
-			"tenant": nbschema.ReferenceAttribute("tenant", "ID or slug of the tenant that owns this ASN range."),
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "ID or slug of the tenant that owns this ASN range."),
 		},
 	}
 

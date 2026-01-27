@@ -98,11 +98,10 @@ func (r *WirelessLANGroupResource) Schema(ctx context.Context, req resource.Sche
 				Required: true,
 			},
 
-			"parent": schema.StringAttribute{
-				MarkdownDescription: "Parent wireless LAN group (ID or slug) for hierarchical organization.",
-
-				Optional: true,
-			},
+			"parent": nbschema.ReferenceAttributeWithDiffSuppress(
+				"wireless LAN group",
+				"Parent wireless LAN group (ID or slug) for hierarchical organization.",
+			),
 		},
 	}
 

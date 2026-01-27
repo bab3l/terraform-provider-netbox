@@ -105,11 +105,10 @@ func (r *VirtualDeviceContextResource) Schema(ctx context.Context, req resource.
 				Required: true,
 			},
 
-			"device": schema.StringAttribute{
-				MarkdownDescription: "The device this VDC belongs to (ID or name).",
-
-				Required: true,
-			},
+			"device": nbschema.RequiredReferenceAttributeWithDiffSuppress(
+				"device",
+				"The device this VDC belongs to (ID or name).",
+			),
 
 			"identifier": schema.Int64Attribute{
 				MarkdownDescription: "Numeric identifier unique to the parent device.",
@@ -117,11 +116,10 @@ func (r *VirtualDeviceContextResource) Schema(ctx context.Context, req resource.
 				Optional: true,
 			},
 
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "The tenant associated with this VDC (ID or slug).",
-
-				Optional: true,
-			},
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress(
+				"tenant",
+				"The tenant associated with this VDC (ID or slug).",
+			),
 
 			"primary_ip4": schema.StringAttribute{
 				MarkdownDescription: "Primary IPv4 address assigned to this VDC (ID).",

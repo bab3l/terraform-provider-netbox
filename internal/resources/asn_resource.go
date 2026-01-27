@@ -79,14 +79,8 @@ func (r *ASNResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 					validators.ValidASNInt64(),
 				},
 			},
-			"rir": schema.StringAttribute{
-				MarkdownDescription: "The Regional Internet Registry (RIR) that manages this ASN. Can be specified by name, slug, or ID.",
-				Optional:            true,
-			},
-			"tenant": schema.StringAttribute{
-				MarkdownDescription: "The tenant this ASN is assigned to. Can be specified by name, slug, or ID.",
-				Optional:            true,
-			},
+			"rir":    nbschema.ReferenceAttributeWithDiffSuppress("rir", "The Regional Internet Registry (RIR) that manages this ASN. Can be specified by name, slug, or ID."),
+			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "The tenant this ASN is assigned to. Can be specified by name, slug, or ID."),
 			"description": schema.StringAttribute{
 				MarkdownDescription: "A description of this ASN.",
 				Optional:            true,

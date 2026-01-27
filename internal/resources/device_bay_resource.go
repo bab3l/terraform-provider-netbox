@@ -61,18 +61,15 @@ func (r *DeviceBayResource) Schema(ctx context.Context, req resource.SchemaReque
 		MarkdownDescription: "Manages a device bay in NetBox. A device bay is a slot within a parent device where a child device can be installed, such as a blade server chassis slot or a modular switch slot.",
 		Attributes: map[string]schema.Attribute{
 			"id":     nbschema.IDAttribute("device bay"),
-			"device": nbschema.RequiredReferenceAttribute("device", "The parent device containing this device bay. Accepts ID or name."),
+			"device": nbschema.RequiredReferenceAttributeWithDiffSuppress("device", "The parent device containing this device bay. Accepts ID or name."),
 			"name":   nbschema.NameAttribute("device bay", 64),
 			"label": schema.StringAttribute{
 				MarkdownDescription: "Physical label for the device bay.",
 				Optional:            true,
 			},
-			"installed_device": schema.StringAttribute{
-				MarkdownDescription: "The child device installed in this bay. Accepts ID or name.",
-				Optional:            true,
-			},
-			"tags":          nbschema.TagsSlugAttribute(),
-			"custom_fields": nbschema.CustomFieldsAttribute(),
+			"installed_device": nbschema.ReferenceAttributeWithDiffSuppress("device", "The child device installed in this bay. Accepts ID or name."),
+			"tags":             nbschema.TagsSlugAttribute(),
+			"custom_fields":    nbschema.CustomFieldsAttribute(),
 		},
 	}
 
