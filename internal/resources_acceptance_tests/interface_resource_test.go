@@ -134,6 +134,56 @@ func TestAccInterfaceResource_full(t *testing.T) {
 	})
 }
 
+func TestAccInterfaceResource_vlans(t *testing.T) {
+	t.Parallel()
+
+	name := testutil.RandomName("tf-test-interface-vlans")
+	siteSlug := testutil.RandomSlug("site")
+	mfrSlug := testutil.RandomSlug("mfr")
+	deviceSlug := testutil.RandomSlug("device")
+	roleSlug := testutil.RandomSlug("role")
+
+	untaggedVLANName := testutil.RandomName("untagged")
+	taggedVLANOneName := testutil.RandomName("tagged-1")
+	taggedVLANTwoName := testutil.RandomName("tagged-2")
+	untaggedVLANVID := testutil.RandomVID()
+	taggedVLANOneVID := testutil.RandomVID()
+	taggedVLANTwoVID := testutil.RandomVID()
+
+	cleanup := testutil.NewCleanupResource(t)
+	cleanup.RegisterSiteCleanup(siteSlug)
+	cleanup.RegisterManufacturerCleanup(mfrSlug)
+	cleanup.RegisterDeviceTypeCleanup(deviceSlug)
+	cleanup.RegisterDeviceRoleCleanup(roleSlug)
+	cleanup.RegisterDeviceCleanup(name + "-device")
+	cleanup.RegisterVLANCleanup(untaggedVLANVID)
+	cleanup.RegisterVLANCleanup(taggedVLANOneVID)
+	cleanup.RegisterVLANCleanup(taggedVLANTwoVID)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceResourceConfig_vlans(name, siteSlug, mfrSlug, deviceSlug, roleSlug, untaggedVLANName, untaggedVLANVID, taggedVLANOneName, taggedVLANOneVID, taggedVLANTwoName, taggedVLANTwoVID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("netbox_interface.test", "id"),
+					resource.TestCheckResourceAttr("netbox_interface.test", "name", name),
+					resource.TestCheckResourceAttr("netbox_interface.test", "mode", "tagged"),
+					testutil.ReferenceFieldCheck("netbox_interface.test", "untagged_vlan"),
+					resource.TestCheckResourceAttr("netbox_interface.test", "tagged_vlans.#", "2"),
+					testutil.ReferenceListNumericCheck("netbox_interface.test", "tagged_vlans"),
+				),
+			},
+			{
+				ResourceName:      "netbox_interface.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccInterfaceResource_tagLifecycle(t *testing.T) {
 	t.Parallel()
 
@@ -467,6 +517,39 @@ resource "netbox_interface" "test" {
 }
 `, testAccInterfaceResourcePrereqs(name), name)
 
+}
+
+func testAccInterfaceResourceConfig_vlans(name, siteSlug, manufacturerSlug, deviceTypeSlug, roleSlug, untaggedVLANName string, untaggedVLANVID int32, taggedVLANOneName string, taggedVLANOneVID int32, taggedVLANTwoName string, taggedVLANTwoVID int32) string {
+	return fmt.Sprintf(`
+%s
+
+resource "netbox_vlan" "untagged" {
+	name = %q
+	vid  = %d
+	site = netbox_site.test.id
+}
+
+resource "netbox_vlan" "tagged_1" {
+	name = %q
+	vid  = %d
+	site = netbox_site.test.id
+}
+
+resource "netbox_vlan" "tagged_2" {
+	name = %q
+	vid  = %d
+	site = netbox_site.test.id
+}
+
+resource "netbox_interface" "test" {
+	device       = netbox_device.test.id
+	name         = %q
+	type         = "1000base-t"
+	mode         = "tagged"
+	untagged_vlan = netbox_vlan.untagged.id
+	tagged_vlans  = [netbox_vlan.tagged_1.id, netbox_vlan.tagged_2.id]
+}
+`, testAccInterfaceResourcePrereqsWithSlugs(name, siteSlug, manufacturerSlug, deviceTypeSlug, roleSlug), untaggedVLANName, untaggedVLANVID, taggedVLANOneName, taggedVLANOneVID, taggedVLANTwoName, taggedVLANTwoVID, name)
 }
 
 func testAccInterfaceResourceConfig_tags(siteName, siteSlug, manufacturerName, manufacturerSlug, deviceRoleName, deviceRoleSlug, deviceTypeName, deviceTypeSlug, deviceName, interfaceName, tag1Slug, tag2Slug, tag3Slug, tagCase string) string {
