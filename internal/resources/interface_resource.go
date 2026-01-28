@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"sort"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -59,6 +60,8 @@ type InterfaceResourceModel struct {
 	MgmtOnly      types.Bool   `tfsdk:"mgmt_only"`
 	Description   types.String `tfsdk:"description"`
 	Mode          types.String `tfsdk:"mode"`
+	UntaggedVLAN  types.String `tfsdk:"untagged_vlan"`
+	TaggedVLANs   types.Set    `tfsdk:"tagged_vlans"`
 	MarkConnected types.Bool   `tfsdk:"mark_connected"`
 	Tags          types.Set    `tfsdk:"tags"`
 	CustomFields  types.Set    `tfsdk:"custom_fields"`
@@ -146,6 +149,15 @@ func (r *InterfaceResource) Schema(ctx context.Context, req resource.SchemaReque
 					stringvalidator.OneOf("access", "tagged", "tagged-all", ""),
 				},
 			},
+			"untagged_vlan": nbschema.ReferenceAttributeWithDiffSuppress(
+				"vlan",
+				"The name or ID of the untagged VLAN (for access or tagged mode).",
+			),
+			"tagged_vlans": schema.SetAttribute{
+				MarkdownDescription: "Set of VLAN names or IDs to tag on this interface. Can only be set when mode is `tagged` or `tagged-all`.",
+				Optional:            true,
+				ElementType:         types.StringType,
+			},
 			"mark_connected": schema.BoolAttribute{
 				MarkdownDescription: "Treat as if a cable is connected, even if no cable is attached.",
 				Optional:            true,
@@ -191,6 +203,11 @@ func (r *InterfaceResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	validateInterfaceModeAndTaggedVLANs(ctx, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Lookup the device
 	deviceRef, diags := netboxlookup.LookupDevice(ctx, r.client, data.Device.ValueString())
 	resp.Diagnostics.Append(diags...)
@@ -203,7 +220,7 @@ func (r *InterfaceResource) Create(ctx context.Context, req resource.CreateReque
 	interfaceReq := netbox.NewWritableInterfaceRequest(*deviceRef, data.Name.ValueString(), interfaceType)
 
 	// Set optional fields
-	r.setOptionalFields(interfaceReq, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, interfaceReq, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -300,6 +317,11 @@ func (r *InterfaceResource) Update(ctx context.Context, req resource.UpdateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	validateInterfaceModeAndTaggedVLANs(ctx, &data, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	interfaceID := utils.ParseInt32FromString(data.ID.ValueString())
 	if interfaceID == 0 {
 		resp.Diagnostics.AddError("Invalid Interface ID", "Interface ID must be a number.")
@@ -318,7 +340,7 @@ func (r *InterfaceResource) Update(ctx context.Context, req resource.UpdateReque
 	interfaceReq := netbox.NewWritableInterfaceRequest(*deviceRef, data.Name.ValueString(), interfaceType)
 
 	// Set optional fields
-	r.setOptionalFields(interfaceReq, &data, &resp.Diagnostics)
+	r.setOptionalFields(ctx, interfaceReq, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -473,7 +495,7 @@ func (r *InterfaceResource) ImportState(ctx context.Context, req resource.Import
 }
 
 // setOptionalFields sets optional fields on the interface request.
-func (r *InterfaceResource) setOptionalFields(interfaceReq *netbox.WritableInterfaceRequest, data *InterfaceResourceModel, diags *diag.Diagnostics) {
+func (r *InterfaceResource) setOptionalFields(ctx context.Context, interfaceReq *netbox.WritableInterfaceRequest, data *InterfaceResourceModel, diags *diag.Diagnostics) {
 	// Label
 	if !data.Label.IsNull() && !data.Label.IsUnknown() {
 		label := data.Label.ValueString()
@@ -582,6 +604,30 @@ func (r *InterfaceResource) setOptionalFields(interfaceReq *netbox.WritableInter
 			interfaceReq.AdditionalProperties = make(map[string]interface{})
 		}
 		interfaceReq.AdditionalProperties["mode"] = nil
+	}
+
+	// Untagged VLAN
+	if !data.UntaggedVLAN.IsNull() && !data.UntaggedVLAN.IsUnknown() {
+		vlan, vlanDiags := netboxlookup.LookupVLAN(ctx, r.client, data.UntaggedVLAN.ValueString())
+		diags.Append(vlanDiags...)
+		if diags.HasError() {
+			return
+		}
+		interfaceReq.SetUntaggedVlan(*vlan)
+	} else if data.UntaggedVLAN.IsNull() {
+		interfaceReq.SetUntaggedVlanNil()
+	}
+
+	// Tagged VLANs
+	if !data.TaggedVLANs.IsNull() && !data.TaggedVLANs.IsUnknown() {
+		vlanIDs, vlanDiags := r.resolveInterfaceTaggedVLANIDs(ctx, data.TaggedVLANs)
+		diags.Append(vlanDiags...)
+		if diags.HasError() {
+			return
+		}
+		interfaceReq.TaggedVlans = vlanIDs
+	} else if data.TaggedVLANs.IsNull() {
+		interfaceReq.TaggedVlans = []int32{}
 	}
 
 	// MarkConnected
@@ -723,6 +769,17 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 		data.Mode = types.StringNull()
 	}
 
+	// Untagged VLAN
+	if iface.UntaggedVlan.IsSet() && iface.UntaggedVlan.Get() != nil {
+		vlan := iface.UntaggedVlan.Get()
+		data.UntaggedVLAN = utils.UpdateReferenceAttribute(data.UntaggedVLAN, vlan.GetName(), "", vlan.GetId())
+	} else {
+		data.UntaggedVLAN = types.StringNull()
+	}
+
+	// Tagged VLANs
+	data.TaggedVLANs = updateInterfaceTaggedVLANs(ctx, data.TaggedVLANs, iface.GetTaggedVlans(), diags)
+
 	// MarkConnected
 	if markConnected, ok := iface.GetMarkConnectedOk(); ok && markConnected != nil {
 		data.MarkConnected = types.BoolValue(*markConnected)
@@ -740,4 +797,89 @@ func (r *InterfaceResource) mapInterfaceToState(ctx context.Context, iface *netb
 	} else {
 		data.CustomFields = types.SetNull(utils.GetCustomFieldsAttributeType().ElemType)
 	}
+}
+
+func validateInterfaceModeAndTaggedVLANs(ctx context.Context, data *InterfaceResourceModel, diags *diag.Diagnostics) {
+	if data.TaggedVLANs.IsNull() || data.TaggedVLANs.IsUnknown() {
+		return
+	}
+
+	var vlanRefs []string
+	if setDiags := data.TaggedVLANs.ElementsAs(ctx, &vlanRefs, false); setDiags.HasError() {
+		diags.Append(setDiags...)
+		return
+	}
+	if len(vlanRefs) == 0 {
+		return
+	}
+
+	mode := ""
+	if !data.Mode.IsNull() && !data.Mode.IsUnknown() {
+		mode = data.Mode.ValueString()
+	}
+
+	if mode != "tagged" && mode != "tagged-all" {
+		diags.AddError(
+			"Invalid tagged_vlans configuration",
+			"tagged_vlans can only be set when mode is \"tagged\" or \"tagged-all\".",
+		)
+	}
+}
+
+func (r *InterfaceResource) resolveInterfaceTaggedVLANIDs(ctx context.Context, taggedVlans types.Set) ([]int32, diag.Diagnostics) {
+	var vlanRefs []string
+	var diags diag.Diagnostics
+	if setDiags := taggedVlans.ElementsAs(ctx, &vlanRefs, false); setDiags.HasError() {
+		diags.Append(setDiags...)
+		return nil, diags
+	}
+
+	ids := make([]int32, 0, len(vlanRefs))
+	for _, vlanRef := range vlanRefs {
+		id, vlanDiags := netboxlookup.GenericLookupID(ctx, vlanRef, netboxlookup.VLANLookupConfig(r.client), func(v *netbox.VLAN) int32 {
+			return v.GetId()
+		})
+		diags.Append(vlanDiags...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		ids = append(ids, id)
+	}
+
+	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
+	return ids, diags
+}
+
+func updateInterfaceTaggedVLANs(ctx context.Context, current types.Set, vlans []netbox.VLAN, diags *diag.Diagnostics) types.Set {
+	existing := map[string]struct{}{}
+	if !current.IsNull() && !current.IsUnknown() {
+		var currentValues []string
+		diags.Append(current.ElementsAs(ctx, &currentValues, false)...)
+		for _, value := range currentValues {
+			existing[value] = struct{}{}
+		}
+	}
+
+	if len(vlans) == 0 {
+		if !current.IsNull() && !current.IsUnknown() && len(current.Elements()) == 0 {
+			return types.SetValueMust(types.StringType, []attr.Value{})
+		}
+		return types.SetNull(types.StringType)
+	}
+
+	values := make([]string, 0, len(vlans))
+	for _, vlan := range vlans {
+		idValue := fmt.Sprintf("%d", vlan.GetId())
+		nameValue := vlan.GetName()
+		value := idValue
+		if _, ok := existing[nameValue]; ok {
+			value = nameValue
+		}
+		values = append(values, value)
+	}
+
+	sort.Strings(values)
+	setValue, setDiags := types.SetValueFrom(ctx, types.StringType, values)
+	diags.Append(setDiags...)
+	return setValue
 }
