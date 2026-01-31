@@ -161,9 +161,7 @@ func (r *CustomFieldChoiceSetResource) Create(ctx context.Context, req resource.
 			utils.FormatAPIError("create custom field choice set", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError("Error creating custom field choice set",
-			fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create custom field choice set", httpResp, http.StatusCreated) {
 		return
 	}
 	r.mapToState(ctx, result, &data)
@@ -189,12 +187,14 @@ func (r *CustomFieldChoiceSetResource) Read(ctx context.Context, req resource.Re
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldChoiceSetsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading custom field choice set",
 			utils.FormatAPIError(fmt.Sprintf("read custom field choice set ID %s", data.ID.ValueString()), err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read custom field choice set", httpResp, http.StatusOK) {
 		return
 	}
 	r.mapToState(ctx, result, &data)
@@ -249,9 +249,7 @@ func (r *CustomFieldChoiceSetResource) Update(ctx context.Context, req resource.
 			utils.FormatAPIError(fmt.Sprintf("update custom field choice set ID %s", data.ID.ValueString()), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating custom field choice set",
-			fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update custom field choice set", httpResp, http.StatusOK) {
 		return
 	}
 	r.mapToState(ctx, result, &data)
@@ -274,17 +272,14 @@ func (r *CustomFieldChoiceSetResource) Delete(ctx context.Context, req resource.
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// If the resource was already deleted (404), consider it a success
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			tflog.Debug(ctx, "Custom field choice set already deleted", map[string]interface{}{"id": id})
+		if utils.HandleNotFound(httpResp, func() { tflog.Debug(ctx, "Custom field choice set already deleted", map[string]interface{}{"id": id}) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting custom field choice set",
 			utils.FormatAPIError(fmt.Sprintf("delete custom field choice set ID %s", data.ID.ValueString()), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting custom field choice set",
-			fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete custom field choice set", httpResp, http.StatusNoContent) {
 		return
 	}
 }

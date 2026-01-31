@@ -279,6 +279,9 @@ func (r *PowerFeedResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create power feed", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Save plan state for filter-to-owned pattern
 	planTags := data.Tags
@@ -329,14 +332,16 @@ func (r *PowerFeedResource) Read(ctx context.Context, req resource.ReadRequest, 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerFeedsRetrieve(ctx, pfID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading power feed",
 			utils.FormatAPIError(fmt.Sprintf("read power feed ID %d", pfID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read power feed", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -533,6 +538,9 @@ func (r *PowerFeedResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update power feed", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Save plan state for filter-to-owned pattern
 	planTags := plan.Tags
@@ -577,13 +585,16 @@ func (r *PowerFeedResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.DcimAPI.DcimPowerFeedsDestroy(ctx, pfID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting power feed",
 			utils.FormatAPIError(fmt.Sprintf("delete power feed ID %d", pfID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete power feed", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -608,6 +619,9 @@ func (r *PowerFeedResource) ImportState(ctx context.Context, req resource.Import
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing power feed", utils.FormatAPIError(fmt.Sprintf("import power feed ID %d", pfID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import power feed", httpResp, http.StatusOK) {
 			return
 		}
 

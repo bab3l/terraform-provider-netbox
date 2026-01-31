@@ -271,6 +271,9 @@ func (r *DeviceTypeResource) Create(ctx context.Context, req resource.CreateRequ
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create device type", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created device type", map[string]interface{}{
 		"id":    deviceType.GetId(),
 		"model": deviceType.GetModel(),
@@ -315,17 +318,21 @@ func (r *DeviceTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 	deviceType, httpResp, err := r.client.DcimAPI.DcimDeviceTypesRetrieve(ctx, deviceTypeIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Device type not found, removing from state", map[string]interface{}{
 				"id": deviceTypeID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading device type",
 			utils.FormatAPIError(fmt.Sprintf("read device type ID %s", deviceTypeID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read device type", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -477,6 +484,9 @@ func (r *DeviceTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update device type", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated device type", map[string]interface{}{
 		"id":    deviceType.GetId(),
 		"model": deviceType.GetModel(),
@@ -521,17 +531,21 @@ func (r *DeviceTypeResource) Delete(ctx context.Context, req resource.DeleteRequ
 	httpResp, err := r.client.DcimAPI.DcimDeviceTypesDestroy(ctx, deviceTypeIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			// Already deleted
 			tflog.Debug(ctx, "Device type already deleted", map[string]interface{}{
 				"id": deviceTypeID,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting device type",
 			utils.FormatAPIError(fmt.Sprintf("delete device type ID %s", deviceTypeID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete device type", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted device type", map[string]interface{}{
@@ -565,6 +579,9 @@ func (r *DeviceTypeResource) ImportState(ctx context.Context, req resource.Impor
 				"Error importing device type",
 				utils.FormatAPIError("read device type", err, httpResp),
 			)
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import device type", httpResp, http.StatusOK) {
 			return
 		}
 

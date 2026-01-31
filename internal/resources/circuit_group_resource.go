@@ -181,14 +181,16 @@ func (r *CircuitGroupResource) Read(ctx context.Context, req resource.ReadReques
 	group, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitGroupsRetrieve(ctx, idInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading circuit group",
 			utils.FormatAPIError("read circuit group", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read circuit group", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -309,14 +311,16 @@ func (r *CircuitGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 	httpResp, err := r.client.CircuitsAPI.CircuitsCircuitGroupsDestroy(ctx, idInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			// Already deleted
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting circuit group",
 			utils.FormatAPIError("delete circuit group", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete circuit group", httpResp, http.StatusNoContent) {
 		return
 	}
 }

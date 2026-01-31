@@ -177,6 +177,9 @@ func (r *ModuleBayTemplateResource) Create(ctx context.Context, req resource.Cre
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create module bay template", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapToState(result, &data)
@@ -209,14 +212,16 @@ func (r *ModuleBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 	result, httpResp, err := r.client.DcimAPI.DcimModuleBayTemplatesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading module bay template",
 			utils.FormatAPIError(fmt.Sprintf("read module bay template ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read module bay template", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -310,6 +315,9 @@ func (r *ModuleBayTemplateResource) Update(ctx context.Context, req resource.Upd
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update module bay template", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to state
 	r.mapToState(result, &plan)
@@ -343,13 +351,16 @@ func (r *ModuleBayTemplateResource) Delete(ctx context.Context, req resource.Del
 	httpResp, err := r.client.DcimAPI.DcimModuleBayTemplatesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting module bay template",
 			utils.FormatAPIError(fmt.Sprintf("delete module bay template ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete module bay template", httpResp, http.StatusNoContent) {
 		return
 	}
 }

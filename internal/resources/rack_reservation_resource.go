@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -199,6 +200,9 @@ func (r *RackReservationResource) Create(ctx context.Context, req resource.Creat
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create rack reservation", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
@@ -235,14 +239,16 @@ func (r *RackReservationResource) Read(ctx context.Context, req resource.ReadReq
 	result, httpResp, err := r.client.DcimAPI.DcimRackReservationsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading rack reservation",
 			utils.FormatAPIError(fmt.Sprintf("read rack reservation ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read rack reservation", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -350,6 +356,9 @@ func (r *RackReservationResource) Update(ctx context.Context, req resource.Updat
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update rack reservation", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to state
 	r.mapToState(ctx, result, &plan, &resp.Diagnostics)
@@ -387,13 +396,16 @@ func (r *RackReservationResource) Delete(ctx context.Context, req resource.Delet
 	httpResp, err := r.client.DcimAPI.DcimRackReservationsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting rack reservation",
 			utils.FormatAPIError(fmt.Sprintf("delete rack reservation ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete rack reservation", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -419,6 +431,9 @@ func (r *RackReservationResource) ImportState(ctx context.Context, req resource.
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing rack reservation", utils.FormatAPIError("import rack reservation", err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import rack reservation", httpResp, http.StatusOK) {
 			return
 		}
 

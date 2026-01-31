@@ -139,9 +139,7 @@ func (r *ClusterGroupResource) Create(ctx context.Context, req resource.CreateRe
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
-
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError("Error creating cluster group", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create cluster group", httpResp, http.StatusCreated) {
 		return
 	}
 
@@ -175,11 +173,13 @@ func (r *ClusterGroupResource) Read(ctx context.Context, req resource.ReadReques
 	clusterGroup, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterGroupsRetrieve(ctx, clusterGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading cluster group", utils.FormatAPIError(fmt.Sprintf("read cluster group ID %s", clusterGroupID), err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read cluster group", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -241,8 +241,7 @@ func (r *ClusterGroupResource) Update(ctx context.Context, req resource.UpdateRe
 		resp.Diagnostics.AddError("Error updating cluster group", utils.FormatAPIError(fmt.Sprintf("update cluster group ID %s", clusterGroupID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating cluster group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update cluster group", httpResp, http.StatusOK) {
 		return
 	}
 	r.mapClusterGroupToState(clusterGroup, &plan)
@@ -274,14 +273,13 @@ func (r *ClusterGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterGroupsDestroy(ctx, clusterGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			return // Already deleted
+		if utils.HandleNotFound(httpResp, func() {}) {
+			return
 		}
 		resp.Diagnostics.AddError("Error deleting cluster group", utils.FormatAPIError(fmt.Sprintf("delete cluster group ID %s", clusterGroupID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting cluster group", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete cluster group", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Trace(ctx, "deleted a cluster group resource")
@@ -309,8 +307,7 @@ func (r *ClusterGroupResource) ImportState(ctx context.Context, req resource.Imp
 			resp.Diagnostics.AddError("Error importing cluster group", utils.FormatAPIError(fmt.Sprintf("read cluster group ID %s", parsed.ID), err, httpResp))
 			return
 		}
-		if httpResp.StatusCode != http.StatusOK {
-			resp.Diagnostics.AddError("Error importing cluster group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import cluster group", httpResp, http.StatusOK) {
 			return
 		}
 

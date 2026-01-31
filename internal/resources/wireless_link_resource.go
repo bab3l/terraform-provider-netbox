@@ -304,6 +304,9 @@ func (r *WirelessLinkResource) Create(ctx context.Context, req resource.CreateRe
 			utils.FormatAPIError("create wireless link", err, httpResp))
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create wireless link", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map the response to state
 	r.mapToState(result, &data)
@@ -344,13 +347,17 @@ func (r *WirelessLinkResource) Read(ctx context.Context, req resource.ReadReques
 	result, httpResp, err := r.client.WirelessAPI.WirelessWirelessLinksRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Wireless link not found, removing from state", map[string]interface{}{"id": id})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error Reading Wireless Link",
 			utils.FormatAPIError(fmt.Sprintf("read wireless link ID %d", id), err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read wireless link", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -516,6 +523,9 @@ func (r *WirelessLinkResource) Update(ctx context.Context, req resource.UpdateRe
 			utils.FormatAPIError(fmt.Sprintf("update wireless link ID %d", id), err, httpResp))
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update wireless link", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map the response to plan model
 	r.mapToState(result, &plan)
@@ -555,12 +565,14 @@ func (r *WirelessLinkResource) Delete(ctx context.Context, req resource.DeleteRe
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// If the resource was already deleted (404), consider it a success
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			tflog.Debug(ctx, "Wireless link already deleted", map[string]interface{}{"id": id})
+		if utils.HandleNotFound(httpResp, func() { tflog.Debug(ctx, "Wireless link already deleted", map[string]interface{}{"id": id}) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error Deleting Wireless Link",
 			utils.FormatAPIError(fmt.Sprintf("delete wireless link ID %d", id), err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete wireless link", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -586,6 +598,9 @@ func (r *WirelessLinkResource) ImportState(ctx context.Context, req resource.Imp
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing wireless link", utils.FormatAPIError(fmt.Sprintf("read wireless link ID %d", id), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read wireless link", httpResp, http.StatusOK) {
 			return
 		}
 

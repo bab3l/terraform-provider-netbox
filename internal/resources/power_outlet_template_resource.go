@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -163,6 +164,9 @@ func (r *PowerOutletTemplateResource) Create(ctx context.Context, req resource.C
 			)
 			return
 		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read power port template", httpResp, http.StatusOK) {
+			return
+		}
 		apiReq.SetPowerPort(netbox.BriefPowerPortTemplateRequest{
 			Name: powerPort.GetName(),
 		})
@@ -183,6 +187,9 @@ func (r *PowerOutletTemplateResource) Create(ctx context.Context, req resource.C
 			"Error creating power outlet template",
 			utils.FormatAPIError("create power outlet template", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create power outlet template", httpResp, http.StatusCreated) {
 		return
 	}
 
@@ -209,17 +216,21 @@ func (r *PowerOutletTemplateResource) Read(ctx context.Context, req resource.Rea
 	response, httpResp, err := r.client.DcimAPI.DcimPowerOutletTemplatesRetrieve(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Power outlet template not found, removing from state", map[string]interface{}{
 				"id": templateID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading power outlet template",
 			utils.FormatAPIError(fmt.Sprintf("read power outlet template ID %d", templateID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read power outlet template", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -279,6 +290,9 @@ func (r *PowerOutletTemplateResource) Update(ctx context.Context, req resource.U
 			)
 			return
 		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read power port template", httpResp, http.StatusOK) {
+			return
+		}
 		apiReq.SetPowerPort(netbox.BriefPowerPortTemplateRequest{
 			Name: powerPort.GetName(),
 		})
@@ -308,6 +322,9 @@ func (r *PowerOutletTemplateResource) Update(ctx context.Context, req resource.U
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update power outlet template", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(response, &data)
@@ -329,7 +346,7 @@ func (r *PowerOutletTemplateResource) Delete(ctx context.Context, req resource.D
 	httpResp, err := r.client.DcimAPI.DcimPowerOutletTemplatesDestroy(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -337,6 +354,9 @@ func (r *PowerOutletTemplateResource) Delete(ctx context.Context, req resource.D
 			"Error deleting power outlet template",
 			utils.FormatAPIError(fmt.Sprintf("delete power outlet template ID %d", templateID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete power outlet template", httpResp, http.StatusNoContent) {
 		return
 	}
 }

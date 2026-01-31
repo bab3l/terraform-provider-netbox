@@ -115,8 +115,7 @@ func (r *ManufacturerResource) Create(ctx context.Context, req resource.CreateRe
 		resp.Diagnostics.AddError("Error creating manufacturer", utils.FormatAPIError("create manufacturer", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError("Error creating manufacturer", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusCreated, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create manufacturer", httpResp, http.StatusCreated) {
 		return
 	}
 	if manufacturer == nil {
@@ -157,15 +156,13 @@ func (r *ManufacturerResource) Read(ctx context.Context, req resource.ReadReques
 	manufacturer, httpResp, err := r.client.DcimAPI.DcimManufacturersRetrieve(ctx, manufacturerIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading manufacturer", utils.FormatAPIError(fmt.Sprintf("read manufacturer ID %s", manufacturerID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error reading manufacturer", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read manufacturer", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -238,8 +235,7 @@ func (r *ManufacturerResource) Update(ctx context.Context, req resource.UpdateRe
 		resp.Diagnostics.AddError("Error updating manufacturer", utils.FormatAPIError(fmt.Sprintf("update manufacturer ID %s", manufacturerID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating manufacturer", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update manufacturer", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -271,14 +267,13 @@ func (r *ManufacturerResource) Delete(ctx context.Context, req resource.DeleteRe
 	httpResp, err := r.client.DcimAPI.DcimManufacturersDestroy(ctx, manufacturerIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			return // Already deleted
+		if utils.HandleNotFound(httpResp, func() {}) {
+			return
 		}
 		resp.Diagnostics.AddError("Error deleting manufacturer", utils.FormatAPIError(fmt.Sprintf("delete manufacturer ID %s", manufacturerID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting manufacturer", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusNoContent, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete manufacturer", httpResp, http.StatusNoContent) {
 		return
 	}
 }

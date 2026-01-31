@@ -379,6 +379,9 @@ func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest,
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create device", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created device", map[string]interface{}{
 		"id":   device.GetId(),
 		"name": device.GetName(),
@@ -431,17 +434,21 @@ func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 	device, httpResp, err := r.client.DcimAPI.DcimDevicesRetrieve(ctx, deviceIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Device not found, removing from state", map[string]interface{}{
 				"id": deviceID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading device",
 			utils.FormatAPIError(fmt.Sprintf("read device ID %s", deviceID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read device", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -687,6 +694,9 @@ func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update device", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated device", map[string]interface{}{
 		"id":   device.GetId(),
 		"name": device.GetName(),
@@ -741,17 +751,21 @@ func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	httpResp, err := r.client.DcimAPI.DcimDevicesDestroy(ctx, deviceIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			// Already deleted
 			tflog.Debug(ctx, "Device already deleted", map[string]interface{}{
 				"id": deviceID,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting device",
 			utils.FormatAPIError(fmt.Sprintf("delete device ID %s", deviceID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete device", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted device", map[string]interface{}{
@@ -785,6 +799,9 @@ func (r *DeviceResource) ImportState(ctx context.Context, req resource.ImportSta
 				"Error importing device",
 				utils.FormatAPIError("read device", err, httpResp),
 			)
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import device", httpResp, http.StatusOK) {
 			return
 		}
 

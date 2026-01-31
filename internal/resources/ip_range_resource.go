@@ -171,6 +171,9 @@ func (r *IPRangeResource) Create(ctx context.Context, req resource.CreateRequest
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create IP range", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Preserve start_address and end_address since they might be normalized by API (e.g., 192.0.3.212 -> 192.0.3.212/32)
 	startAddressBeforeMapping := data.StartAddress
@@ -221,14 +224,16 @@ func (r *IPRangeResource) Read(ctx context.Context, req resource.ReadRequest, re
 	ipRange, httpResp, err := r.client.IpamAPI.IpamIpRangesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading IP range",
 			utils.FormatAPIError(fmt.Sprintf("read IP range ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read IP range", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -322,6 +327,9 @@ func (r *IPRangeResource) Update(ctx context.Context, req resource.UpdateRequest
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update IP range", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Preserve start_address and end_address since they might be normalized by API (e.g., 192.0.3.212 -> 192.0.3.212/32)
 	startAddressBeforeUpdate := data.StartAddress
@@ -372,7 +380,7 @@ func (r *IPRangeResource) Delete(ctx context.Context, req resource.DeleteRequest
 	httpResp, err := r.client.IpamAPI.IpamIpRangesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -380,6 +388,9 @@ func (r *IPRangeResource) Delete(ctx context.Context, req resource.DeleteRequest
 			"Error deleting IP range",
 			utils.FormatAPIError(fmt.Sprintf("delete IP range ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete IP range", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted IP range", map[string]interface{}{
@@ -413,6 +424,9 @@ func (r *IPRangeResource) ImportState(ctx context.Context, req resource.ImportSt
 				"Error importing IP range",
 				utils.FormatAPIError(fmt.Sprintf("read IP range ID %d", id), err, httpResp),
 			)
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import IP range", httpResp, http.StatusOK) {
 			return
 		}
 

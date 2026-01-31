@@ -536,6 +536,9 @@ func (r *VMInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create VM interface", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created VM interface", map[string]interface{}{
 		"id":   iface.GetId(),
 		"name": iface.GetName(),
@@ -583,17 +586,21 @@ func (r *VMInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	iface, httpResp, err := r.client.VirtualizationAPI.VirtualizationInterfacesRetrieve(ctx, ifaceIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "VM interface not found, removing from state", map[string]interface{}{
 				"id": ifaceID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading VM interface",
 			utils.FormatAPIError(fmt.Sprintf("read VM interface ID %s", ifaceID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read VM interface", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -665,6 +672,9 @@ func (r *VMInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update VM interface", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated VM interface", map[string]interface{}{
 		"id":   iface.GetId(),
 		"name": iface.GetName(),
@@ -718,17 +728,21 @@ func (r *VMInterfaceResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationInterfacesDestroy(ctx, ifaceIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			// Already deleted, consider success
 			tflog.Debug(ctx, "VM interface already deleted", map[string]interface{}{
 				"id": ifaceID,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting VM interface",
 			utils.FormatAPIError(fmt.Sprintf("delete VM interface ID %s", ifaceID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete VM interface", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted VM interface", map[string]interface{}{
@@ -759,6 +773,9 @@ func (r *VMInterfaceResource) ImportState(ctx context.Context, req resource.Impo
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing VM interface", utils.FormatAPIError(fmt.Sprintf("read VM interface ID %s", parsed.ID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read VM interface", httpResp, http.StatusOK) {
 			return
 		}
 

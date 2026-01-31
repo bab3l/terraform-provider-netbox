@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -136,6 +137,9 @@ func (r *RouteTargetResource) Create(ctx context.Context, req resource.CreateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create RouteTarget", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapRouteTargetToState(ctx, rt, &data, &resp.Diagnostics)
@@ -179,14 +183,16 @@ func (r *RouteTargetResource) Read(ctx context.Context, req resource.ReadRequest
 	rt, httpResp, err := r.client.IpamAPI.IpamRouteTargetsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading RouteTarget",
 			utils.FormatAPIError(fmt.Sprintf("read RouteTarget ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read RouteTarget", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -266,6 +272,9 @@ func (r *RouteTargetResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update RouteTarget", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapRouteTargetToState(ctx, rt, &data, &resp.Diagnostics)
@@ -315,6 +324,9 @@ func (r *RouteTargetResource) Delete(ctx context.Context, req resource.DeleteReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete RouteTarget", httpResp, http.StatusNoContent) {
+		return
+	}
 	tflog.Debug(ctx, "Deleted RouteTarget", map[string]interface{}{
 		"id": id,
 	})
@@ -340,6 +352,9 @@ func (r *RouteTargetResource) ImportState(ctx context.Context, req resource.Impo
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing RouteTarget", utils.FormatAPIError("import RouteTarget", err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import RouteTarget", httpResp, http.StatusOK) {
 			return
 		}
 

@@ -155,8 +155,7 @@ func (r *TenantResource) Create(ctx context.Context, req resource.CreateRequest,
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError("Error creating tenant", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusCreated, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create tenant", httpResp, http.StatusCreated) {
 		return
 	}
 	if tenant == nil {
@@ -202,15 +201,13 @@ func (r *TenantResource) Read(ctx context.Context, req resource.ReadRequest, res
 	tenant, httpResp, err := r.client.TenancyAPI.TenancyTenantsRetrieve(ctx, tenantIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading tenant", utils.FormatAPIError(fmt.Sprintf("read tenant ID %s", tenantID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error reading tenant", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read tenant", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -285,8 +282,7 @@ func (r *TenantResource) Update(ctx context.Context, req resource.UpdateRequest,
 		resp.Diagnostics.AddError("Error updating tenant", utils.FormatAPIError(fmt.Sprintf("update tenant ID %s", tenantID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating tenant", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update tenant", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -328,14 +324,13 @@ func (r *TenantResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	httpResp, err := r.client.TenancyAPI.TenancyTenantsDestroy(ctx, tenantIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting tenant", utils.FormatAPIError(fmt.Sprintf("delete tenant ID %s", tenantID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting tenant", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusNoContent, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete tenant", httpResp, http.StatusNoContent) {
 		return
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -189,6 +190,9 @@ func (r *RackTypeResource) Create(ctx context.Context, req resource.CreateReques
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create rack type", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapResponseToModel(ctx, rackType, &data, &resp.Diagnostics)
@@ -230,14 +234,16 @@ func (r *RackTypeResource) Read(ctx context.Context, req resource.ReadRequest, r
 	rackType, httpResp, err := r.client.DcimAPI.DcimRackTypesRetrieve(ctx, rackTypeID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading rack type",
 			utils.FormatAPIError(fmt.Sprintf("read rack type ID %d", rackTypeID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read rack type", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -293,6 +299,9 @@ func (r *RackTypeResource) Update(ctx context.Context, req resource.UpdateReques
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update rack type", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Store plan's custom_fields to filter the response
 	planCustomFields := plan.CustomFields
@@ -333,13 +342,16 @@ func (r *RackTypeResource) Delete(ctx context.Context, req resource.DeleteReques
 	httpResp, err := r.client.DcimAPI.DcimRackTypesDestroy(ctx, rackTypeID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting rack type",
 			utils.FormatAPIError(fmt.Sprintf("delete rack type ID %d", rackTypeID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete rack type", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -363,6 +375,9 @@ func (r *RackTypeResource) ImportState(ctx context.Context, req resource.ImportS
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing rack type", utils.FormatAPIError("import rack type", err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import rack type", httpResp, http.StatusOK) {
 			return
 		}
 		var data RackTypeResourceModel

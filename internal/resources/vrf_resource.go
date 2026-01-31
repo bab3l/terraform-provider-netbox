@@ -145,6 +145,9 @@ func (r *VRFResource) Create(ctx context.Context, req resource.CreateRequest, re
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create VRF", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created VRF", map[string]interface{}{
 		"id":   vrf.GetId(),
 		"name": vrf.GetName(),
@@ -185,17 +188,21 @@ func (r *VRFResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	vrf, httpResp, err := r.client.IpamAPI.IpamVrfsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "VRF not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading VRF",
 			utils.FormatAPIError(fmt.Sprintf("read VRF ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read VRF", httpResp, http.StatusOK) {
 		return
 	}
 	tflog.Debug(ctx, "Read VRF", map[string]interface{}{
@@ -272,6 +279,9 @@ func (r *VRFResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update VRF", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated VRF", map[string]interface{}{
 		"id":   vrf.GetId(),
 		"name": vrf.GetName(),
@@ -313,16 +323,20 @@ func (r *VRFResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	httpResp, err := r.client.IpamAPI.IpamVrfsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "VRF already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting VRF",
 			utils.FormatAPIError(fmt.Sprintf("delete VRF ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete VRF", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted VRF", map[string]interface{}{
@@ -348,6 +362,9 @@ func (r *VRFResource) ImportState(ctx context.Context, req resource.ImportStateR
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing VRF", utils.FormatAPIError(fmt.Sprintf("read VRF ID %d", id), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read VRF", httpResp, http.StatusOK) {
 			return
 		}
 

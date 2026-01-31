@@ -219,17 +219,21 @@ func (r *CircuitTerminationResource) Read(ctx context.Context, req resource.Read
 	termination, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitTerminationsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Circuit termination not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading circuit termination",
 			fmt.Sprintf("Could not read circuit termination: %s\nHTTP Response: %v", err.Error(), httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read circuit termination", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -317,16 +321,20 @@ func (r *CircuitTerminationResource) Delete(ctx context.Context, req resource.De
 	httpResp, err := r.client.CircuitsAPI.CircuitsCircuitTerminationsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Circuit termination already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting circuit termination",
 			fmt.Sprintf("Could not delete circuit termination: %s\nHTTP Response: %v", err.Error(), httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete circuit termination", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted circuit termination", map[string]interface{}{

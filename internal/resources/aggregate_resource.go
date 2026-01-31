@@ -180,17 +180,21 @@ func (r *AggregateResource) Read(ctx context.Context, req resource.ReadRequest, 
 	defer utils.CloseResponseBody(httpResp)
 
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Aggregate not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading aggregate",
 			fmt.Sprintf("Could not read aggregate: %s\nHTTP Response: %v", err.Error(), httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read aggregate", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -296,16 +300,20 @@ func (r *AggregateResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.IpamAPI.IpamAggregatesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Aggregate already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting aggregate",
 			fmt.Sprintf("Could not delete aggregate: %s\nHTTP Response: %v", err.Error(), httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete aggregate", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted aggregate", map[string]interface{}{

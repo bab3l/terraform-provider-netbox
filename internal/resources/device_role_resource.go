@@ -203,6 +203,9 @@ func (r *DeviceRoleResource) Create(ctx context.Context, req resource.CreateRequ
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create device role", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created device role", map[string]interface{}{
 		"id":   deviceRole.GetId(),
 		"name": deviceRole.GetName(),
@@ -247,17 +250,21 @@ func (r *DeviceRoleResource) Read(ctx context.Context, req resource.ReadRequest,
 	deviceRole, httpResp, err := r.client.DcimAPI.DcimDeviceRolesRetrieve(ctx, deviceRoleIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Device role not found, removing from state", map[string]interface{}{
 				"id": deviceRoleID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading device role",
 			utils.FormatAPIError(fmt.Sprintf("read device role ID %s", deviceRoleID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read device role", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -376,6 +383,9 @@ func (r *DeviceRoleResource) Update(ctx context.Context, req resource.UpdateRequ
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update device role", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated device role", map[string]interface{}{
 		"id":   deviceRole.GetId(),
 		"name": deviceRole.GetName(),
@@ -420,17 +430,21 @@ func (r *DeviceRoleResource) Delete(ctx context.Context, req resource.DeleteRequ
 	httpResp, err := r.client.DcimAPI.DcimDeviceRolesDestroy(ctx, deviceRoleIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			// Already deleted, consider success
 			tflog.Debug(ctx, "Device role already deleted", map[string]interface{}{
 				"id": deviceRoleID,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting device role",
 			utils.FormatAPIError(fmt.Sprintf("delete device role ID %s", deviceRoleID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete device role", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted device role", map[string]interface{}{
@@ -464,6 +478,9 @@ func (r *DeviceRoleResource) ImportState(ctx context.Context, req resource.Impor
 				"Error importing device role",
 				utils.FormatAPIError(fmt.Sprintf("read device role ID %s", parsed.ID), err, httpResp),
 			)
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import device role", httpResp, http.StatusOK) {
 			return
 		}
 

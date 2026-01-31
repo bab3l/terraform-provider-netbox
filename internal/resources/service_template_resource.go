@@ -187,6 +187,9 @@ func (r *ServiceTemplateResource) Create(ctx context.Context, req resource.Creat
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create service template", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapResponseToState(ctx, serviceTemplate, &data, &resp.Diagnostics)
@@ -233,14 +236,16 @@ func (r *ServiceTemplateResource) Read(ctx context.Context, req resource.ReadReq
 	serviceTemplate, httpResp, err := r.client.IpamAPI.IpamServiceTemplatesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading service template",
 			utils.FormatAPIError("read service template", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read service template", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -346,6 +351,9 @@ func (r *ServiceTemplateResource) Update(ctx context.Context, req resource.Updat
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update service template", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to state
 	r.mapResponseToState(ctx, serviceTemplate, &plan, &resp.Diagnostics)
@@ -390,13 +398,16 @@ func (r *ServiceTemplateResource) Delete(ctx context.Context, req resource.Delet
 	httpResp, err := r.client.IpamAPI.IpamServiceTemplatesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting service template",
 			utils.FormatAPIError("delete service template", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete service template", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted service template", map[string]interface{}{
@@ -425,6 +436,9 @@ func (r *ServiceTemplateResource) ImportState(ctx context.Context, req resource.
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing service template", utils.FormatAPIError("read service template", err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import service template", httpResp, http.StatusOK) {
 			return
 		}
 

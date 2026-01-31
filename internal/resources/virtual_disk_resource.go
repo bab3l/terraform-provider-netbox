@@ -171,6 +171,9 @@ func (r *VirtualDiskResource) Create(ctx context.Context, req resource.CreateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create VirtualDisk", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapVirtualDiskToState(ctx, vd, &data, &resp.Diagnostics)
@@ -220,14 +223,16 @@ func (r *VirtualDiskResource) Read(ctx context.Context, req resource.ReadRequest
 	vd, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualDisksRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading VirtualDisk",
 			utils.FormatAPIError(fmt.Sprintf("read VirtualDisk ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read VirtualDisk", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -320,6 +325,9 @@ func (r *VirtualDiskResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update VirtualDisk", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Store plan's custom_fields to filter the response
 	planCustomFields := plan.CustomFields
@@ -375,13 +383,16 @@ func (r *VirtualDiskResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualDisksDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return // Already deleted
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting VirtualDisk",
 			utils.FormatAPIError(fmt.Sprintf("delete VirtualDisk ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete VirtualDisk", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted VirtualDisk", map[string]interface{}{
@@ -409,6 +420,9 @@ func (r *VirtualDiskResource) ImportState(ctx context.Context, req resource.Impo
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing VirtualDisk", utils.FormatAPIError(fmt.Sprintf("read VirtualDisk ID %d", id), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read VirtualDisk", httpResp, http.StatusOK) {
 			return
 		}
 

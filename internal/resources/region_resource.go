@@ -132,8 +132,7 @@ func (r *RegionResource) Create(ctx context.Context, req resource.CreateRequest,
 		resp.Diagnostics.AddError("Error creating region", utils.FormatAPIError("create region", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError("Error creating region", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusCreated, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create region", httpResp, http.StatusCreated) {
 		return
 	}
 
@@ -168,15 +167,13 @@ func (r *RegionResource) Read(ctx context.Context, req resource.ReadRequest, res
 	region, httpResp, err := r.client.DcimAPI.DcimRegionsRetrieve(ctx, regionIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading region", utils.FormatAPIError(fmt.Sprintf("read region ID %s", regionID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error reading region", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read region", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -253,8 +250,7 @@ func (r *RegionResource) Update(ctx context.Context, req resource.UpdateRequest,
 		resp.Diagnostics.AddError("Error updating region", utils.FormatAPIError(fmt.Sprintf("update region ID %s", regionID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating region", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update region", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -288,14 +284,13 @@ func (r *RegionResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	httpResp, err := r.client.DcimAPI.DcimRegionsDestroy(ctx, regionIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting region", utils.FormatAPIError(fmt.Sprintf("delete region ID %s", regionID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting region", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusNoContent, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete region", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Trace(ctx, "deleted a region resource")

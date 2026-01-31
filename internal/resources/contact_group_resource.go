@@ -158,9 +158,7 @@ func (r *ContactGroupResource) Create(ctx context.Context, req resource.CreateRe
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
-
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError("Error creating contact group", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create contact group", httpResp, http.StatusCreated) {
 		return
 	}
 
@@ -194,16 +192,13 @@ func (r *ContactGroupResource) Read(ctx context.Context, req resource.ReadReques
 	contactGroup, httpResp, err := r.client.TenancyAPI.TenancyContactGroupsRetrieve(ctx, contactGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading contact group", utils.FormatAPIError(fmt.Sprintf("read contact group ID %s", contactGroupID), err, httpResp))
 		return
 	}
-
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error reading contact group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read contact group", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -278,8 +273,7 @@ func (r *ContactGroupResource) Update(ctx context.Context, req resource.UpdateRe
 		resp.Diagnostics.AddError("Error updating contact group", utils.FormatAPIError(fmt.Sprintf("update contact group ID %s", contactGroupID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating contact group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update contact group", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -314,15 +308,13 @@ func (r *ContactGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 	httpResp, err := r.client.TenancyAPI.TenancyContactGroupsDestroy(ctx, contactGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting contact group", utils.FormatAPIError(fmt.Sprintf("delete contact group ID %s", contactGroupID), err, httpResp))
 		return
 	}
-
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting contact group", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete contact group", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Trace(ctx, "deleted a contact group resource")
@@ -350,8 +342,7 @@ func (r *ContactGroupResource) ImportState(ctx context.Context, req resource.Imp
 			resp.Diagnostics.AddError("Error importing contact group", utils.FormatAPIError(fmt.Sprintf("read contact group ID %s", parsed.ID), err, httpResp))
 			return
 		}
-		if httpResp.StatusCode != http.StatusOK {
-			resp.Diagnostics.AddError("Error importing contact group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import contact group", httpResp, http.StatusOK) {
 			return
 		}
 

@@ -163,6 +163,9 @@ func (r *ConsoleServerPortTemplateResource) Create(ctx context.Context, req reso
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create console server port template", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(response, &data)
@@ -188,17 +191,21 @@ func (r *ConsoleServerPortTemplateResource) Read(ctx context.Context, req resour
 	response, httpResp, err := r.client.DcimAPI.DcimConsoleServerPortTemplatesRetrieve(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Console server port template not found, removing from state", map[string]interface{}{
 				"id": templateID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading console server port template",
 			utils.FormatAPIError(fmt.Sprintf("read console server port template ID %d", templateID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read console server port template", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -265,6 +272,9 @@ func (r *ConsoleServerPortTemplateResource) Update(ctx context.Context, req reso
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update console server port template", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(response, &data)
@@ -286,7 +296,7 @@ func (r *ConsoleServerPortTemplateResource) Delete(ctx context.Context, req reso
 	httpResp, err := r.client.DcimAPI.DcimConsoleServerPortTemplatesDestroy(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -294,6 +304,9 @@ func (r *ConsoleServerPortTemplateResource) Delete(ctx context.Context, req reso
 			"Error deleting console server port template",
 			utils.FormatAPIError(fmt.Sprintf("delete console server port template ID %d", templateID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete console server port template", httpResp, http.StatusNoContent) {
 		return
 	}
 }

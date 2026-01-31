@@ -8,6 +8,7 @@ import (
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
 	"github.com/bab3l/terraform-provider-netbox/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -111,7 +112,7 @@ func (r *TagResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Handle the case where the tag was created but the response parsing fails
 	// (go-netbox expects tagged_items in response but Netbox CREATE doesn't return it)
-	if err != nil && httpResp != nil && httpResp.StatusCode == 201 {
+	if err != nil && utils.ValidateStatusCode(&diag.Diagnostics{}, "create tag", httpResp, http.StatusCreated) {
 		// Tag was created - extract ID from response body and do a read
 		tagID := utils.ExtractIDFromResponse(httpResp)
 		if tagID > 0 {
@@ -124,8 +125,7 @@ func (r *TagResource) Create(ctx context.Context, req resource.CreateRequest, re
 		resp.Diagnostics.AddError("Error creating tag", utils.FormatAPIError("create tag", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != 201 && httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError("Error creating tag", fmt.Sprintf("Expected HTTP 201 or 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "creating tag", httpResp, http.StatusCreated, http.StatusOK) {
 		return
 	}
 	if tag == nil {
@@ -160,15 +160,13 @@ func (r *TagResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	tag, httpResp, err := r.client.ExtrasAPI.ExtrasTagsRetrieve(ctx, tagID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading tag", utils.FormatAPIError(fmt.Sprintf("read tag ID %s", data.ID.ValueString()), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error reading tag", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "reading tag", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -224,8 +222,7 @@ func (r *TagResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		resp.Diagnostics.AddError("Error updating tag", utils.FormatAPIError(fmt.Sprintf("update tag ID %s", data.ID.ValueString()), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError("Error updating tag", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "updating tag", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -251,14 +248,13 @@ func (r *TagResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	httpResp, err := r.client.ExtrasAPI.ExtrasTagsDestroy(ctx, tagID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting tag", utils.FormatAPIError(fmt.Sprintf("delete tag ID %s", data.ID.ValueString()), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting tag", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusNoContent, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "deleting tag", httpResp, http.StatusNoContent) {
 		return
 	}
 }

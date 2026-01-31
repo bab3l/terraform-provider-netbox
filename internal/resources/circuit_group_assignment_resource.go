@@ -188,17 +188,21 @@ func (r *CircuitGroupAssignmentResource) Read(ctx context.Context, req resource.
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// Check if resource was deleted outside of Terraform
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Circuit group assignment not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading circuit group assignment",
 			utils.FormatAPIError("read circuit group assignment", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read circuit group assignment", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -316,16 +320,20 @@ func (r *CircuitGroupAssignmentResource) Delete(ctx context.Context, req resourc
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// Ignore 404 errors (resource already deleted)
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Circuit group assignment already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting circuit group assignment",
 			utils.FormatAPIError("delete circuit group assignment", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete circuit group assignment", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted circuit group assignment", map[string]interface{}{

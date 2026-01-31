@@ -152,6 +152,9 @@ func (r *FHRPGroupResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create FHRP group", httpResp, http.StatusCreated) {
+		return
+	}
 
 	tflog.Debug(ctx, "Created FHRP Group", map[string]interface{}{
 		"id":       fhrpGroup.GetId(),
@@ -183,17 +186,21 @@ func (r *FHRPGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	fhrpGroup, httpResp, err := r.client.IpamAPI.IpamFhrpGroupsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "FHRP Group not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error Reading FHRP Group",
 			utils.FormatAPIError("reading FHRP group", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read FHRP group", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -261,6 +268,9 @@ func (r *FHRPGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update FHRP group", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated FHRP Group", map[string]interface{}{
 		"id": fhrpGroup.GetId(),
 	})
@@ -292,7 +302,7 @@ func (r *FHRPGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.IpamAPI.IpamFhrpGroupsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Already deleted
 			return
 		}
@@ -300,6 +310,9 @@ func (r *FHRPGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 			"Error Deleting FHRP Group",
 			utils.FormatAPIError("deleting FHRP group", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete FHRP group", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted FHRP Group", map[string]interface{}{

@@ -154,8 +154,7 @@ func (r *TenantGroupResource) Create(ctx context.Context, req resource.CreateReq
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
-	if httpResp.StatusCode != 201 {
-		resp.Diagnostics.AddError("Error creating tenant group", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "creating tenant group", httpResp, http.StatusCreated) {
 		return
 	}
 	r.mapTenantGroupToState(tenantGroup, &data)
@@ -190,16 +189,13 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	tenantGroup, httpResp, err := r.client.TenancyAPI.TenancyTenantGroupsRetrieve(ctx, tenantGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading tenant group", utils.FormatAPIError(fmt.Sprintf("read tenant group ID %s", tenantGroupID), err, httpResp))
 		return
 	}
-
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error reading tenant group", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read tenant group", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -279,8 +275,7 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 		resp.Diagnostics.AddError("Error updating tenant group", utils.FormatAPIError(fmt.Sprintf("update tenant group ID %s", tenantGroupID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating tenant group", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update tenant group", httpResp, http.StatusOK) {
 		return
 	}
 	r.mapTenantGroupToState(tenantGroup, &plan)
@@ -314,14 +309,13 @@ func (r *TenantGroupResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.TenancyAPI.TenancyTenantGroupsDestroy(ctx, tenantGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting tenant group", utils.FormatAPIError(fmt.Sprintf("delete tenant group ID %s", tenantGroupID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting tenant group", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusNoContent, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete tenant group", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Trace(ctx, "deleted a tenant group resource")

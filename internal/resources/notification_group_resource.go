@@ -4,6 +4,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -139,6 +140,9 @@ func (r *NotificationGroupResource) Create(ctx context.Context, req resource.Cre
 			utils.FormatAPIError("create notification group", err, httpResp))
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create notification group", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map the response to state
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
@@ -171,13 +175,17 @@ func (r *NotificationGroupResource) Read(ctx context.Context, req resource.ReadR
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasNotificationGroupsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Notification group not found, removing from state", map[string]interface{}{"id": id})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error Reading Notification Group",
 			utils.FormatAPIError(fmt.Sprintf("read notification group ID %d", id), err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read notification group", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -253,6 +261,9 @@ func (r *NotificationGroupResource) Update(ctx context.Context, req resource.Upd
 			utils.FormatAPIError(fmt.Sprintf("update notification group ID %d", id), err, httpResp))
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update notification group", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map the response to state
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
@@ -285,6 +296,9 @@ func (r *NotificationGroupResource) Delete(ctx context.Context, req resource.Del
 	if err != nil {
 		resp.Diagnostics.AddError("Error Deleting Notification Group",
 			utils.FormatAPIError(fmt.Sprintf("delete notification group ID %d", id), err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete notification group", httpResp, http.StatusNoContent) {
 		return
 	}
 }

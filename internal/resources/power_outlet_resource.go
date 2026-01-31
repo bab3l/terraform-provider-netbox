@@ -201,6 +201,9 @@ func (r *PowerOutletResource) Create(ctx context.Context, req resource.CreateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create power outlet", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -240,14 +243,16 @@ func (r *PowerOutletResource) Read(ctx context.Context, req resource.ReadRequest
 	response, httpResp, err := r.client.DcimAPI.DcimPowerOutletsRetrieve(ctx, outletID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading power outlet",
 			utils.FormatAPIError(fmt.Sprintf("read power outlet ID %d", outletID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read power outlet", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -360,6 +365,9 @@ func (r *PowerOutletResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update power outlet", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -395,13 +403,16 @@ func (r *PowerOutletResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.DcimAPI.DcimPowerOutletsDestroy(ctx, outletID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting power outlet",
 			utils.FormatAPIError(fmt.Sprintf("delete power outlet ID %d", outletID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete power outlet", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -426,6 +437,9 @@ func (r *PowerOutletResource) ImportState(ctx context.Context, req resource.Impo
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing power outlet", utils.FormatAPIError(fmt.Sprintf("import power outlet ID %d", outletID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import power outlet", httpResp, http.StatusOK) {
 			return
 		}
 

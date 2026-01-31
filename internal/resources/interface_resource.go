@@ -247,6 +247,9 @@ func (r *InterfaceResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create interface", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapInterfaceToState(ctx, iface, &data, &resp.Diagnostics)
@@ -279,17 +282,21 @@ func (r *InterfaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 	iface, httpResp, err := r.client.DcimAPI.DcimInterfacesRetrieve(ctx, interfaceID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Interface not found, removing from state", map[string]interface{}{
 				"id": interfaceID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading interface",
 			utils.FormatAPIError("read interface", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read interface", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -370,6 +377,9 @@ func (r *InterfaceResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update interface", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to state
 	r.mapInterfaceToState(ctx, iface, &data, &resp.Diagnostics)
@@ -402,16 +412,20 @@ func (r *InterfaceResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.DcimAPI.DcimInterfacesDestroy(ctx, interfaceID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Interface already deleted", map[string]interface{}{
 				"id": interfaceID,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting interface",
 			utils.FormatAPIError("delete interface", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete interface", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted interface", map[string]interface{}{
@@ -442,6 +456,9 @@ func (r *InterfaceResource) ImportState(ctx context.Context, req resource.Import
 				"Error importing interface",
 				utils.FormatAPIError("read interface", err, httpResp),
 			)
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import interface", httpResp, http.StatusOK) {
 			return
 		}
 

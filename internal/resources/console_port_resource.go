@@ -186,6 +186,9 @@ func (r *ConsolePortResource) Create(ctx context.Context, req resource.CreateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create console port", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -223,14 +226,16 @@ func (r *ConsolePortResource) Read(ctx context.Context, req resource.ReadRequest
 	response, httpResp, err := r.client.DcimAPI.DcimConsolePortsRetrieve(ctx, portID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading console port",
 			utils.FormatAPIError(fmt.Sprintf("read console port ID %d", portID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read console port", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -321,6 +326,9 @@ func (r *ConsolePortResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update console port", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -354,13 +362,16 @@ func (r *ConsolePortResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.DcimAPI.DcimConsolePortsDestroy(ctx, portID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting console port",
 			utils.FormatAPIError(fmt.Sprintf("delete console port ID %d", portID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete console port", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -392,6 +403,9 @@ func (r *ConsolePortResource) ImportState(ctx context.Context, req resource.Impo
 				"Error importing console port",
 				utils.FormatAPIError(fmt.Sprintf("import console port ID %d", portID), err, httpResp),
 			)
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import console port", httpResp, http.StatusOK) {
 			return
 		}
 

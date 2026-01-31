@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -165,6 +166,9 @@ func (r *PowerPanelResource) Create(ctx context.Context, req resource.CreateRequ
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create power panel", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -204,14 +208,16 @@ func (r *PowerPanelResource) Read(ctx context.Context, req resource.ReadRequest,
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPanelsRetrieve(ctx, ppID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading power panel",
 			utils.FormatAPIError(fmt.Sprintf("read power panel ID %d", ppID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read power panel", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -285,6 +291,9 @@ func (r *PowerPanelResource) Update(ctx context.Context, req resource.UpdateRequ
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update power panel", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
@@ -320,13 +329,16 @@ func (r *PowerPanelResource) Delete(ctx context.Context, req resource.DeleteRequ
 	httpResp, err := r.client.DcimAPI.DcimPowerPanelsDestroy(ctx, ppID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting power panel",
 			utils.FormatAPIError(fmt.Sprintf("delete power panel ID %d", ppID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete power panel", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -352,6 +364,9 @@ func (r *PowerPanelResource) ImportState(ctx context.Context, req resource.Impor
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing power panel", utils.FormatAPIError(fmt.Sprintf("import power panel ID %d", ppID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import power panel", httpResp, http.StatusOK) {
 			return
 		}
 

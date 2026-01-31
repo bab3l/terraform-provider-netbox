@@ -188,6 +188,9 @@ func (r *ModuleResource) Create(ctx context.Context, req resource.CreateRequest,
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create module", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -222,14 +225,16 @@ func (r *ModuleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	response, httpResp, err := r.client.DcimAPI.DcimModulesRetrieve(ctx, moduleID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading module",
 			utils.FormatAPIError(fmt.Sprintf("read module ID %d", moduleID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read module", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -323,6 +328,9 @@ func (r *ModuleResource) Update(ctx context.Context, req resource.UpdateRequest,
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update module", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
 	planCustomFields := plan.CustomFields
@@ -361,13 +369,16 @@ func (r *ModuleResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	httpResp, err := r.client.DcimAPI.DcimModulesDestroy(ctx, moduleID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting module",
 			utils.FormatAPIError(fmt.Sprintf("delete module ID %d", moduleID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete module", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -398,6 +409,9 @@ func (r *ModuleResource) ImportState(ctx context.Context, req resource.ImportSta
 				"Error importing module",
 				utils.FormatAPIError(fmt.Sprintf("import module ID %d", moduleID), err, httpResp),
 			)
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import module", httpResp, http.StatusOK) {
 			return
 		}
 		var data ModuleResourceModel
@@ -470,6 +484,9 @@ func (r *ModuleResource) ImportState(ctx context.Context, req resource.ImportSta
 			"Error importing module",
 			utils.FormatAPIError(fmt.Sprintf("import module ID %d", moduleID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "import module", httpResp, http.StatusOK) {
 		return
 	}
 	var data ModuleResourceModel

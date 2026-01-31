@@ -164,6 +164,9 @@ func (r *WirelessLANGroupResource) Create(ctx context.Context, req resource.Crea
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create wireless LAN group", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -211,14 +214,16 @@ func (r *WirelessLANGroupResource) Read(ctx context.Context, req resource.ReadRe
 	response, httpResp, err := r.client.WirelessAPI.WirelessWirelessLanGroupsRetrieve(ctx, groupID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading wireless LAN group",
 			utils.FormatAPIError(fmt.Sprintf("read wireless LAN group ID %d", groupID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read wireless LAN group", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -310,6 +315,9 @@ func (r *WirelessLANGroupResource) Update(ctx context.Context, req resource.Upda
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update wireless LAN group", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to plan model
 
@@ -357,13 +365,16 @@ func (r *WirelessLANGroupResource) Delete(ctx context.Context, req resource.Dele
 	httpResp, err := r.client.WirelessAPI.WirelessWirelessLanGroupsDestroy(ctx, groupID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting wireless LAN group",
 			utils.FormatAPIError(fmt.Sprintf("delete wireless LAN group ID %d", groupID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete wireless LAN group", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -389,6 +400,9 @@ func (r *WirelessLANGroupResource) ImportState(ctx context.Context, req resource
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing wireless LAN group", utils.FormatAPIError(fmt.Sprintf("import wireless LAN group ID %d", groupID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read wireless LAN group", httpResp, http.StatusOK) {
 			return
 		}
 

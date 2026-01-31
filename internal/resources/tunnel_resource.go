@@ -242,6 +242,9 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create tunnel", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Update the model with the response from the API
 	data.ID = types.StringValue(fmt.Sprintf("%d", tunnel.GetId()))
@@ -304,17 +307,21 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 	tunnel, httpResp, err := r.client.VpnAPI.VpnTunnelsRetrieve(ctx, tunnelID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Tunnel not found, removing from state", map[string]interface{}{
 				"id": data.ID.ValueString(),
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading tunnel",
 			utils.FormatAPIError("read tunnel", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read tunnel", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -529,6 +536,9 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update tunnel", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Status - always set since it's computed (defaults from API)
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
@@ -587,7 +597,7 @@ func (r *TunnelResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	httpResp, err := r.client.VpnAPI.VpnTunnelsDestroy(ctx, tunnelID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -595,6 +605,9 @@ func (r *TunnelResource) Delete(ctx context.Context, req resource.DeleteRequest,
 			"Error deleting tunnel",
 			utils.FormatAPIError("delete tunnel", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete tunnel", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -619,6 +632,9 @@ func (r *TunnelResource) ImportState(ctx context.Context, req resource.ImportSta
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing tunnel", utils.FormatAPIError("read tunnel", err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import tunnel", httpResp, http.StatusOK) {
 			return
 		}
 

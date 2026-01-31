@@ -239,6 +239,9 @@ func (r *EventRuleResource) Create(ctx context.Context, req resource.CreateReque
 			utils.FormatAPIError("create event rule", err, httpResp))
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create event rule", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map the response to state
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
@@ -276,13 +279,17 @@ func (r *EventRuleResource) Read(ctx context.Context, req resource.ReadRequest, 
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasEventRulesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Event rule not found, removing from state", map[string]interface{}{"id": id})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error Reading Event Rule",
 			utils.FormatAPIError(fmt.Sprintf("read event rule ID %d", id), err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read event rule", httpResp, http.StatusOK) {
 		return
 	}
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
@@ -412,6 +419,9 @@ func (r *EventRuleResource) Update(ctx context.Context, req resource.UpdateReque
 			utils.FormatAPIError(fmt.Sprintf("update event rule ID %d", id), err, httpResp))
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update event rule", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map the response to state
 	plan.Tags = planTags
@@ -453,6 +463,9 @@ func (r *EventRuleResource) Delete(ctx context.Context, req resource.DeleteReque
 			utils.FormatAPIError(fmt.Sprintf("delete event rule ID %d", id), err, httpResp))
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete event rule", httpResp, http.StatusNoContent) {
+		return
+	}
 }
 
 // ImportState imports the resource state.
@@ -476,6 +489,9 @@ func (r *EventRuleResource) ImportState(ctx context.Context, req resource.Import
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing event rule",
 				utils.FormatAPIError(fmt.Sprintf("read event rule ID %d", id), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import event rule", httpResp, http.StatusOK) {
 			return
 		}
 

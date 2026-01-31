@@ -284,15 +284,19 @@ func (r *CableResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	result, httpResp, err := r.client.DcimAPI.DcimCablesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Cable not found, removing from state", map[string]interface{}{"id": id})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading cable",
 			utils.FormatAPIError("read cable", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read cable", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -449,14 +453,18 @@ func (r *CableResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	httpResp, err := r.client.DcimAPI.DcimCablesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Cable already deleted", map[string]interface{}{"id": id})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting cable",
 			utils.FormatAPIError("delete cable", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete cable", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Trace(ctx, "Deleted cable resource", map[string]interface{}{"id": id})

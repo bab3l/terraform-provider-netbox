@@ -160,6 +160,9 @@ func (r *VLANResource) Create(ctx context.Context, req resource.CreateRequest, r
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create VLAN", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created VLAN", map[string]interface{}{
 		"id":   vlan.GetId(),
 		"vid":  vlan.GetVid(),
@@ -201,17 +204,21 @@ func (r *VLANResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	vlan, httpResp, err := r.client.IpamAPI.IpamVlansRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "VLAN not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading VLAN",
 			utils.FormatAPIError(fmt.Sprintf("read VLAN ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read VLAN", httpResp, http.StatusOK) {
 		return
 	}
 	tflog.Debug(ctx, "Read VLAN", map[string]interface{}{
@@ -294,6 +301,9 @@ func (r *VLANResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update VLAN", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated VLAN", map[string]interface{}{
 		"id":   vlan.GetId(),
 		"vid":  vlan.GetVid(),
@@ -337,16 +347,20 @@ func (r *VLANResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	httpResp, err := r.client.IpamAPI.IpamVlansDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "VLAN already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting VLAN",
 			utils.FormatAPIError(fmt.Sprintf("delete VLAN ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete VLAN", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted VLAN", map[string]interface{}{
@@ -374,6 +388,9 @@ func (r *VLANResource) ImportState(ctx context.Context, req resource.ImportState
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing VLAN", utils.FormatAPIError(fmt.Sprintf("read VLAN ID %d", id), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read VLAN", httpResp, http.StatusOK) {
 			return
 		}
 

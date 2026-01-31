@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -189,6 +190,9 @@ func (r *RearPortResource) Create(ctx context.Context, req resource.CreateReques
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create rear port", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -227,17 +231,21 @@ func (r *RearPortResource) Read(ctx context.Context, req resource.ReadRequest, r
 	response, httpResp, err := r.client.DcimAPI.DcimRearPortsRetrieve(ctx, portID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Rear port not found, removing from state", map[string]interface{}{
 				"id": portID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading rear port",
 			utils.FormatAPIError(fmt.Sprintf("read rear port ID %d", portID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read rear port", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -320,6 +328,9 @@ func (r *RearPortResource) Update(ctx context.Context, req resource.UpdateReques
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update rear port", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
@@ -356,7 +367,7 @@ func (r *RearPortResource) Delete(ctx context.Context, req resource.DeleteReques
 	httpResp, err := r.client.DcimAPI.DcimRearPortsDestroy(ctx, portID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -364,6 +375,9 @@ func (r *RearPortResource) Delete(ctx context.Context, req resource.DeleteReques
 			"Error deleting rear port",
 			utils.FormatAPIError(fmt.Sprintf("delete rear port ID %d", portID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete rear port", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -389,6 +403,9 @@ func (r *RearPortResource) ImportState(ctx context.Context, req resource.ImportS
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing rear port", utils.FormatAPIError(fmt.Sprintf("import rear port ID %d", portID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import rear port", httpResp, http.StatusOK) {
 			return
 		}
 

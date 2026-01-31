@@ -224,14 +224,16 @@ func (r *FHRPGroupAssignmentResource) Read(ctx context.Context, req resource.Rea
 	assignment, httpResp, err := r.client.IpamAPI.IpamFhrpGroupAssignmentsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading FHRP group assignment",
 			utils.FormatAPIError("read FHRP group assignment", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read FHRP group assignment", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -295,6 +297,9 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "lookup FHRP group", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Create BriefFHRPGroupRequest from the looked up group
 	// Protocol is already a BriefFHRPGroupProtocol string type
@@ -324,6 +329,9 @@ func (r *FHRPGroupAssignmentResource) Update(ctx context.Context, req resource.U
 			"Error updating FHRP group assignment",
 			utils.FormatAPIError("update FHRP group assignment", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update FHRP group assignment", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -358,13 +366,16 @@ func (r *FHRPGroupAssignmentResource) Delete(ctx context.Context, req resource.D
 	httpResp, err := r.client.IpamAPI.IpamFhrpGroupAssignmentsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting FHRP group assignment",
 			utils.FormatAPIError("delete FHRP group assignment", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete FHRP group assignment", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted FHRP group assignment", map[string]interface{}{

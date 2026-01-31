@@ -176,6 +176,9 @@ func (r *IPSecProfileResource) Create(ctx context.Context, req resource.CreateRe
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create IPSec profile", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapIPSecProfileToState(ctx, ipsec, &data, &resp.Diagnostics)
@@ -218,17 +221,21 @@ func (r *IPSecProfileResource) Read(ctx context.Context, req resource.ReadReques
 	ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecProfilesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "IPSecProfile not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading IPSecProfile",
 			utils.FormatAPIError("read IPSec profile", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read IPSec profile", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -327,6 +334,9 @@ func (r *IPSecProfileResource) Update(ctx context.Context, req resource.UpdateRe
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update IPSec profile", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
 	planCustomFields := plan.CustomFields
@@ -380,7 +390,7 @@ func (r *IPSecProfileResource) Delete(ctx context.Context, req resource.DeleteRe
 	httpResp, err := r.client.VpnAPI.VpnIpsecProfilesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Already deleted
 			return
 		}
@@ -388,6 +398,9 @@ func (r *IPSecProfileResource) Delete(ctx context.Context, req resource.DeleteRe
 			"Error deleting IPSecProfile",
 			utils.FormatAPIError("delete IPSec profile", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete IPSec profile", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted IPSecProfile", map[string]interface{}{
@@ -416,6 +429,9 @@ func (r *IPSecProfileResource) ImportState(ctx context.Context, req resource.Imp
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing IPSecProfile", utils.FormatAPIError("read IPSec profile", err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import IPSec profile", httpResp, http.StatusOK) {
 			return
 		}
 

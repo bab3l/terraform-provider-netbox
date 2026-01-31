@@ -368,17 +368,21 @@ func (r *ClusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 	cluster, httpResp, err := r.client.VirtualizationAPI.VirtualizationClustersRetrieve(ctx, clusterIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Cluster not found, removing from state", map[string]interface{}{
 				"id": clusterID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading cluster",
 			utils.FormatAPIError(fmt.Sprintf("read cluster ID %s", clusterID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read cluster", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -492,17 +496,21 @@ func (r *ClusterResource) Delete(ctx context.Context, req resource.DeleteRequest
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationClustersDestroy(ctx, clusterIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			// Already deleted, consider success
 			tflog.Debug(ctx, "Cluster already deleted", map[string]interface{}{
 				"id": clusterID,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting cluster",
 			utils.FormatAPIError(fmt.Sprintf("delete cluster ID %s", clusterID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete cluster", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted cluster", map[string]interface{}{

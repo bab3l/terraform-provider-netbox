@@ -100,8 +100,7 @@ func (r *PlatformResource) Create(ctx context.Context, req resource.CreateReques
 		resp.Diagnostics.AddError("Error creating platform", utils.FormatAPIError("create platform", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError("Error creating platform", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create platform", httpResp, http.StatusCreated) {
 		return
 	}
 	data.ID = types.StringValue(fmt.Sprintf("%d", platform.GetId()))
@@ -145,15 +144,13 @@ func (r *PlatformResource) Read(ctx context.Context, req resource.ReadRequest, r
 	platform, httpResp, err := r.client.DcimAPI.DcimPlatformsRetrieve(ctx, platformIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading platform", utils.FormatAPIError(fmt.Sprintf("read platform ID %s", platformID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error reading platform", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read platform", httpResp, http.StatusOK) {
 		return
 	}
 	data.ID = types.StringValue(fmt.Sprintf("%d", platform.GetId()))
@@ -221,8 +218,7 @@ func (r *PlatformResource) Update(ctx context.Context, req resource.UpdateReques
 		resp.Diagnostics.AddError("Error updating platform", utils.FormatAPIError(fmt.Sprintf("update platform ID %s", platformID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating platform", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update platform", httpResp, http.StatusOK) {
 		return
 	}
 	data.ID = types.StringValue(fmt.Sprintf("%d", platform.GetId()))
@@ -268,14 +264,13 @@ func (r *PlatformResource) Delete(ctx context.Context, req resource.DeleteReques
 	httpResp, err := r.client.DcimAPI.DcimPlatformsDestroy(ctx, platformIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			return // Already deleted
+		if utils.HandleNotFound(httpResp, func() {}) {
+			return
 		}
 		resp.Diagnostics.AddError("Error deleting platform", utils.FormatAPIError(fmt.Sprintf("delete platform ID %s", platformID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting platform", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete platform", httpResp, http.StatusNoContent) {
 		return
 	}
 }

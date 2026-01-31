@@ -469,11 +469,7 @@ func (r *RackResource) Create(ctx context.Context, req resource.CreateRequest, r
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
-	if httpResp.StatusCode != 201 {
-		resp.Diagnostics.AddError(
-			"Error creating rack",
-			fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode),
-		)
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "creating rack", httpResp, http.StatusCreated) {
 		return
 	}
 
@@ -512,11 +508,12 @@ func (r *RackResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	rack, httpResp, err := r.client.DcimAPI.DcimRacksRetrieve(ctx, rackID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Rack not found, removing from state", map[string]interface{}{
 				"id": data.ID.ValueString(),
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
@@ -805,11 +802,7 @@ func (r *RackResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		)
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError(
-			"Error updating rack",
-			fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode),
-		)
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "updating rack", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -848,16 +841,20 @@ func (r *RackResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	httpResp, err := r.client.DcimAPI.DcimRacksDestroy(ctx, rackID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Rack already deleted", map[string]interface{}{
 				"id": data.ID.ValueString(),
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting rack",
 			utils.FormatAPIError("delete rack", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "deleting rack", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted rack", map[string]interface{}{
