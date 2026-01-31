@@ -17,8 +17,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var _ resource.Resource = &PlatformResource{}
-var _ resource.ResourceWithImportState = &PlatformResource{}
+var (
+	_ resource.Resource                = &PlatformResource{}
+	_ resource.ResourceWithImportState = &PlatformResource{}
+)
 
 func NewPlatformResource() resource.Resource {
 	return &PlatformResource{}

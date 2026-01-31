@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -14,8 +15,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var _ resource.Resource = &TagResource{}
-var _ resource.ResourceWithImportState = &TagResource{}
+var (
+	_ resource.Resource                = &TagResource{}
+	_ resource.ResourceWithImportState = &TagResource{}
+)
 
 func NewTagResource() resource.Resource {
 	return &TagResource{}
@@ -157,15 +160,15 @@ func (r *TagResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	tag, httpResp, err := r.client.ExtrasAPI.ExtrasTagsRetrieve(ctx, tagID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
 		resp.Diagnostics.AddError("Error reading tag", utils.FormatAPIError(fmt.Sprintf("read tag ID %s", data.ID.ValueString()), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError("Error reading tag", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if httpResp.StatusCode != http.StatusOK {
+		resp.Diagnostics.AddError("Error reading tag", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
 		return
 	}
 
@@ -248,14 +251,14 @@ func (r *TagResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	httpResp, err := r.client.ExtrasAPI.ExtrasTagsDestroy(ctx, tagID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting tag", utils.FormatAPIError(fmt.Sprintf("delete tag ID %s", data.ID.ValueString()), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != 204 {
-		resp.Diagnostics.AddError("Error deleting tag", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
+	if httpResp.StatusCode != http.StatusNoContent {
+		resp.Diagnostics.AddError("Error deleting tag", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusNoContent, httpResp.StatusCode))
 		return
 	}
 }

@@ -24,9 +24,11 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &DeviceTypeResource{}
-var _ resource.ResourceWithImportState = &DeviceTypeResource{}
-var _ resource.ResourceWithIdentity = &DeviceTypeResource{}
+var (
+	_ resource.Resource                = &DeviceTypeResource{}
+	_ resource.ResourceWithImportState = &DeviceTypeResource{}
+	_ resource.ResourceWithIdentity    = &DeviceTypeResource{}
+)
 
 func NewDeviceTypeResource() resource.Resource {
 	return &DeviceTypeResource{}

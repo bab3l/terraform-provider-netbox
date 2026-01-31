@@ -19,8 +19,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var _ resource.Resource = &CustomLinkResource{}
-var _ resource.ResourceWithImportState = &CustomLinkResource{}
+var (
+	_ resource.Resource                = &CustomLinkResource{}
+	_ resource.ResourceWithImportState = &CustomLinkResource{}
+)
 
 func NewCustomLinkResource() resource.Resource {
 	return &CustomLinkResource{}

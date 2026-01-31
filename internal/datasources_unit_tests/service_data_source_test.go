@@ -10,15 +10,12 @@ import (
 )
 
 func TestServiceDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewServiceDataSource()
 
+	d := datasources.NewServiceDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestServiceDataSourceSchema(t *testing.T) {
 }
 
 func TestServiceDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewServiceDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_service")
 }
 
 func TestServiceDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewServiceDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

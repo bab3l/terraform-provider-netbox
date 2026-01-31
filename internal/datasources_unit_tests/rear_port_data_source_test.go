@@ -10,15 +10,12 @@ import (
 )
 
 func TestRearPortDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewRearPortDataSource()
 
+	d := datasources.NewRearPortDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestRearPortDataSourceSchema(t *testing.T) {
 }
 
 func TestRearPortDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewRearPortDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_rear_port")
 }
 
 func TestRearPortDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewRearPortDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

@@ -10,15 +10,12 @@ import (
 )
 
 func TestPowerPanelDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewPowerPanelDataSource()
 
+	d := datasources.NewPowerPanelDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestPowerPanelDataSourceSchema(t *testing.T) {
 }
 
 func TestPowerPanelDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewPowerPanelDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_power_panel")
 }
 
 func TestPowerPanelDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewPowerPanelDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

@@ -10,15 +10,12 @@ import (
 )
 
 func TestVLANGroupDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewVLANGroupDataSource()
 
+	d := datasources.NewVLANGroupDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestVLANGroupDataSourceSchema(t *testing.T) {
 }
 
 func TestVLANGroupDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVLANGroupDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_vlan_group")
 }
 
 func TestVLANGroupDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVLANGroupDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

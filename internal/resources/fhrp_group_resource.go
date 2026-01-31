@@ -22,9 +22,11 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &FHRPGroupResource{}
-var _ resource.ResourceWithImportState = &FHRPGroupResource{}
-var _ resource.ResourceWithIdentity = &FHRPGroupResource{}
+var (
+	_ resource.Resource                = &FHRPGroupResource{}
+	_ resource.ResourceWithImportState = &FHRPGroupResource{}
+	_ resource.ResourceWithIdentity    = &FHRPGroupResource{}
+)
 
 func NewFHRPGroupResource() resource.Resource {
 	return &FHRPGroupResource{}

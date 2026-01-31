@@ -27,7 +27,6 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-
 var (
 	_ resource.Resource                = &IPRangeResource{}
 	_ resource.ResourceWithConfigure   = &IPRangeResource{}

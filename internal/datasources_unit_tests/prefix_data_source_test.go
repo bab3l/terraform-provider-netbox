@@ -12,15 +12,12 @@ import (
 )
 
 func TestPrefixDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewPrefixDataSource()
 
+	d := datasources.NewPrefixDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -56,15 +53,15 @@ func TestPrefixDataSourceSchema(t *testing.T) {
 }
 
 func TestPrefixDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewPrefixDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_prefix")
 }
 
 func TestPrefixDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewPrefixDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

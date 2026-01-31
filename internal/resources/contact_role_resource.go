@@ -17,9 +17,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var _ resource.Resource = &ContactRoleResource{}
-var _ resource.ResourceWithImportState = &ContactRoleResource{}
-var _ resource.ResourceWithIdentity = &ContactRoleResource{}
+var (
+	_ resource.Resource                = &ContactRoleResource{}
+	_ resource.ResourceWithImportState = &ContactRoleResource{}
+	_ resource.ResourceWithIdentity    = &ContactRoleResource{}
+)
 
 func NewContactRoleResource() resource.Resource {
 	return &ContactRoleResource{}

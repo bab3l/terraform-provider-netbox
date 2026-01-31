@@ -15,8 +15,9 @@ import (
 )
 
 func TestImportStatePassthroughIDWithValidation_EmptyID(t *testing.T) {
-	ctx := context.Background()
+	t.Parallel()
 
+	ctx := context.Background()
 	req := resource.ImportStateRequest{ID: " "}
 	resp := &resource.ImportStateResponse{}
 
@@ -26,8 +27,9 @@ func TestImportStatePassthroughIDWithValidation_EmptyID(t *testing.T) {
 }
 
 func TestImportStatePassthroughIDWithValidation_InvalidNumericID(t *testing.T) {
-	ctx := context.Background()
+	t.Parallel()
 
+	ctx := context.Background()
 	req := resource.ImportStateRequest{ID: "abc"}
 	resp := &resource.ImportStateResponse{}
 
@@ -37,8 +39,9 @@ func TestImportStatePassthroughIDWithValidation_InvalidNumericID(t *testing.T) {
 }
 
 func TestImportStatePassthroughIDWithValidation_CustomFieldsIdentity(t *testing.T) {
-	ctx := context.Background()
+	t.Parallel()
 
+	ctx := context.Background()
 	identityValue, diags := types.ObjectValue(
 		map[string]attr.Type{
 			"id":            types.StringType,

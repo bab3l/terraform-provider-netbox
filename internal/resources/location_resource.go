@@ -22,9 +22,11 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &LocationResource{}
-var _ resource.ResourceWithImportState = &LocationResource{}
-var _ resource.ResourceWithIdentity = &LocationResource{}
+var (
+	_ resource.Resource                = &LocationResource{}
+	_ resource.ResourceWithImportState = &LocationResource{}
+	_ resource.ResourceWithIdentity    = &LocationResource{}
+)
 
 func NewLocationResource() resource.Resource {
 	return &LocationResource{}

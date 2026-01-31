@@ -12,15 +12,12 @@ import (
 )
 
 func TestIPRangeDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewIPRangeDataSource()
 
+	d := datasources.NewIPRangeDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -62,15 +59,15 @@ func TestIPRangeDataSourceSchema(t *testing.T) {
 }
 
 func TestIPRangeDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewIPRangeDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_ip_range")
 }
 
 func TestIPRangeDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewIPRangeDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

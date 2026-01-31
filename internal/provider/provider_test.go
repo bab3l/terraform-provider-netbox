@@ -12,13 +12,13 @@ import (
 // CLI command executed to create a provider server to which the CLI can
 // reattach.
 // Note: Exported for use by resource and datasource acceptance tests.
-// var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-// 	"netbox": providerserver.NewProtocol6WithError(New("test")()),
-// }
-
+//
+//	var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
+//		"netbox": providerserver.NewProtocol6WithError(New("test")()),
+//	}
 func TestProvider(t *testing.T) {
-
 	t.Parallel()
+
 	// Test that the provider can be instantiated
 	p := New("test")()
 	if p == nil {
@@ -27,17 +27,15 @@ func TestProvider(t *testing.T) {
 }
 
 func TestProviderSchema(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	p := New("test")()
 
 	// Test that the provider schema can be retrieved
 	schemaReq := provider.SchemaRequest{}
 	schemaResp := &provider.SchemaResponse{}
-
 	p.Schema(ctx, schemaReq, schemaResp)
-
 	if schemaResp.Diagnostics.HasError() {
 		t.Fatalf("Provider schema should not have errors: %v", schemaResp.Diagnostics.Errors())
 	}
@@ -56,8 +54,8 @@ func TestProviderSchema(t *testing.T) {
 }
 
 func TestProviderResources(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	p := New("test")()
 
@@ -81,8 +79,8 @@ func TestProviderResources(t *testing.T) {
 }
 
 func TestProviderDataSources(t *testing.T) {
-
 	t.Parallel()
+
 	ctx := context.Background()
 	p := New("test")()
 

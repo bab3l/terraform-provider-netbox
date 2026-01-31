@@ -10,15 +10,12 @@ import (
 )
 
 func TestPowerOutletDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewPowerOutletDataSource()
 
+	d := datasources.NewPowerOutletDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestPowerOutletDataSourceSchema(t *testing.T) {
 }
 
 func TestPowerOutletDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewPowerOutletDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_power_outlet")
 }
 
 func TestPowerOutletDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewPowerOutletDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

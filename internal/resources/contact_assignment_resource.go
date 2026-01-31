@@ -23,9 +23,11 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &ContactAssignmentResource{}
-var _ resource.ResourceWithImportState = &ContactAssignmentResource{}
-var _ resource.ResourceWithIdentity = &ContactAssignmentResource{}
+var (
+	_ resource.Resource                = &ContactAssignmentResource{}
+	_ resource.ResourceWithImportState = &ContactAssignmentResource{}
+	_ resource.ResourceWithIdentity    = &ContactAssignmentResource{}
+)
 
 func NewContactAssignmentResource() resource.Resource {
 	return &ContactAssignmentResource{}

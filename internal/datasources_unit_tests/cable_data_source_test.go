@@ -10,15 +10,12 @@ import (
 )
 
 func TestCableDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewCableDataSource()
 
+	d := datasources.NewCableDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestCableDataSourceSchema(t *testing.T) {
 }
 
 func TestCableDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewCableDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_cable")
 }
 
 func TestCableDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewCableDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

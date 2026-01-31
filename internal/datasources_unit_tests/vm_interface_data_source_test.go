@@ -10,15 +10,12 @@ import (
 )
 
 func TestVMInterfaceDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewVMInterfaceDataSource()
 
+	d := datasources.NewVMInterfaceDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestVMInterfaceDataSourceSchema(t *testing.T) {
 }
 
 func TestVMInterfaceDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVMInterfaceDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_vm_interface")
 }
 
 func TestVMInterfaceDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVMInterfaceDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

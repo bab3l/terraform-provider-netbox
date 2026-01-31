@@ -22,8 +22,10 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &ConsoleServerPortTemplateResource{}
-var _ resource.ResourceWithImportState = &ConsoleServerPortTemplateResource{}
+var (
+	_ resource.Resource                = &ConsoleServerPortTemplateResource{}
+	_ resource.ResourceWithImportState = &ConsoleServerPortTemplateResource{}
+)
 
 // NewConsoleServerPortTemplateResource returns a new resource implementing the console server port template resource.
 func NewConsoleServerPortTemplateResource() resource.Resource {

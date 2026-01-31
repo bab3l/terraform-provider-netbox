@@ -10,15 +10,12 @@ import (
 )
 
 func TestDeviceTypeDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewDeviceTypeDataSource()
 
+	d := datasources.NewDeviceTypeDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestDeviceTypeDataSourceSchema(t *testing.T) {
 }
 
 func TestDeviceTypeDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewDeviceTypeDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_device_type")
 }
 
 func TestDeviceTypeDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewDeviceTypeDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

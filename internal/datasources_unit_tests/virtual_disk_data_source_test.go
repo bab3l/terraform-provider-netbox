@@ -10,15 +10,12 @@ import (
 )
 
 func TestVirtualDiskDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewVirtualDiskDataSource()
 
+	d := datasources.NewVirtualDiskDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,8 +27,8 @@ func TestVirtualDiskDataSourceSchema(t *testing.T) {
 }
 
 func TestVirtualDiskDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVirtualDiskDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_virtual_disk")
 }

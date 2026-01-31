@@ -12,15 +12,12 @@ import (
 )
 
 func TestVLANDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewVLANDataSource()
 
+	d := datasources.NewVLANDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -56,15 +53,15 @@ func TestVLANDataSourceSchema(t *testing.T) {
 }
 
 func TestVLANDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVLANDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_vlan")
 }
 
 func TestVLANDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVLANDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

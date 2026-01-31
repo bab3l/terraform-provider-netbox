@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -17,9 +18,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var _ resource.Resource = &TenantGroupResource{}
-var _ resource.ResourceWithImportState = &TenantGroupResource{}
-var _ resource.ResourceWithIdentity = &TenantGroupResource{}
+var (
+	_ resource.Resource                = &TenantGroupResource{}
+	_ resource.ResourceWithImportState = &TenantGroupResource{}
+	_ resource.ResourceWithIdentity    = &TenantGroupResource{}
+)
 
 func NewTenantGroupResource() resource.Resource {
 	return &TenantGroupResource{}
@@ -187,7 +190,7 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	tenantGroup, httpResp, err := r.client.TenancyAPI.TenancyTenantGroupsRetrieve(ctx, tenantGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -195,17 +198,15 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError("Error reading tenant group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if httpResp.StatusCode != http.StatusOK {
+		resp.Diagnostics.AddError("Error reading tenant group", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
 		return
 	}
 
 	// Store state values for filter-to-owned pattern
 	stateTags := data.Tags
 	stateCustomFields := data.CustomFields
-
 	r.mapTenantGroupToState(tenantGroup, &data)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -213,12 +214,10 @@ func (r *TenantGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	// Apply filter-to-owned pattern for tags and custom_fields
 	data.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), stateTags)
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, stateCustomFields, tenantGroup.GetCustomFields(), &resp.Diagnostics)
-
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -236,7 +235,6 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 		resp.Diagnostics.AddError("Invalid Tenant Group ID", fmt.Sprintf("Tenant Group ID must be a number, got: %s", tenantGroupID))
 		return
 	}
-
 	tflog.Debug(ctx, "Updating tenant group", map[string]interface{}{
 		"id":   tenantGroupID,
 		"name": plan.Name.ValueString(),
@@ -275,25 +273,17 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	utils.ApplyCustomFieldsWithMerge(ctx, &tenantGroupRequest, plan.CustomFields, state.CustomFields, &resp.Diagnostics)
 
 	// Update via API
-
 	tenantGroup, httpResp, err := r.client.TenancyAPI.TenancyTenantGroupsUpdate(ctx, tenantGroupIDInt).WritableTenantGroupRequest(tenantGroupRequest).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating tenant group", utils.FormatAPIError(fmt.Sprintf("update tenant group ID %s", tenantGroupID), err, httpResp))
-
 		return
 	}
-
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError("Error updating tenant group", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
-
+	if httpResp.StatusCode != http.StatusOK {
+		resp.Diagnostics.AddError("Error updating tenant group", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
 		return
 	}
-
 	r.mapTenantGroupToState(tenantGroup, &plan)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -301,56 +291,39 @@ func (r *TenantGroupResource) Update(ctx context.Context, req resource.UpdateReq
 	// Apply filter-to-owned pattern for tags and custom_fields
 	plan.Tags = utils.PopulateTagsSlugFilteredToOwned(ctx, tenantGroup.HasTags(), tenantGroup.GetTags(), plan.Tags)
 	plan.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, plan.CustomFields, tenantGroup.GetCustomFields(), &resp.Diagnostics)
-
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(plan.ID.ValueString()), plan.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *TenantGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data TenantGroupResourceModel
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	tenantGroupID := data.ID.ValueString()
-
 	tenantGroupIDInt := utils.ParseInt32FromString(tenantGroupID)
-
 	if tenantGroupIDInt == 0 {
 		resp.Diagnostics.AddError("Invalid Tenant Group ID", fmt.Sprintf("Tenant Group ID must be a number, got: %s", tenantGroupID))
-
 		return
 	}
-
 	tflog.Debug(ctx, "Deleting tenant group", map[string]interface{}{"id": tenantGroupID})
-
 	httpResp, err := r.client.TenancyAPI.TenancyTenantGroupsDestroy(ctx, tenantGroupIDInt).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			return
 		}
-
 		resp.Diagnostics.AddError("Error deleting tenant group", utils.FormatAPIError(fmt.Sprintf("delete tenant group ID %s", tenantGroupID), err, httpResp))
-
 		return
 	}
-
-	if httpResp.StatusCode != 204 {
-		resp.Diagnostics.AddError("Error deleting tenant group", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
-
+	if httpResp.StatusCode != http.StatusNoContent {
+		resp.Diagnostics.AddError("Error deleting tenant group", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusNoContent, httpResp.StatusCode))
 		return
 	}
-
 	tflog.Trace(ctx, "deleted a tenant group resource")
 }
 
@@ -363,7 +336,6 @@ func (r *TenantGroupResource) ImportState(ctx context.Context, req resource.Impo
 			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
 			return
 		}
-
 		tenantGroupIDInt := utils.ParseInt32FromString(parsed.ID)
 		if tenantGroupIDInt == 0 {
 			resp.Diagnostics.AddError("Invalid Tenant Group ID", fmt.Sprintf("Tenant Group ID must be a number, got: %s", parsed.ID))

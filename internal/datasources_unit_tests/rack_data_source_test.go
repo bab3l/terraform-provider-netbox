@@ -10,15 +10,12 @@ import (
 )
 
 func TestRackDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewRackDataSource()
 
+	d := datasources.NewRackDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestRackDataSourceSchema(t *testing.T) {
 }
 
 func TestRackDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewRackDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_rack")
 }
 
 func TestRackDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewRackDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

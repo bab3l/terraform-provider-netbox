@@ -21,8 +21,10 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &ConfigTemplateResource{}
-var _ resource.ResourceWithImportState = &ConfigTemplateResource{}
+var (
+	_ resource.Resource                = &ConfigTemplateResource{}
+	_ resource.ResourceWithImportState = &ConfigTemplateResource{}
+)
 
 // NewConfigTemplateResource returns a new resource implementing the config template resource.
 func NewConfigTemplateResource() resource.Resource {

@@ -10,15 +10,12 @@ import (
 )
 
 func TestClusterTypeDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewClusterTypeDataSource()
 
+	d := datasources.NewClusterTypeDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestClusterTypeDataSourceSchema(t *testing.T) {
 }
 
 func TestClusterTypeDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewClusterTypeDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_cluster_type")
 }
 
 func TestClusterTypeDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewClusterTypeDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }
