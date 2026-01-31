@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/bab3l/go-netbox"
@@ -149,7 +150,7 @@ func (r *SiteASNAssignmentResource) Read(ctx context.Context, req resource.ReadR
 	site, httpResp, err := r.client.DcimAPI.DcimSitesRetrieve(ctx, siteID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -162,7 +163,6 @@ func (r *SiteASNAssignmentResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 	data.Site = utils.UpdateReferenceAttribute(data.Site, site.GetName(), site.GetSlug(), site.GetId())
-
 	data.ID = types.StringValue(fmt.Sprintf("%d:%d", siteID, asnID))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -288,7 +288,7 @@ func (r *SiteASNAssignmentResource) updateSiteASNs(ctx context.Context, siteID i
 	site, httpResp, err := r.client.DcimAPI.DcimSitesRetrieve(ctx, siteID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			return
 		}
 		diags.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %d", siteID), err, httpResp))

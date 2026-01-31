@@ -24,8 +24,10 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &FrontPortTemplateResource{}
-var _ resource.ResourceWithImportState = &FrontPortTemplateResource{}
+var (
+	_ resource.Resource                = &FrontPortTemplateResource{}
+	_ resource.ResourceWithImportState = &FrontPortTemplateResource{}
+)
 
 // NewFrontPortTemplateResource returns a new resource implementing the front port template resource.
 func NewFrontPortTemplateResource() resource.Resource {

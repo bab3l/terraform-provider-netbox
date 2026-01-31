@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -20,9 +21,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var _ resource.Resource = &WebhookResource{}
-var _ resource.ResourceWithImportState = &WebhookResource{}
-var _ resource.ResourceWithIdentity = &WebhookResource{}
+var (
+	_ resource.Resource                = &WebhookResource{}
+	_ resource.ResourceWithImportState = &WebhookResource{}
+	_ resource.ResourceWithIdentity    = &WebhookResource{}
+)
 
 func NewWebhookResource() resource.Resource {
 	return &WebhookResource{}
@@ -207,8 +210,8 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 		resp.Diagnostics.AddError("Error creating webhook", utils.FormatAPIError("create webhook", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != 201 {
-		resp.Diagnostics.AddError("Error creating webhook", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
+	if httpResp.StatusCode != http.StatusCreated {
+		resp.Diagnostics.AddError("Error creating webhook", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusCreated, httpResp.StatusCode))
 		return
 	}
 	if webhook == nil {
@@ -251,7 +254,7 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 	webhook, httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksRetrieve(ctx, webhookID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -358,8 +361,8 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 		resp.Diagnostics.AddError("Error updating webhook", utils.FormatAPIError("update webhook", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError("Error updating webhook", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if httpResp.StatusCode != http.StatusOK {
+		resp.Diagnostics.AddError("Error updating webhook", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
 		return
 	}
 
@@ -397,7 +400,7 @@ func (r *WebhookResource) Delete(ctx context.Context, req resource.DeleteRequest
 	httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksDestroy(ctx, webhookID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Already deleted, nothing to do
 			return
 		}

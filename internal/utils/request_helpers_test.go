@@ -65,6 +65,7 @@ func createCustomFieldSet(t *testing.T, models []CustomFieldModel) types.Set {
 }
 
 func TestMergeCustomFieldSets_BothNull(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	diags := diag.Diagnostics{}
 
@@ -90,6 +91,7 @@ func TestMergeCustomFieldSets_BothNull(t *testing.T) {
 }
 
 func TestMergeCustomFieldSets_PlanNullStateHasFields(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	diags := diag.Diagnostics{}
 
@@ -124,6 +126,7 @@ func TestMergeCustomFieldSets_PlanNullStateHasFields(t *testing.T) {
 }
 
 func TestMergeCustomFieldSets_PlanHasFieldsStateNull(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	diags := diag.Diagnostics{}
 
@@ -152,6 +155,7 @@ func TestMergeCustomFieldSets_PlanHasFieldsStateNull(t *testing.T) {
 }
 
 func TestMergeCustomFieldSets_PlanOverridesState(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	diags := diag.Diagnostics{}
 
@@ -187,6 +191,7 @@ func TestMergeCustomFieldSets_PlanOverridesState(t *testing.T) {
 }
 
 func TestMergeCustomFieldSets_EmptyValueRemovesField(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	diags := diag.Diagnostics{}
 
@@ -222,6 +227,7 @@ func TestMergeCustomFieldSets_EmptyValueRemovesField(t *testing.T) {
 }
 
 func TestMergeCustomFieldSets_MultipleTypes(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	diags := diag.Diagnostics{}
 
@@ -264,6 +270,7 @@ func TestMergeCustomFieldSets_MultipleTypes(t *testing.T) {
 }
 
 func TestApplyCustomFieldsWithMerge_PlanNullPreservesState(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	diags := diag.Diagnostics{}
 	mock := &mockCustomFieldsSetter{}
@@ -293,6 +300,7 @@ func TestApplyCustomFieldsWithMerge_PlanNullPreservesState(t *testing.T) {
 }
 
 func TestApplyCustomFieldsWithMerge_BothNullSendsEmptyMap(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	diags := diag.Diagnostics{}
 	mock := &mockCustomFieldsSetter{}
@@ -320,6 +328,7 @@ func TestApplyCustomFieldsWithMerge_BothNullSendsEmptyMap(t *testing.T) {
 }
 
 func TestApplyCustomFieldsWithMerge_PlanSetMergesWithState(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	diags := diag.Diagnostics{}
 	mock := &mockCustomFieldsSetter{}
@@ -356,6 +365,7 @@ func TestApplyCustomFieldsWithMerge_PlanSetMergesWithState(t *testing.T) {
 }
 
 func TestApplyCustomFieldsWithMerge_EmptyStringRemovesField(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	diags := diag.Diagnostics{}
 	mock := &mockCustomFieldsSetter{}

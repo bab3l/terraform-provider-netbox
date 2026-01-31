@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -27,9 +28,11 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &SiteResource{}
-var _ resource.ResourceWithImportState = &SiteResource{}
-var _ resource.ResourceWithIdentity = &SiteResource{}
+var (
+	_ resource.Resource                = &SiteResource{}
+	_ resource.ResourceWithImportState = &SiteResource{}
+	_ resource.ResourceWithIdentity    = &SiteResource{}
+)
 
 func NewSiteResource() resource.Resource {
 	return &SiteResource{}
@@ -308,18 +311,17 @@ func (r *SiteResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	site, httpResp, err := r.client.DcimAPI.DcimSitesRetrieve(ctx, siteIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 
-	if httpResp != nil && httpResp.StatusCode == 404 {
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 		resp.State.RemoveResource(ctx)
 		return
 	}
-
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %s", siteID), err, httpResp))
 		return
 	}
 
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError("Error reading site", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if httpResp.StatusCode != http.StatusOK {
+		resp.Diagnostics.AddError("Error reading site", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
 		return
 	}
 
@@ -493,7 +495,7 @@ func (r *SiteResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// Ignore 404 errors (resource already deleted)
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Site already deleted", map[string]interface{}{
 				"id": siteID,
 			})
@@ -503,8 +505,8 @@ func (r *SiteResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	if httpResp.StatusCode != 204 {
-		resp.Diagnostics.AddError("Error deleting site", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
+	if httpResp.StatusCode != http.StatusNoContent {
+		resp.Diagnostics.AddError("Error deleting site", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusNoContent, httpResp.StatusCode))
 		return
 	}
 }

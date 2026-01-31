@@ -1,15 +1,13 @@
 // Package resources contains Terraform resource implementations for the Netbox provider.
 //
 
-// This package integrates with the go-netbox OpenAPI client to create, read, update,
-// and delete resources in Netbox via Terraform.
-
 package resources
 
 import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -28,49 +26,35 @@ import (
 const defaultTunnelStatus = "active"
 
 // Ensure provider defined types fully satisfy framework interfaces.
-
-var _ resource.Resource = &TunnelResource{}
-
-var _ resource.ResourceWithImportState = &TunnelResource{}
-
-var _ resource.ResourceWithIdentity = &TunnelResource{}
+var (
+	_ resource.Resource                = &TunnelResource{}
+	_ resource.ResourceWithImportState = &TunnelResource{}
+	_ resource.ResourceWithIdentity    = &TunnelResource{}
+)
 
 func NewTunnelResource() resource.Resource {
 	return &TunnelResource{}
 }
 
 // TunnelResource defines the resource implementation.
-
 type TunnelResource struct {
 	client *netbox.APIClient
 }
 
 // TunnelResourceModel describes the resource data model.
-
 type TunnelResourceModel struct {
-	ID types.String `tfsdk:"id"`
-
-	Name types.String `tfsdk:"name"`
-
-	Status types.String `tfsdk:"status"`
-
-	Group types.String `tfsdk:"group"`
-
+	ID            types.String `tfsdk:"id"`
+	Name          types.String `tfsdk:"name"`
+	Status        types.String `tfsdk:"status"`
+	Group         types.String `tfsdk:"group"`
 	Encapsulation types.String `tfsdk:"encapsulation"`
-
-	IPSecProfile types.String `tfsdk:"ipsec_profile"`
-
-	Tenant types.String `tfsdk:"tenant"`
-
-	TunnelID types.Int64 `tfsdk:"tunnel_id"`
-
-	Description types.String `tfsdk:"description"`
-
-	Comments types.String `tfsdk:"comments"`
-
-	Tags types.Set `tfsdk:"tags"`
-
-	CustomFields types.Set `tfsdk:"custom_fields"`
+	IPSecProfile  types.String `tfsdk:"ipsec_profile"`
+	Tenant        types.String `tfsdk:"tenant"`
+	TunnelID      types.Int64  `tfsdk:"tunnel_id"`
+	Description   types.String `tfsdk:"description"`
+	Comments      types.String `tfsdk:"comments"`
+	Tags          types.Set    `tfsdk:"tags"`
+	CustomFields  types.Set    `tfsdk:"custom_fields"`
 }
 
 func (r *TunnelResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -80,82 +64,53 @@ func (r *TunnelResource) Metadata(ctx context.Context, req resource.MetadataRequ
 func (r *TunnelResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a VPN tunnel in Netbox. Tunnels represent secure connections between network endpoints using various encapsulation protocols like IPSec, GRE, WireGuard, etc.",
-
 		Attributes: map[string]schema.Attribute{
-			"id": nbschema.IDAttribute("tunnel"),
-
+			"id":   nbschema.IDAttribute("tunnel"),
 			"name": nbschema.NameAttribute("tunnel", 100),
-
 			"status": schema.StringAttribute{
 				MarkdownDescription: "Operational status of the tunnel. Valid values: `planned`, `active`, `disabled`.",
-
-				Optional: true,
-
-				Computed: true,
-
-				Default: stringdefault.StaticString(defaultTunnelStatus),
-
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(defaultTunnelStatus),
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-
 						"planned",
-
 						"active",
-
 						"disabled",
 					),
 				},
 			},
-
 			"group": schema.StringAttribute{
 				MarkdownDescription: "ID of the tunnel group this tunnel belongs to.",
-
-				Optional: true,
+				Optional:            true,
 			},
-
 			"encapsulation": schema.StringAttribute{
 				MarkdownDescription: "Encapsulation protocol for the tunnel. Valid values: `ipsec-transport`, `ipsec-tunnel`, `ip-ip`, `gre`, `wireguard`, `openvpn`, `l2tp`, `pptp`.",
-
-				Required: true,
-
+				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-
 						"ipsec-transport",
-
 						"ipsec-tunnel",
-
 						"ip-ip",
-
 						"gre",
-
 						"wireguard",
-
 						"openvpn",
-
 						"l2tp",
-
 						"pptp",
 					),
 				},
 			},
-
 			"ipsec_profile": schema.StringAttribute{
 				MarkdownDescription: "ID of the IPSec profile for this tunnel (required for IPSec encapsulation types).",
-
-				Optional: true,
+				Optional:            true,
 			},
-
 			"tenant": schema.StringAttribute{
 				MarkdownDescription: "ID of the tenant this tunnel belongs to.",
-
-				Optional: true,
+				Optional:            true,
 			},
-
 			"tunnel_id": schema.Int64Attribute{
 				MarkdownDescription: "Tunnel identifier (numeric ID used by the tunnel protocol).",
-
-				Optional: true,
+				Optional:            true,
 			},
 		},
 	}
@@ -174,24 +129,17 @@ func (r *TunnelResource) IdentitySchema(ctx context.Context, req resource.Identi
 
 func (r *TunnelResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
-
 	if req.ProviderData == nil {
 		return
 	}
-
 	client, ok := req.ProviderData.(*netbox.APIClient)
-
 	if !ok {
 		resp.Diagnostics.AddError(
-
 			"Unexpected Resource Configure Type",
-
 			fmt.Sprintf("Expected *netbox.APIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
-
 		return
 	}
-
 	r.client = client
 }
 
@@ -199,88 +147,61 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 	var data TunnelResourceModel
 
 	// Read Terraform plan data into the model
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Build the API request using WritableTunnelRequest
-
 	tunnelRequest := netbox.NewWritableTunnelRequest(
-
 		data.Name.ValueString(),
-
 		netbox.PatchedWritableTunnelRequestEncapsulation(data.Encapsulation.ValueString()),
 	)
 
 	// Set status - default to "active" if not provided (Netbox requires status)
-
 	statusValue := defaultTunnelStatus
-
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		statusValue = data.Status.ValueString()
 	}
-
 	status := netbox.PatchedWritableTunnelRequestStatus(statusValue)
-
 	tunnelRequest.Status = &status
 
 	// Initialize additional properties for integer ID references
-
 	tunnelRequest.AdditionalProperties = make(map[string]interface{})
 
 	// Set optional fields
-
 	if !data.Group.IsNull() && data.Group.ValueString() != "" {
 		groupID, err := utils.ParseID(data.Group.ValueString())
-
 		if err != nil {
 			resp.Diagnostics.AddError(
-
 				"Invalid Tunnel Group ID",
-
 				fmt.Sprintf("Unable to parse tunnel group ID: %s", err),
 			)
-
 			return
 		}
-
 		tunnelRequest.AdditionalProperties["group"] = int(groupID)
 	}
-
 	if !data.IPSecProfile.IsNull() && data.IPSecProfile.ValueString() != "" {
 		ipsecProfileID, err := utils.ParseID(data.IPSecProfile.ValueString())
-
 		if err != nil {
 			resp.Diagnostics.AddError(
-
 				"Invalid IPSec Profile ID",
-
 				fmt.Sprintf("Unable to parse IPSec profile ID: %s", err),
 			)
-
 			return
 		}
-
 		tunnelRequest.AdditionalProperties["ipsec_profile"] = int(ipsecProfileID)
 	}
 
 	if !data.Tenant.IsNull() && data.Tenant.ValueString() != "" {
 		tenantID, err := utils.ParseID(data.Tenant.ValueString())
-
 		if err != nil {
 			resp.Diagnostics.AddError(
-
 				"Invalid Tenant ID",
-
 				fmt.Sprintf("Unable to parse tenant ID: %s", err),
 			)
-
 			return
 		}
-
 		tunnelRequest.AdditionalProperties["tenant"] = int(tenantID)
 	}
 
@@ -307,30 +228,22 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	tflog.Debug(ctx, "Creating tunnel", map[string]interface{}{
-		"name": data.Name.ValueString(),
-
+		"name":          data.Name.ValueString(),
 		"encapsulation": data.Encapsulation.ValueString(),
 	})
 
 	// Create the tunnel via API
-
 	tunnel, httpResp, err := r.client.VpnAPI.VpnTunnelsCreate(ctx).WritableTunnelRequest(*tunnelRequest).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-
 			"Error creating tunnel",
-
 			utils.FormatAPIError("create tunnel", err, httpResp),
 		)
-
 		return
 	}
 
 	// Update the model with the response from the API
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", tunnel.GetId()))
 
 	// Status - always set since it's computed
@@ -365,7 +278,6 @@ func (r *TunnelResource) Create(ctx context.Context, req resource.CreateRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -373,98 +285,72 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 	var data TunnelResourceModel
 
 	// Read Terraform prior state data into the model
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse the ID
-
 	tunnelID, err := utils.ParseID(data.ID.ValueString())
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-
 			"Invalid Tunnel ID",
-
 			fmt.Sprintf("Unable to parse tunnel ID: %s", err),
 		)
-
 		return
 	}
 
 	// Get the tunnel from the API
-
 	tunnel, httpResp, err := r.client.VpnAPI.VpnTunnelsRetrieve(ctx, tunnelID).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "Tunnel not found, removing from state", map[string]interface{}{
 				"id": data.ID.ValueString(),
 			})
-
 			resp.State.RemoveResource(ctx)
-
 			return
 		}
-
 		resp.Diagnostics.AddError(
-
 			"Error reading tunnel",
-
 			utils.FormatAPIError("read tunnel", err, httpResp),
 		)
-
 		return
 	}
 
 	// Update the model with the response from the API
-
 	data.ID = types.StringValue(fmt.Sprintf("%d", tunnel.GetId()))
-
 	data.Name = types.StringValue(tunnel.GetName())
 
 	// Status - always set since it's computed
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
-
 	data.Encapsulation = types.StringValue(string(tunnel.Encapsulation.GetValue()))
 
 	// Handle group reference - preserve user's input format
-
 	if tunnel.HasGroup() && tunnel.Group.IsSet() && tunnel.Group.Get() != nil {
 		group := tunnel.Group.Get()
-
 		data.Group = utils.UpdateReferenceAttribute(data.Group, group.GetName(), group.GetSlug(), group.GetId())
 	} else {
 		data.Group = types.StringNull()
 	}
 
 	// Handle ipsec_profile reference - preserve user's input format
-
 	if tunnel.HasIpsecProfile() && tunnel.IpsecProfile.IsSet() && tunnel.IpsecProfile.Get() != nil {
 		ip := tunnel.IpsecProfile.Get()
-
 		data.IPSecProfile = utils.UpdateReferenceAttribute(data.IPSecProfile, ip.GetName(), "", ip.GetId())
 	} else {
 		data.IPSecProfile = types.StringNull()
 	}
 
 	// Handle tenant reference - preserve user's input format
-
 	if tunnel.HasTenant() && tunnel.Tenant.IsSet() && tunnel.Tenant.Get() != nil {
 		tenant := tunnel.Tenant.Get()
-
 		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 	} else {
 		data.Tenant = types.StringNull()
 	}
 
 	// Handle tunnel_id
-
 	if tunnel.HasTunnelId() && tunnel.TunnelId.IsSet() {
 		if val := tunnel.TunnelId.Get(); val != nil {
 			data.TunnelID = types.Int64Value(*val)
@@ -476,7 +362,6 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Handle description
-
 	if tunnel.HasDescription() && tunnel.GetDescription() != "" {
 		data.Description = types.StringValue(tunnel.GetDescription())
 	} else {
@@ -484,7 +369,6 @@ func (r *TunnelResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Handle comments
-
 	if tunnel.HasComments() && tunnel.GetComments() != "" {
 		data.Comments = types.StringValue(tunnel.GetComments())
 	} else {
@@ -518,48 +402,34 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	var state, data TunnelResourceModel
 
 	// Read Terraform state and plan data into the models
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse the ID
-
 	tunnelID, err := utils.ParseID(data.ID.ValueString())
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-
 			"Invalid Tunnel ID",
-
 			fmt.Sprintf("Unable to parse tunnel ID: %s", err),
 		)
-
 		return
 	}
 
 	// Build the API request using WritableTunnelRequest
-
 	tunnelRequest := netbox.NewWritableTunnelRequest(
-
 		data.Name.ValueString(),
-
 		netbox.PatchedWritableTunnelRequestEncapsulation(data.Encapsulation.ValueString()),
 	)
 
 	// Set status - default to "active" if not provided (Netbox requires status)
-
 	statusValue := defaultTunnelStatus
-
 	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		statusValue = data.Status.ValueString()
 	}
-
 	status := netbox.PatchedWritableTunnelRequestStatus(statusValue)
-
 	tunnelRequest.Status = &status
 
 	// Initialize additional properties for integer ID references
@@ -644,27 +514,19 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	tflog.Debug(ctx, "Updating tunnel", map[string]interface{}{
-		"id": data.ID.ValueString(),
-
-		"name": data.Name.ValueString(),
-
+		"id":            data.ID.ValueString(),
+		"name":          data.Name.ValueString(),
 		"encapsulation": data.Encapsulation.ValueString(),
 	})
 
 	// Update the tunnel via API
-
 	tunnel, httpResp, err := r.client.VpnAPI.VpnTunnelsUpdate(ctx, tunnelID).WritableTunnelRequest(*tunnelRequest).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-
 			"Error updating tunnel",
-
 			utils.FormatAPIError("update tunnel", err, httpResp),
 		)
-
 		return
 	}
 
@@ -672,26 +534,20 @@ func (r *TunnelResource) Update(ctx context.Context, req resource.UpdateRequest,
 	data.Status = types.StringValue(string(tunnel.Status.GetValue()))
 
 	// Handle group reference from response - preserve user's input format
-
 	if tunnel.HasGroup() && tunnel.Group.IsSet() && tunnel.Group.Get() != nil {
 		group := tunnel.Group.Get()
-
 		data.Group = utils.UpdateReferenceAttribute(data.Group, group.GetName(), group.GetSlug(), group.GetId())
 	}
 
 	// Handle ipsec_profile reference from response - preserve user's input format
-
 	if tunnel.HasIpsecProfile() && tunnel.IpsecProfile.IsSet() && tunnel.IpsecProfile.Get() != nil {
 		ip := tunnel.IpsecProfile.Get()
-
 		data.IPSecProfile = utils.UpdateReferenceAttribute(data.IPSecProfile, ip.GetName(), "", ip.GetId())
 	}
 
 	// Handle tenant reference from response - preserve user's input format
-
 	if tunnel.HasTenant() && tunnel.Tenant.IsSet() && tunnel.Tenant.Get() != nil {
 		tenant := tunnel.Tenant.Get()
-
 		data.Tenant = utils.UpdateReferenceAttribute(data.Tenant, tenant.GetName(), tenant.GetSlug(), tenant.GetId())
 	}
 
@@ -708,54 +564,37 @@ func (r *TunnelResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	var data TunnelResourceModel
 
 	// Read Terraform prior state data into the model
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse the ID
-
 	tunnelID, err := utils.ParseID(data.ID.ValueString())
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-
 			"Invalid Tunnel ID",
-
 			fmt.Sprintf("Unable to parse tunnel ID: %s", err),
 		)
-
 		return
 	}
-
 	tflog.Debug(ctx, "Deleting tunnel", map[string]interface{}{
-		"id": data.ID.ValueString(),
-
+		"id":   data.ID.ValueString(),
 		"name": data.Name.ValueString(),
 	})
 
 	// Delete the tunnel via API
-
 	httpResp, err := r.client.VpnAPI.VpnTunnelsDestroy(ctx, tunnelID).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			// Resource already deleted
-
 			return
 		}
-
 		resp.Diagnostics.AddError(
-
 			"Error deleting tunnel",
-
 			utils.FormatAPIError("delete tunnel", err, httpResp),
 		)
-
 		return
 	}
 }

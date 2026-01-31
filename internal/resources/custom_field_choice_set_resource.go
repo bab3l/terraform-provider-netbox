@@ -22,8 +22,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var _ resource.Resource = &CustomFieldChoiceSetResource{}
-var _ resource.ResourceWithImportState = &CustomFieldChoiceSetResource{}
+var (
+	_ resource.Resource                = &CustomFieldChoiceSetResource{}
+	_ resource.ResourceWithImportState = &CustomFieldChoiceSetResource{}
+)
 
 func NewCustomFieldChoiceSetResource() resource.Resource {
 	return &CustomFieldChoiceSetResource{}

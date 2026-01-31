@@ -22,9 +22,11 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &L2VPNTerminationResource{}
-var _ resource.ResourceWithImportState = &L2VPNTerminationResource{}
-var _ resource.ResourceWithIdentity = &L2VPNTerminationResource{}
+var (
+	_ resource.Resource                = &L2VPNTerminationResource{}
+	_ resource.ResourceWithImportState = &L2VPNTerminationResource{}
+	_ resource.ResourceWithIdentity    = &L2VPNTerminationResource{}
+)
 
 func NewL2VPNTerminationResource() resource.Resource {
 	return &L2VPNTerminationResource{}

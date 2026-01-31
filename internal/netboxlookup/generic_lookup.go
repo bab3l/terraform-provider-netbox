@@ -963,13 +963,6 @@ func LookupDevice(ctx context.Context, client *netbox.APIClient, value string) (
 	return GenericLookup(ctx, value, DeviceLookupConfig(client))
 }
 
-// LookupDeviceBrief returns a BriefDeviceRequest from an ID or name.
-//
-// Deprecated: Use LookupDevice instead.
-func LookupDeviceBrief(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefDeviceRequest, diag.Diagnostics) {
-	return LookupDevice(ctx, client, value)
-}
-
 // =====================================================
 // IPAM LOOKUP CONFIGS
 // =====================================================
@@ -1514,32 +1507,6 @@ func CircuitLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.Circuit,
 // LookupCircuit looks up a Circuit by ID or CID.
 func LookupCircuit(ctx context.Context, client *netbox.APIClient, value string) (*netbox.BriefCircuitRequest, diag.Diagnostics) {
 	return GenericLookup(ctx, value, CircuitLookupConfig(client))
-}
-
-// CircuitGroupLookupConfig returns the lookup configuration for Circuit Groups.
-func CircuitGroupLookupConfig(client *netbox.APIClient) LookupConfig[*netbox.CircuitGroup, netbox.BriefCircuitGroupRequest] {
-	return LookupConfig[*netbox.CircuitGroup, netbox.BriefCircuitGroupRequest]{
-		ResourceName: "Circuit Group",
-		RetrieveByID: func(ctx context.Context, id int32) (*netbox.CircuitGroup, *http.Response, error) {
-			return client.CircuitsAPI.CircuitsCircuitGroupsRetrieve(ctx, id).Execute()
-		},
-		ListBySlug: func(ctx context.Context, slug string) ([]*netbox.CircuitGroup, *http.Response, error) {
-			list, resp, err := client.CircuitsAPI.CircuitsCircuitGroupsList(ctx).Slug([]string{slug}).Execute()
-			if err != nil {
-				return nil, resp, err
-			}
-			results := make([]*netbox.CircuitGroup, len(list.Results))
-			for i := range list.Results {
-				results[i] = &list.Results[i]
-			}
-			return results, resp, nil
-		},
-		ToBriefRequest: func(cg *netbox.CircuitGroup) netbox.BriefCircuitGroupRequest {
-			return netbox.BriefCircuitGroupRequest{
-				Name: cg.GetName(),
-			}
-		},
-	}
 }
 
 // LookupCircuitGroup looks up a Circuit Group by ID or slug.

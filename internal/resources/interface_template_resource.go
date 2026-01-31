@@ -23,8 +23,10 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &InterfaceTemplateResource{}
-var _ resource.ResourceWithImportState = &InterfaceTemplateResource{}
+var (
+	_ resource.Resource                = &InterfaceTemplateResource{}
+	_ resource.ResourceWithImportState = &InterfaceTemplateResource{}
+)
 
 // NewInterfaceTemplateResource returns a new resource implementing the interface template resource.
 func NewInterfaceTemplateResource() resource.Resource {

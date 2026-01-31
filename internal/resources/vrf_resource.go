@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -21,46 +22,34 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-
-var _ resource.Resource = &VRFResource{}
-
-var _ resource.ResourceWithImportState = &VRFResource{}
-var _ resource.ResourceWithIdentity = &VRFResource{}
+var (
+	_ resource.Resource                = &VRFResource{}
+	_ resource.ResourceWithImportState = &VRFResource{}
+	_ resource.ResourceWithIdentity    = &VRFResource{}
+)
 
 func NewVRFResource() resource.Resource {
 	return &VRFResource{}
 }
 
 // VRFResource defines the resource implementation.
-
 type VRFResource struct {
 	client *netbox.APIClient
 }
 
 // VRFResourceModel describes the resource data model.
-
 type VRFResourceModel struct {
-	ID types.String `tfsdk:"id"`
-
-	Name types.String `tfsdk:"name"`
-
-	RD types.String `tfsdk:"rd"`
-
-	Tenant types.String `tfsdk:"tenant"`
-
-	EnforceUnique types.Bool `tfsdk:"enforce_unique"`
-
-	ImportTargets types.List `tfsdk:"import_targets"`
-
-	ExportTargets types.List `tfsdk:"export_targets"`
-
-	Description types.String `tfsdk:"description"`
-
-	Comments types.String `tfsdk:"comments"`
-
-	Tags types.Set `tfsdk:"tags"`
-
-	CustomFields types.Set `tfsdk:"custom_fields"`
+	ID            types.String `tfsdk:"id"`
+	Name          types.String `tfsdk:"name"`
+	RD            types.String `tfsdk:"rd"`
+	Tenant        types.String `tfsdk:"tenant"`
+	EnforceUnique types.Bool   `tfsdk:"enforce_unique"`
+	ImportTargets types.List   `tfsdk:"import_targets"`
+	ExportTargets types.List   `tfsdk:"export_targets"`
+	Description   types.String `tfsdk:"description"`
+	Comments      types.String `tfsdk:"comments"`
+	Tags          types.Set    `tfsdk:"tags"`
+	CustomFields  types.Set    `tfsdk:"custom_fields"`
 }
 
 func (r *VRFResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -70,48 +59,33 @@ func (r *VRFResource) Metadata(ctx context.Context, req resource.MetadataRequest
 func (r *VRFResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a VRF (Virtual Routing and Forwarding) instance in Netbox. VRFs are used to implement virtual routing tables, enabling multiple routing instances to coexist within the same network infrastructure. They are commonly used to provide network isolation for different customers, departments, or network functions.",
-
 		Attributes: map[string]schema.Attribute{
-			"id": nbschema.IDAttribute("VRF"),
-
+			"id":   nbschema.IDAttribute("VRF"),
 			"name": nbschema.NameAttribute("VRF", 100),
-
 			"rd": schema.StringAttribute{
 				MarkdownDescription: "Route distinguisher (RD) as defined in RFC 4364. Format: `ASN:nn` or `IP:nn`. Example: `65000:1` or `192.168.1.1:1`.",
-
-				Optional: true,
+				Optional:            true,
 			},
-
 			"tenant": nbschema.ReferenceAttributeWithDiffSuppress("tenant", "Name, Slug, or ID of the tenant this VRF belongs to."),
-
 			"enforce_unique": schema.BoolAttribute{
 				MarkdownDescription: "Prevent duplicate prefixes/IP addresses within this VRF. Defaults to `true`.",
-
-				Optional: true,
-
-				Computed: true,
-
-				Default: booldefault.StaticBool(true),
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 			},
-
 			"import_targets": schema.ListAttribute{
 				MarkdownDescription: "List of Route Target IDs to import into this VRF.",
 				Optional:            true,
 				ElementType:         types.Int64Type,
 			},
-
 			"export_targets": schema.ListAttribute{
 				MarkdownDescription: "List of Route Target IDs to export from this VRF.",
 				Optional:            true,
 				ElementType:         types.Int64Type,
 			},
-
-			"description": nbschema.DescriptionAttribute("VRF"),
-
-			"comments": nbschema.CommentsAttribute("VRF"),
-
-			"tags": nbschema.TagsSlugAttribute(),
-
+			"description":   nbschema.DescriptionAttribute("VRF"),
+			"comments":      nbschema.CommentsAttribute("VRF"),
+			"tags":          nbschema.TagsSlugAttribute(),
 			"custom_fields": nbschema.CustomFieldsAttribute(),
 		},
 	}
@@ -127,149 +101,105 @@ func (r *VRFResource) Configure(ctx context.Context, req resource.ConfigureReque
 	}
 
 	client, ok := req.ProviderData.(*netbox.APIClient)
-
 	if !ok {
 		resp.Diagnostics.AddError(
-
 			"Unexpected Resource Configure Type",
-
 			fmt.Sprintf("Expected *netbox.APIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
-
 		return
 	}
-
 	r.client = client
 }
 
 func (r *VRFResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data VRFResourceModel
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	tflog.Debug(ctx, "Creating VRF", map[string]interface{}{
 		"name": data.Name.ValueString(),
 	})
 
 	// Prepare the VRF request
-
 	vrfRequest := netbox.VRFRequest{
 		Name: data.Name.ValueString(),
 	}
 
 	// Set optional fields (pass nil for state since this is Create)
-
 	r.setOptionalFields(ctx, &vrfRequest, &data, nil, &resp.Diagnostics)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Create the VRF via API
-
 	vrf, httpResp, err := r.client.IpamAPI.IpamVrfsCreate(ctx).VRFRequest(vrfRequest).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
 		handler := utils.CreateErrorHandler{
 			ResourceType: "netbox_vrf",
-
 			ResourceName: "this.vrf",
-
-			SlugValue: "", // VRF doesn't have slug
-
-			LookupFunc: nil,
+			SlugValue:    "", // VRF doesn't have slug
+			LookupFunc:   nil,
 		}
-
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
-
 		return
 	}
-
 	tflog.Debug(ctx, "Created VRF", map[string]interface{}{
-		"id": vrf.GetId(),
-
+		"id":   vrf.GetId(),
 		"name": vrf.GetName(),
 	})
 
 	// Map response back to state
-
 	r.mapVRFToState(ctx, vrf, &data, &resp.Diagnostics)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *VRFResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data VRFResourceModel
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse the ID
-
 	vrfID := data.ID.ValueString()
-
 	var id int32
-
 	id, err := utils.ParseID(vrfID)
-
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid VRF ID", fmt.Sprintf("VRF ID must be a number, got: %s", vrfID))
-
 		return
 	}
-
 	tflog.Debug(ctx, "Reading VRF", map[string]interface{}{
 		"id": id,
 	})
 
 	// Read the VRF via API
-
 	vrf, httpResp, err := r.client.IpamAPI.IpamVrfsRetrieve(ctx, id).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			tflog.Debug(ctx, "VRF not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
-
 			resp.State.RemoveResource(ctx)
-
 			return
 		}
-
 		resp.Diagnostics.AddError(
-
 			"Error reading VRF",
-
 			utils.FormatAPIError(fmt.Sprintf("read VRF ID %d", id), err, httpResp),
 		)
-
 		return
 	}
-
 	tflog.Debug(ctx, "Read VRF", map[string]interface{}{
-		"id": vrf.GetId(),
-
+		"id":   vrf.GetId(),
 		"name": vrf.GetName(),
 	})
 
@@ -277,9 +207,7 @@ func (r *VRFResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	originalCustomFields := data.CustomFields
 
 	// Map response back to state
-
 	r.mapVRFToState(ctx, vrf, &data, &resp.Diagnostics)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -289,12 +217,10 @@ func (r *VRFResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	if originalCustomFields.IsNull() || (utils.IsSet(originalCustomFields) && len(originalCustomFields.Elements()) == 0) {
 		data.CustomFields = originalCustomFields
 	}
-
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -305,7 +231,6 @@ func (r *VRFResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	// Read both plan and state for merge-aware custom fields handling
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -314,132 +239,92 @@ func (r *VRFResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	data := plan
 
 	// Parse the ID
-
 	vrfID := data.ID.ValueString()
-
 	var id int32
-
 	id, err := utils.ParseID(vrfID)
-
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid VRF ID", fmt.Sprintf("VRF ID must be a number, got: %s", vrfID))
-
 		return
 	}
-
 	tflog.Debug(ctx, "Updating VRF", map[string]interface{}{
-		"id": id,
-
+		"id":   id,
 		"name": data.Name.ValueString(),
 	})
 
 	// Prepare the VRF request
-
 	vrfRequest := netbox.VRFRequest{
 		Name: data.Name.ValueString(),
 	}
 
 	// Set optional fields (pass state for merge-aware custom fields handling)
-
 	r.setOptionalFields(ctx, &vrfRequest, &data, &state, &resp.Diagnostics)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Update the VRF via API
-
 	vrf, httpResp, err := r.client.IpamAPI.IpamVrfsUpdate(ctx, id).VRFRequest(vrfRequest).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-
 			"Error updating VRF",
-
 			utils.FormatAPIError(fmt.Sprintf("update VRF ID %d", id), err, httpResp),
 		)
-
 		return
 	}
-
 	tflog.Debug(ctx, "Updated VRF", map[string]interface{}{
-		"id": vrf.GetId(),
-
+		"id":   vrf.GetId(),
 		"name": vrf.GetName(),
 	})
 
 	// Map response back to state
-
 	r.mapVRFToState(ctx, vrf, &data, &resp.Diagnostics)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	utils.SetIdentityCustomFields(ctx, resp.Identity, types.StringValue(data.ID.ValueString()), data.CustomFields, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *VRFResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data VRFResourceModel
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Parse the ID
-
 	vrfID := data.ID.ValueString()
-
 	var id int32
-
 	id, err := utils.ParseID(vrfID)
-
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid VRF ID", fmt.Sprintf("VRF ID must be a number, got: %s", vrfID))
-
 		return
 	}
-
 	tflog.Debug(ctx, "Deleting VRF", map[string]interface{}{
-		"id": id,
-
+		"id":   id,
 		"name": data.Name.ValueString(),
 	})
 
 	// Delete the VRF via API
-
 	httpResp, err := r.client.IpamAPI.IpamVrfsDestroy(ctx, id).Execute()
-
 	defer utils.CloseResponseBody(httpResp)
-
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == 404 {
 			tflog.Debug(ctx, "VRF already deleted", map[string]interface{}{
 				"id": id,
 			})
-
 			return
 		}
-
 		resp.Diagnostics.AddError(
-
 			"Error deleting VRF",
-
 			utils.FormatAPIError(fmt.Sprintf("delete VRF ID %d", id), err, httpResp),
 		)
-
 		return
 	}
-
 	tflog.Debug(ctx, "Deleted VRF", map[string]interface{}{
 		"id": id,
 	})
@@ -454,7 +339,6 @@ func (r *VRFResource) ImportState(ctx context.Context, req resource.ImportStateR
 			resp.Diagnostics.AddError("Invalid import identity", "Identity id must be provided")
 			return
 		}
-
 		id, err := utils.ParseID(parsed.ID)
 		if err != nil {
 			resp.Diagnostics.AddError("Invalid VRF ID", fmt.Sprintf("VRF ID must be a number, got: %s", parsed.ID))
@@ -516,18 +400,14 @@ func (r *VRFResource) ImportState(ctx context.Context, req resource.ImportStateR
 		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 		return
 	}
-
 	utils.ImportStatePassthroughIDWithValidation(ctx, req, resp, path.Root("id"), true)
 }
 
 // setOptionalFields sets optional fields on the VRF request from the resource model.
-
 func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.VRFRequest, data *VRFResourceModel, state *VRFResourceModel, diags *diag.Diagnostics) {
 	// Route distinguisher
-
 	if utils.IsSet(data.RD) {
 		rdValue := data.RD.ValueString()
-
 		vrfRequest.Rd = *netbox.NewNullableString(&rdValue)
 	} else if state != nil && data.RD.IsNull() {
 		// NetBox PATCH semantics: omitting a field does not clear it.
@@ -536,16 +416,12 @@ func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.
 	}
 
 	// Tenant
-
 	if utils.IsSet(data.Tenant) {
 		tenant, tenantDiags := netboxlookup.LookupTenant(ctx, r.client, data.Tenant.ValueString())
-
 		diags.Append(tenantDiags...)
-
 		if diags.HasError() {
 			return
 		}
-
 		vrfRequest.Tenant = *netbox.NewNullableBriefTenantRequest(tenant)
 	} else if data.Tenant.IsNull() {
 		// Explicitly set to null to clear the field
@@ -553,7 +429,6 @@ func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.
 	}
 
 	// Enforce unique
-
 	if utils.IsSet(data.EnforceUnique) {
 		vrfRequest.EnforceUnique = utils.BoolPtr(data.EnforceUnique)
 	}
@@ -626,10 +501,8 @@ func (r *VRFResource) setOptionalFields(ctx context.Context, vrfRequest *netbox.
 }
 
 // mapVRFToState maps a VRF API response to the resource model.
-
 func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *VRFResourceModel, diags *diag.Diagnostics) {
 	data.ID = types.StringValue(fmt.Sprintf("%d", vrf.GetId()))
-
 	data.Name = types.StringValue(vrf.GetName())
 
 	// Route distinguisher
@@ -701,7 +574,6 @@ func (r *VRFResource) mapVRFToState(ctx context.Context, vrf *netbox.VRF, data *
 	// Tags (slug list) with empty-set preservation
 	data.Tags = utils.PopulateTagsSlugFromAPI(ctx, vrf.HasTags(), vrf.GetTags(), data.Tags)
 
-	// Custom fields
 	// Custom Fields - filter to owned fields only
 	data.CustomFields = utils.PopulateCustomFieldsFilteredToOwned(ctx, data.CustomFields, vrf.GetCustomFields(), diags)
 }
