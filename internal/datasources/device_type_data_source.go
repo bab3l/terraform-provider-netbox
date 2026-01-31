@@ -1,6 +1,5 @@
 // Package datasources contains Terraform data source implementations for the Netbox provider.
 //
-
 // This package integrates with the go-netbox OpenAPI client to provide
 // read-only access to Netbox resources via Terraform data sources.
 

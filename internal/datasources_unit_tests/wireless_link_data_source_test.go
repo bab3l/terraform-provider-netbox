@@ -10,15 +10,12 @@ import (
 )
 
 func TestWirelessLinkDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewWirelessLinkDataSource()
 
+	d := datasources.NewWirelessLinkDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestWirelessLinkDataSourceSchema(t *testing.T) {
 }
 
 func TestWirelessLinkDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewWirelessLinkDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_wireless_link")
 }
 
 func TestWirelessLinkDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewWirelessLinkDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

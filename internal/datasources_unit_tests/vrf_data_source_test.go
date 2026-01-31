@@ -10,15 +10,12 @@ import (
 )
 
 func TestVRFDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewVRFDataSource()
 
+	d := datasources.NewVRFDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestVRFDataSourceSchema(t *testing.T) {
 }
 
 func TestVRFDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVRFDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_vrf")
 }
 
 func TestVRFDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVRFDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

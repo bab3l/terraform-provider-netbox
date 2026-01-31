@@ -10,15 +10,12 @@ import (
 )
 
 func TestVirtualMachineDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewVirtualMachineDataSource()
 
+	d := datasources.NewVirtualMachineDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestVirtualMachineDataSourceSchema(t *testing.T) {
 }
 
 func TestVirtualMachineDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVirtualMachineDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_virtual_machine")
 }
 
 func TestVirtualMachineDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVirtualMachineDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

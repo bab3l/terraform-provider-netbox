@@ -10,15 +10,12 @@ import (
 )
 
 func TestModuleBayTemplateDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewModuleBayTemplateDataSource()
 
+	d := datasources.NewModuleBayTemplateDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestModuleBayTemplateDataSourceSchema(t *testing.T) {
 }
 
 func TestModuleBayTemplateDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewModuleBayTemplateDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_module_bay_template")
 }
 
 func TestModuleBayTemplateDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewModuleBayTemplateDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

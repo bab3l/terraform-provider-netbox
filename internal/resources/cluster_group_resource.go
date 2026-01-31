@@ -17,9 +17,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var _ resource.Resource = &ClusterGroupResource{}
-var _ resource.ResourceWithImportState = &ClusterGroupResource{}
-var _ resource.ResourceWithIdentity = &ClusterGroupResource{}
+var (
+	_ resource.Resource                = &ClusterGroupResource{}
+	_ resource.ResourceWithImportState = &ClusterGroupResource{}
+	_ resource.ResourceWithIdentity    = &ClusterGroupResource{}
+)
 
 func NewClusterGroupResource() resource.Resource {
 	return &ClusterGroupResource{}

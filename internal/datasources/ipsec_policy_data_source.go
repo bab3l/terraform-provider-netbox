@@ -16,7 +16,6 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-
 var (
 	_ datasource.DataSource              = &IPSecPolicyDataSource{}
 	_ datasource.DataSourceWithConfigure = &IPSecPolicyDataSource{}

@@ -1,6 +1,3 @@
-// Copyright (c) 2024 Kevin Pelzel
-// SPDX-License-Identifier: MPL-2.0
-
 package datasources
 
 import (

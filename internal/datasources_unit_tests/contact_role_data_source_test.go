@@ -10,15 +10,12 @@ import (
 )
 
 func TestContactRoleDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewContactRoleDataSource()
 
+	d := datasources.NewContactRoleDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestContactRoleDataSourceSchema(t *testing.T) {
 }
 
 func TestContactRoleDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewContactRoleDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_contact_role")
 }
 
 func TestContactRoleDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewContactRoleDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

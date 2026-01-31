@@ -10,7 +10,6 @@ import (
 )
 
 // dataSourceInfo contains metadata about a data source for testing.
-
 type dataSourceInfo struct {
 	name           string
 	factory        func() datasource.DataSource
@@ -49,7 +48,6 @@ func allDataSources() []dataSourceInfo {
 }
 
 // TestAllDataSourcesHaveSearchFields verifies all data sources have id, name, slug for searching.
-
 func TestAllDataSourcesHaveSearchFields(t *testing.T) {
 	t.Parallel()
 
@@ -117,7 +115,6 @@ func TestDataSourceReturnedFieldsAreComputed(t *testing.T) {
 }
 
 // TestDataSourceMetadataPrefix verifies all data sources have the correct type name prefix.
-
 func TestDataSourceMetadataPrefix(t *testing.T) {
 	t.Parallel()
 

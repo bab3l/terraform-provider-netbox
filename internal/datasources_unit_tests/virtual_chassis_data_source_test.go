@@ -10,15 +10,12 @@ import (
 )
 
 func TestVirtualChassisDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewVirtualChassisDataSource()
 
+	d := datasources.NewVirtualChassisDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestVirtualChassisDataSourceSchema(t *testing.T) {
 }
 
 func TestVirtualChassisDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVirtualChassisDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_virtual_chassis")
 }
 
 func TestVirtualChassisDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewVirtualChassisDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

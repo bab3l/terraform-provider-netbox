@@ -1,5 +1,3 @@
-// Package datasources provides Terraform data source implementations for NetBox objects.
-
 package datasources
 
 import (

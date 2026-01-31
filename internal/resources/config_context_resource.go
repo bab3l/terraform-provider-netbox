@@ -21,8 +21,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var _ resource.Resource = &ConfigContextResource{}
-var _ resource.ResourceWithImportState = &ConfigContextResource{}
+var (
+	_ resource.Resource                = &ConfigContextResource{}
+	_ resource.ResourceWithImportState = &ConfigContextResource{}
+)
 
 func NewConfigContextResource() resource.Resource {
 	return &ConfigContextResource{}

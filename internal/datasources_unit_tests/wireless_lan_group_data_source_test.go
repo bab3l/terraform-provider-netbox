@@ -10,15 +10,12 @@ import (
 )
 
 func TestWirelessLANGroupDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewWirelessLANGroupDataSource()
 
+	d := datasources.NewWirelessLANGroupDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestWirelessLANGroupDataSourceSchema(t *testing.T) {
 }
 
 func TestWirelessLANGroupDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewWirelessLANGroupDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_wireless_lan_group")
 }
 
 func TestWirelessLANGroupDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewWirelessLANGroupDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

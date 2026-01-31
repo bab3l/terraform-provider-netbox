@@ -1,6 +1,5 @@
 // Package datasources provides Terraform data source implementations for Netbox resources.
 //
-
 // Data sources allow Terraform configurations to read existing Netbox resources
 // by their unique identifiers or names.
 

@@ -10,15 +10,12 @@ import (
 )
 
 func TestLocationDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewLocationDataSource()
 
+	d := datasources.NewLocationDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestLocationDataSourceSchema(t *testing.T) {
 }
 
 func TestLocationDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewLocationDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_location")
 }
 
 func TestLocationDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewLocationDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

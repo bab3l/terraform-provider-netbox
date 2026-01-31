@@ -10,15 +10,12 @@ import (
 )
 
 func TestConsoleServerPortDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewConsoleServerPortDataSource()
 
+	d := datasources.NewConsoleServerPortDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestConsoleServerPortDataSourceSchema(t *testing.T) {
 }
 
 func TestConsoleServerPortDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewConsoleServerPortDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_console_server_port")
 }
 
 func TestConsoleServerPortDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewConsoleServerPortDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

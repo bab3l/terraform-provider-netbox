@@ -10,15 +10,12 @@ import (
 )
 
 func TestInventoryItemTemplateDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewInventoryItemTemplateDataSource()
 
+	d := datasources.NewInventoryItemTemplateDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestInventoryItemTemplateDataSourceSchema(t *testing.T) {
 }
 
 func TestInventoryItemTemplateDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewInventoryItemTemplateDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_inventory_item_template")
 }
 
 func TestInventoryItemTemplateDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewInventoryItemTemplateDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

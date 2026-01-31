@@ -10,15 +10,12 @@ import (
 )
 
 func TestTenantGroupDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewTenantGroupDataSource()
 
+	d := datasources.NewTenantGroupDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestTenantGroupDataSourceSchema(t *testing.T) {
 }
 
 func TestTenantGroupDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewTenantGroupDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_tenant_group")
 }
 
 func TestTenantGroupDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewTenantGroupDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

@@ -10,15 +10,12 @@ import (
 )
 
 func TestTagDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewTagDataSource()
 
+	d := datasources.NewTagDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestTagDataSourceSchema(t *testing.T) {
 }
 
 func TestTagDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewTagDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_tag")
 }
 
 func TestTagDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewTagDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

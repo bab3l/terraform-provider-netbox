@@ -1,5 +1,3 @@
-// Package datasources provides Terraform data source implementations for NetBox objects.
-
 package datasources
 
 import (
@@ -17,8 +15,10 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ datasource.DataSource = &WirelessLinkDataSource{}
-var _ datasource.DataSourceWithConfigure = &WirelessLinkDataSource{}
+var (
+	_ datasource.DataSource              = &WirelessLinkDataSource{}
+	_ datasource.DataSourceWithConfigure = &WirelessLinkDataSource{}
+)
 
 // NewWirelessLinkDataSource returns a new data source implementing wireless link lookup.
 func NewWirelessLinkDataSource() datasource.DataSource {

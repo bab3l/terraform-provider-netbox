@@ -1,6 +1,5 @@
 // Package datasources contains Terraform data source implementations for the Netbox provider.
 //
-
 // This package provides read-only access to Netbox resources for use in Terraform configurations.
 
 package datasources

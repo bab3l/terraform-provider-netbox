@@ -10,15 +10,12 @@ import (
 )
 
 func TestDeviceBayTemplateDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewDeviceBayTemplateDataSource()
 
+	d := datasources.NewDeviceBayTemplateDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestDeviceBayTemplateDataSourceSchema(t *testing.T) {
 }
 
 func TestDeviceBayTemplateDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewDeviceBayTemplateDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_device_bay_template")
 }
 
 func TestDeviceBayTemplateDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewDeviceBayTemplateDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

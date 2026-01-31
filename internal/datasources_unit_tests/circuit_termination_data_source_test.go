@@ -10,15 +10,12 @@ import (
 )
 
 func TestCircuitTerminationDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewCircuitTerminationDataSource()
 
+	d := datasources.NewCircuitTerminationDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -30,15 +27,15 @@ func TestCircuitTerminationDataSourceSchema(t *testing.T) {
 }
 
 func TestCircuitTerminationDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewCircuitTerminationDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_circuit_termination")
 }
 
 func TestCircuitTerminationDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewCircuitTerminationDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }

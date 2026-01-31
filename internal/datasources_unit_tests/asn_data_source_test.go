@@ -12,15 +12,12 @@ import (
 )
 
 func TestASNDataSourceSchema(t *testing.T) {
-
 	t.Parallel()
-	d := datasources.NewASNDataSource()
 
+	d := datasources.NewASNDataSource()
 	req := datasource.SchemaRequest{}
 	resp := &datasource.SchemaResponse{}
-
 	d.Schema(context.Background(), req, resp)
-
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Schema returned errors: %v", resp.Diagnostics)
 	}
@@ -51,15 +48,15 @@ func TestASNDataSourceSchema(t *testing.T) {
 }
 
 func TestASNDataSourceMetadata(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewASNDataSource()
 	testutil.ValidateDataSourceMetadata(t, d, "netbox", "netbox_asn")
 }
 
 func TestASNDataSourceConfigure(t *testing.T) {
-
 	t.Parallel()
+
 	d := datasources.NewASNDataSource()
 	testutil.ValidateDataSourceConfigure(t, d)
 }
