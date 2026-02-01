@@ -160,6 +160,9 @@ func (r *ModuleBayResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create module bay", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Save plan state for filter-to-owned pattern
 	planTags := data.Tags
@@ -206,14 +209,16 @@ func (r *ModuleBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 	response, httpResp, err := r.client.DcimAPI.DcimModuleBaysRetrieve(ctx, bayID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading module bay",
 			utils.FormatAPIError(fmt.Sprintf("read module bay ID %d", bayID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read module bay", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -303,6 +308,9 @@ func (r *ModuleBayResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update module bay", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Save plan state for filter-to-owned pattern
 	planTags := plan.Tags
@@ -343,13 +351,16 @@ func (r *ModuleBayResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.DcimAPI.DcimModuleBaysDestroy(ctx, bayID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting module bay",
 			utils.FormatAPIError(fmt.Sprintf("delete module bay ID %d", bayID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete module bay", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -380,6 +391,9 @@ func (r *ModuleBayResource) ImportState(ctx context.Context, req resource.Import
 				"Error importing module bay",
 				utils.FormatAPIError(fmt.Sprintf("import module bay ID %d", bayID), err, httpResp),
 			)
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import module bay", httpResp, http.StatusOK) {
 			return
 		}
 		var data ModuleBayResourceModel
@@ -446,6 +460,9 @@ func (r *ModuleBayResource) ImportState(ctx context.Context, req resource.Import
 			"Error importing module bay",
 			utils.FormatAPIError(fmt.Sprintf("import module bay ID %d", bayID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "import module bay", httpResp, http.StatusOK) {
 		return
 	}
 	var data ModuleBayResourceModel

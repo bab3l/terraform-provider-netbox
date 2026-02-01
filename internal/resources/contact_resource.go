@@ -197,8 +197,7 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 		resp.Diagnostics.AddError("Error creating contact", utils.FormatAPIError("create contact", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError("Error creating contact", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create contact", httpResp, http.StatusCreated) {
 		return
 	}
 	if contact == nil {
@@ -233,11 +232,13 @@ func (r *ContactResource) Read(ctx context.Context, req resource.ReadRequest, re
 	contact, httpResp, err := r.client.TenancyAPI.TenancyContactsRetrieve(ctx, contactID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading contact", utils.FormatAPIError("read contact", err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read contact", httpResp, http.StatusOK) {
 		return
 	}
 	// Store state tags before mapping
@@ -332,8 +333,7 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 		resp.Diagnostics.AddError("Error updating contact", utils.FormatAPIError("update contact", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating contact", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update contact", httpResp, http.StatusOK) {
 		return
 	}
 	r.mapContactToState(contact, &plan)
@@ -365,11 +365,13 @@ func (r *ContactResource) Delete(ctx context.Context, req resource.DeleteRequest
 	httpResp, err := r.client.TenancyAPI.TenancyContactsDestroy(ctx, contactID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			// Already deleted, nothing to do
+		if utils.HandleNotFound(httpResp, func() {}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting contact", utils.FormatAPIError("delete contact", err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete contact", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted contact", map[string]interface{}{

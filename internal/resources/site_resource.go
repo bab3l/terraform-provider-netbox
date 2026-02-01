@@ -263,8 +263,7 @@ func (r *SiteResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	if httpResp.StatusCode != 201 {
-		resp.Diagnostics.AddError("Error creating site", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "creating site", httpResp, http.StatusCreated) {
 		return
 	}
 
@@ -311,17 +310,15 @@ func (r *SiteResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	site, httpResp, err := r.client.DcimAPI.DcimSitesRetrieve(ctx, siteIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 
-	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-		resp.State.RemoveResource(ctx)
-		return
-	}
 	if err != nil {
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
+			return
+		}
 		resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %s", siteID), err, httpResp))
 		return
 	}
 
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error reading site", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "reading site", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -457,8 +454,7 @@ func (r *SiteResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError("Error updating site", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "updating site", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -495,18 +491,18 @@ func (r *SiteResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// Ignore 404 errors (resource already deleted)
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Site already deleted", map[string]interface{}{
 				"id": siteID,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting site", utils.FormatAPIError(fmt.Sprintf("delete site ID %s", siteID), err, httpResp))
 		return
 	}
 
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting site", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusNoContent, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "deleting site", httpResp, http.StatusNoContent) {
 		return
 	}
 }

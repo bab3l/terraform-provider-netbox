@@ -135,6 +135,9 @@ func (r *DevicePrimaryIPResource) Create(ctx context.Context, req resource.Creat
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "set device primary IPs", httpResp, http.StatusOK) {
+		return
+	}
 
 	r.mapToState(result, &data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -160,14 +163,16 @@ func (r *DevicePrimaryIPResource) Read(ctx context.Context, req resource.ReadReq
 	device, httpResp, err := r.client.DcimAPI.DcimDevicesRetrieve(ctx, deviceID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading device",
 			utils.FormatAPIError(fmt.Sprintf("read device ID %d", deviceID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read device", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -206,6 +211,9 @@ func (r *DevicePrimaryIPResource) Update(ctx context.Context, req resource.Updat
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update device primary IPs", httpResp, http.StatusOK) {
+		return
+	}
 
 	r.mapToState(result, &data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -238,13 +246,17 @@ func (r *DevicePrimaryIPResource) Delete(ctx context.Context, req resource.Delet
 		Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error clearing device primary IPs",
 			utils.FormatAPIError(fmt.Sprintf("update device ID %d", deviceID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "clear device primary IPs", httpResp, http.StatusOK) {
+		return
 	}
 }
 

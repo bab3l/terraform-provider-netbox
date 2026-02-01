@@ -236,6 +236,9 @@ func (r *InventoryItemResource) Create(ctx context.Context, req resource.CreateR
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create inventory item", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -272,14 +275,16 @@ func (r *InventoryItemResource) Read(ctx context.Context, req resource.ReadReque
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemsRetrieve(ctx, itemID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading inventory item",
 			utils.FormatAPIError(fmt.Sprintf("read inventory item ID %d", itemID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read inventory item", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -419,6 +424,9 @@ func (r *InventoryItemResource) Update(ctx context.Context, req resource.UpdateR
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update inventory item", httpResp, http.StatusOK) {
+		return
+	}
 
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
@@ -451,13 +459,16 @@ func (r *InventoryItemResource) Delete(ctx context.Context, req resource.DeleteR
 	httpResp, err := r.client.DcimAPI.DcimInventoryItemsDestroy(ctx, itemID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting inventory item",
 			utils.FormatAPIError(fmt.Sprintf("delete inventory item ID %d", itemID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete inventory item", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -557,6 +568,9 @@ func (r *InventoryItemResource) ImportState(ctx context.Context, req resource.Im
 			"Error importing inventory item",
 			utils.FormatAPIError(fmt.Sprintf("import inventory item ID %d", itemID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "import inventory item", httpResp, http.StatusOK) {
 		return
 	}
 

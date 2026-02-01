@@ -622,6 +622,9 @@ func (r *VirtualMachineResource) Create(ctx context.Context, req resource.Create
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create virtual machine", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created virtual machine", map[string]interface{}{
 		"id":   vm.GetId(),
 		"name": vm.GetName(),
@@ -677,17 +680,21 @@ func (r *VirtualMachineResource) Read(ctx context.Context, req resource.ReadRequ
 	vm, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualMachinesRetrieve(ctx, vmIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Virtual machine not found, removing from state", map[string]interface{}{
 				"id": vmID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading virtual machine",
 			utils.FormatAPIError(fmt.Sprintf("read virtual machine ID %s", vmID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read virtual machine", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -760,6 +767,9 @@ func (r *VirtualMachineResource) Update(ctx context.Context, req resource.Update
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update virtual machine", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated virtual machine", map[string]interface{}{
 		"id":   vm.GetId(),
 		"name": vm.GetName(),
@@ -815,17 +825,21 @@ func (r *VirtualMachineResource) Delete(ctx context.Context, req resource.Delete
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualMachinesDestroy(ctx, vmIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			// Already deleted, consider success
 			tflog.Debug(ctx, "Virtual machine already deleted", map[string]interface{}{
 				"id": vmID,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting virtual machine",
 			utils.FormatAPIError(fmt.Sprintf("delete virtual machine ID %s", vmID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete virtual machine", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted virtual machine", map[string]interface{}{
@@ -854,6 +868,9 @@ func (r *VirtualMachineResource) ImportState(ctx context.Context, req resource.I
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing virtual machine", utils.FormatAPIError(fmt.Sprintf("read virtual machine ID %s", parsed.ID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read virtual machine", httpResp, http.StatusOK) {
 			return
 		}
 

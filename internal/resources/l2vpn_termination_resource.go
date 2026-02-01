@@ -5,6 +5,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -133,6 +134,9 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "lookup L2VPN", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Build the API request
 	l2vpnRef := netbox.NewBriefL2VPNRequest(l2vpn.GetName(), l2vpn.GetSlug())
@@ -165,6 +169,9 @@ func (r *L2VPNTerminationResource) Create(ctx context.Context, req resource.Crea
 			"Error creating L2VPN termination",
 			utils.FormatAPIError("create L2VPN termination", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create L2VPN termination", httpResp, http.StatusCreated) {
 		return
 	}
 
@@ -204,14 +211,16 @@ func (r *L2VPNTerminationResource) Read(ctx context.Context, req resource.ReadRe
 	termination, httpResp, err := r.client.VpnAPI.VpnL2vpnTerminationsRetrieve(ctx, idInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading L2VPN termination",
 			utils.FormatAPIError("read L2VPN termination", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read L2VPN termination", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -264,6 +273,9 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "lookup L2VPN", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Build the API request
 	l2vpnRef := netbox.NewBriefL2VPNRequest(l2vpn.GetName(), l2vpn.GetSlug())
@@ -297,6 +309,9 @@ func (r *L2VPNTerminationResource) Update(ctx context.Context, req resource.Upda
 			"Error updating L2VPN termination",
 			utils.FormatAPIError("update L2VPN termination", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update L2VPN termination", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -336,7 +351,7 @@ func (r *L2VPNTerminationResource) Delete(ctx context.Context, req resource.Dele
 	httpResp, err := r.client.VpnAPI.VpnL2vpnTerminationsDestroy(ctx, idInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Already deleted
 			return
 		}
@@ -344,6 +359,9 @@ func (r *L2VPNTerminationResource) Delete(ctx context.Context, req resource.Dele
 			"Error deleting L2VPN termination",
 			utils.FormatAPIError("delete L2VPN termination", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete L2VPN termination", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -367,6 +385,9 @@ func (r *L2VPNTerminationResource) ImportState(ctx context.Context, req resource
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing L2VPN termination", utils.FormatAPIError("read L2VPN termination", err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import L2VPN termination", httpResp, http.StatusOK) {
 			return
 		}
 

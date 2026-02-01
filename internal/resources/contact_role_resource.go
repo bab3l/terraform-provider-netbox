@@ -140,8 +140,7 @@ func (r *ContactRoleResource) Create(ctx context.Context, req resource.CreateReq
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError("Error creating contact role", fmt.Sprintf("Expected HTTP 201, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create contact role", httpResp, http.StatusCreated) {
 		return
 	}
 	r.mapContactRoleToState(contactRole, &data)
@@ -173,15 +172,13 @@ func (r *ContactRoleResource) Read(ctx context.Context, req resource.ReadRequest
 	contactRole, httpResp, err := r.client.TenancyAPI.TenancyContactRolesRetrieve(ctx, contactRoleIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading contact role", utils.FormatAPIError(fmt.Sprintf("read contact role ID %s", contactRoleID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error reading contact role", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read contact role", httpResp, http.StatusOK) {
 		return
 	}
 	// Store state values before mapping
@@ -239,8 +236,7 @@ func (r *ContactRoleResource) Update(ctx context.Context, req resource.UpdateReq
 		resp.Diagnostics.AddError("Error updating contact role", utils.FormatAPIError(fmt.Sprintf("update contact role ID %s", contactRoleID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating contact role", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update contact role", httpResp, http.StatusOK) {
 		return
 	}
 	r.mapContactRoleToState(contactRole, &plan)
@@ -270,14 +266,13 @@ func (r *ContactRoleResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.TenancyAPI.TenancyContactRolesDestroy(ctx, contactRoleIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting contact role", utils.FormatAPIError(fmt.Sprintf("delete contact role ID %s", contactRoleID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting contact role", fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete contact role", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Trace(ctx, "deleted a contact role resource")
@@ -305,8 +300,7 @@ func (r *ContactRoleResource) ImportState(ctx context.Context, req resource.Impo
 			resp.Diagnostics.AddError("Error importing contact role", utils.FormatAPIError(fmt.Sprintf("read contact role ID %s", parsed.ID), err, httpResp))
 			return
 		}
-		if httpResp.StatusCode != http.StatusOK {
-			resp.Diagnostics.AddError("Error importing contact role", fmt.Sprintf("Expected HTTP 200, got: %d", httpResp.StatusCode))
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import contact role", httpResp, http.StatusOK) {
 			return
 		}
 

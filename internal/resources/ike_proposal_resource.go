@@ -196,6 +196,9 @@ func (r *IKEProposalResource) Create(ctx context.Context, req resource.CreateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create IKE proposal", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapIKEProposalToState(ctx, ike, &data, &resp.Diagnostics)
@@ -238,17 +241,21 @@ func (r *IKEProposalResource) Read(ctx context.Context, req resource.ReadRequest
 	ike, httpResp, err := r.client.VpnAPI.VpnIkeProposalsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "IKEProposal not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading IKEProposal",
 			utils.FormatAPIError("read IKE proposal", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read IKE proposal", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -344,6 +351,9 @@ func (r *IKEProposalResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update IKE proposal", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
 	planCustomFields := plan.CustomFields
@@ -397,7 +407,7 @@ func (r *IKEProposalResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.VpnAPI.VpnIkeProposalsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Already deleted
 			return
 		}
@@ -405,6 +415,9 @@ func (r *IKEProposalResource) Delete(ctx context.Context, req resource.DeleteReq
 			"Error deleting IKEProposal",
 			utils.FormatAPIError("delete IKE proposal", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete IKE proposal", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted IKEProposal", map[string]interface{}{

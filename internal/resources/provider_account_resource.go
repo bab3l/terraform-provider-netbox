@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -142,6 +143,9 @@ func (r *ProviderAccountResource) Create(ctx context.Context, req resource.Creat
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create provider account", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, providerAccount, &data, &resp.Diagnostics)
@@ -185,17 +189,21 @@ func (r *ProviderAccountResource) Read(ctx context.Context, req resource.ReadReq
 	providerAccount, httpResp, err := r.client.CircuitsAPI.CircuitsProviderAccountsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Provider account not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading provider account",
 			fmt.Sprintf("Could not read provider account: %s\nHTTP Response: %v", err.Error(), httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read provider account", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -252,6 +260,9 @@ func (r *ProviderAccountResource) Update(ctx context.Context, req resource.Updat
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update provider account", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, providerAccount, &data, &resp.Diagnostics)
@@ -295,16 +306,20 @@ func (r *ProviderAccountResource) Delete(ctx context.Context, req resource.Delet
 	httpResp, err := r.client.CircuitsAPI.CircuitsProviderAccountsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Provider account already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting provider account",
 			fmt.Sprintf("Could not delete provider account: %s\nHTTP Response: %v", err.Error(), httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete provider account", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted provider account", map[string]interface{}{
@@ -332,6 +347,9 @@ func (r *ProviderAccountResource) ImportState(ctx context.Context, req resource.
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing provider account", fmt.Sprintf("Could not read provider account: %s\nHTTP Response: %v", err.Error(), httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import provider account", httpResp, http.StatusOK) {
 			return
 		}
 

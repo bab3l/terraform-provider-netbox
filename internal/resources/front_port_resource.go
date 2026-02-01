@@ -207,6 +207,9 @@ func (r *FrontPortResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create front port", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -242,17 +245,21 @@ func (r *FrontPortResource) Read(ctx context.Context, req resource.ReadRequest, 
 	response, httpResp, err := r.client.DcimAPI.DcimFrontPortsRetrieve(ctx, portID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Front port not found, removing from state", map[string]interface{}{
 				"id": portID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading front port",
 			utils.FormatAPIError(fmt.Sprintf("read front port ID %d", portID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read front port", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -341,6 +348,9 @@ func (r *FrontPortResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update front port", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
@@ -373,7 +383,7 @@ func (r *FrontPortResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.DcimAPI.DcimFrontPortsDestroy(ctx, portID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -381,6 +391,9 @@ func (r *FrontPortResource) Delete(ctx context.Context, req resource.DeleteReque
 			"Error deleting front port",
 			utils.FormatAPIError(fmt.Sprintf("delete front port ID %d", portID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete front port", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -481,6 +494,12 @@ func (r *FrontPortResource) ImportState(ctx context.Context, req resource.Import
 			"Error importing front port",
 			utils.FormatAPIError(fmt.Sprintf("import front port ID %d", portID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "import front port", httpResp, http.StatusOK) {
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "import front port", httpResp, http.StatusOK) {
 		return
 	}
 

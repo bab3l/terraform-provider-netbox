@@ -178,6 +178,9 @@ func (r *IPAddressResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create IP address", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapIPAddressToState(ipAddress, &data)
@@ -227,14 +230,16 @@ func (r *IPAddressResource) Read(ctx context.Context, req resource.ReadRequest, 
 	ipAddress, httpResp, err := r.client.IpamAPI.IpamIpAddressesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading IP address",
 			utils.FormatAPIError(fmt.Sprintf("read IP address ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read IP address", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -314,6 +319,9 @@ func (r *IPAddressResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update IP address", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapIPAddressToState(ipAddress, &plan)
@@ -364,16 +372,20 @@ func (r *IPAddressResource) Delete(ctx context.Context, req resource.DeleteReque
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// Ignore 404 errors (resource already deleted)
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "IP address already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting IP address",
 			utils.FormatAPIError(fmt.Sprintf("delete IP address ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete IP address", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted IP address", map[string]interface{}{
@@ -407,6 +419,9 @@ func (r *IPAddressResource) ImportState(ctx context.Context, req resource.Import
 				"Error importing IP address",
 				utils.FormatAPIError(fmt.Sprintf("read IP address ID %d", id), err, httpResp),
 			)
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import IP address", httpResp, http.StatusOK) {
 			return
 		}
 

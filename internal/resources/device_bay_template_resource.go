@@ -146,6 +146,9 @@ func (r *DeviceBayTemplateResource) Create(ctx context.Context, req resource.Cre
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create device bay template", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapTemplateToModel(template, &data)
@@ -191,17 +194,21 @@ func (r *DeviceBayTemplateResource) Read(ctx context.Context, req resource.ReadR
 	template, httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesRetrieve(ctx, id32).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "DeviceBayTemplate not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading DeviceBayTemplate",
 			utils.FormatAPIError(fmt.Sprintf("read device bay template %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read device bay template", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -279,6 +286,9 @@ func (r *DeviceBayTemplateResource) Update(ctx context.Context, req resource.Upd
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update device bay template", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapTemplateToModel(template, &data)
@@ -322,16 +332,20 @@ func (r *DeviceBayTemplateResource) Delete(ctx context.Context, req resource.Del
 	httpResp, err := r.client.DcimAPI.DcimDeviceBayTemplatesDestroy(ctx, id32).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "DeviceBayTemplate already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting DeviceBayTemplate",
 			utils.FormatAPIError(fmt.Sprintf("delete device bay template %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete device bay template", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted DeviceBayTemplate", map[string]interface{}{

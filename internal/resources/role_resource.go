@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -152,6 +153,9 @@ func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, r
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create role", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created role", map[string]interface{}{
 		"id":   role.GetId(),
 		"name": role.GetName(),
@@ -194,17 +198,21 @@ func (r *RoleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	role, httpResp, err := r.client.IpamAPI.IpamRolesRetrieve(ctx, roleID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Role not found, removing from state", map[string]interface{}{
 				"id": roleID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading role",
 			utils.FormatAPIError(fmt.Sprintf("read role ID %d", roleID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read role", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -273,6 +281,9 @@ func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update role", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated role", map[string]interface{}{
 		"id":   role.GetId(),
 		"name": role.GetName(),
@@ -320,7 +331,7 @@ func (r *RoleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	httpResp, err := r.client.IpamAPI.IpamRolesDestroy(ctx, roleID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -328,6 +339,9 @@ func (r *RoleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 			"Error deleting role",
 			utils.FormatAPIError(fmt.Sprintf("delete role ID %d", roleID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete role", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted role", map[string]interface{}{
@@ -354,6 +368,9 @@ func (r *RoleResource) ImportState(ctx context.Context, req resource.ImportState
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing role", utils.FormatAPIError(fmt.Sprintf("read role ID %d", roleID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import role", httpResp, http.StatusOK) {
 			return
 		}
 		var data RoleResourceModel

@@ -145,6 +145,9 @@ func (r *InventoryItemRoleResource) Create(ctx context.Context, req resource.Cre
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create inventory item role", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -188,14 +191,16 @@ func (r *InventoryItemRoleResource) Read(ctx context.Context, req resource.ReadR
 	response, httpResp, err := r.client.DcimAPI.DcimInventoryItemRolesRetrieve(ctx, roleID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading inventory item role",
 			utils.FormatAPIError(fmt.Sprintf("read inventory item role ID %d", roleID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read inventory item role", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -276,6 +281,9 @@ func (r *InventoryItemRoleResource) Update(ctx context.Context, req resource.Upd
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update inventory item role", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	plan.Tags = planTags
@@ -313,13 +321,16 @@ func (r *InventoryItemRoleResource) Delete(ctx context.Context, req resource.Del
 	httpResp, err := r.client.DcimAPI.DcimInventoryItemRolesDestroy(ctx, roleID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting inventory item role",
 			utils.FormatAPIError(fmt.Sprintf("delete inventory item role ID %d", roleID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete inventory item role", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -344,6 +355,9 @@ func (r *InventoryItemRoleResource) ImportState(ctx context.Context, req resourc
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing inventory item role", utils.FormatAPIError(fmt.Sprintf("import inventory item role ID %d", roleID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import inventory item role", httpResp, http.StatusOK) {
 			return
 		}
 

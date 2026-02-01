@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -167,6 +168,9 @@ func (r *PrefixResource) Create(ctx context.Context, req resource.CreateRequest,
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create prefix", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapPrefixToState(ctx, prefix, &data, &resp.Diagnostics)
@@ -214,14 +218,16 @@ func (r *PrefixResource) Read(ctx context.Context, req resource.ReadRequest, res
 	prefix, httpResp, err := r.client.IpamAPI.IpamPrefixesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading prefix",
 			utils.FormatAPIError(fmt.Sprintf("read prefix ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read prefix", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -295,6 +301,9 @@ func (r *PrefixResource) Update(ctx context.Context, req resource.UpdateRequest,
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update prefix", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapPrefixToState(ctx, prefix, &data, &resp.Diagnostics)
@@ -341,7 +350,7 @@ func (r *PrefixResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	httpResp, err := r.client.IpamAPI.IpamPrefixesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -349,6 +358,9 @@ func (r *PrefixResource) Delete(ctx context.Context, req resource.DeleteRequest,
 			"Error deleting prefix",
 			utils.FormatAPIError(fmt.Sprintf("delete prefix ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete prefix", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted prefix", map[string]interface{}{
@@ -376,6 +388,9 @@ func (r *PrefixResource) ImportState(ctx context.Context, req resource.ImportSta
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing prefix", utils.FormatAPIError(fmt.Sprintf("read prefix ID %d", id), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import prefix", httpResp, http.StatusOK) {
 			return
 		}
 

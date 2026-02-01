@@ -127,6 +127,9 @@ func (r *DeviceBayResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create device bay", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapResponseToModel(ctx, db, &data, &resp.Diagnostics)
@@ -164,14 +167,16 @@ func (r *DeviceBayResource) Read(ctx context.Context, req resource.ReadRequest, 
 	db, httpResp, err := r.client.DcimAPI.DcimDeviceBaysRetrieve(ctx, dbID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading device bay",
 			utils.FormatAPIError(fmt.Sprintf("read device bay ID %d", dbID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read device bay", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -219,6 +224,9 @@ func (r *DeviceBayResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update device bay", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to state
 	r.mapResponseToModel(ctx, db, &data, &resp.Diagnostics)
@@ -251,13 +259,16 @@ func (r *DeviceBayResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.DcimAPI.DcimDeviceBaysDestroy(ctx, dbID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting device bay",
 			utils.FormatAPIError(fmt.Sprintf("delete device bay ID %d", dbID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete device bay", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -289,6 +300,9 @@ func (r *DeviceBayResource) ImportState(ctx context.Context, req resource.Import
 				"Error importing device bay",
 				utils.FormatAPIError("read device bay", err, httpResp),
 			)
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import device bay", httpResp, http.StatusOK) {
 			return
 		}
 

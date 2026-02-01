@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -169,6 +170,9 @@ func (r *ProviderResource) Create(ctx context.Context, req resource.CreateReques
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create circuit provider", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created circuit provider", map[string]interface{}{
 		"id":   provider.GetId(),
 		"name": provider.GetName(),
@@ -205,17 +209,21 @@ func (r *ProviderResource) Read(ctx context.Context, req resource.ReadRequest, r
 	provider, httpResp, err := r.client.CircuitsAPI.CircuitsProvidersRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Circuit provider not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading circuit provider",
 			utils.FormatAPIError("read circuit provider", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read circuit provider", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -291,6 +299,9 @@ func (r *ProviderResource) Update(ctx context.Context, req resource.UpdateReques
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update circuit provider", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated circuit provider", map[string]interface{}{
 		"id":   provider.GetId(),
 		"name": provider.GetName(),
@@ -328,16 +339,20 @@ func (r *ProviderResource) Delete(ctx context.Context, req resource.DeleteReques
 	httpResp, err := r.client.CircuitsAPI.CircuitsProvidersDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Circuit provider already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting circuit provider",
 			utils.FormatAPIError("delete circuit provider", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete circuit provider", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted circuit provider", map[string]interface{}{
@@ -365,6 +380,9 @@ func (r *ProviderResource) ImportState(ctx context.Context, req resource.ImportS
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing circuit provider", utils.FormatAPIError("read circuit provider", err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import circuit provider", httpResp, http.StatusOK) {
 			return
 		}
 

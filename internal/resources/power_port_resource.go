@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	lookup "github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -188,6 +189,9 @@ func (r *PowerPortResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create power port", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -229,14 +233,16 @@ func (r *PowerPortResource) Read(ctx context.Context, req resource.ReadRequest, 
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPortsRetrieve(ctx, portID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading power port",
 			utils.FormatAPIError(fmt.Sprintf("read power port ID %d", portID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read power port", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -337,6 +343,9 @@ func (r *PowerPortResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update power port", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -371,13 +380,16 @@ func (r *PowerPortResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.DcimAPI.DcimPowerPortsDestroy(ctx, portID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting power port",
 			utils.FormatAPIError(fmt.Sprintf("delete power port ID %d", portID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete power port", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -402,6 +414,9 @@ func (r *PowerPortResource) ImportState(ctx context.Context, req resource.Import
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing power port", utils.FormatAPIError(fmt.Sprintf("import power port ID %d", portID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import power port", httpResp, http.StatusOK) {
 			return
 		}
 

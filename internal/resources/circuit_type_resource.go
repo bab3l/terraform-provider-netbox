@@ -202,17 +202,21 @@ func (r *CircuitTypeResource) Read(ctx context.Context, req resource.ReadRequest
 	circuitType, httpResp, err := r.client.CircuitsAPI.CircuitsCircuitTypesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Circuit type not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading circuit type",
 			utils.FormatAPIError("read circuit type", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read circuit type", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -309,16 +313,20 @@ func (r *CircuitTypeResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.CircuitsAPI.CircuitsCircuitTypesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Circuit type already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting circuit type",
 			utils.FormatAPIError("delete circuit type", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete circuit type", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted circuit type", map[string]interface{}{

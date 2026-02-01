@@ -319,17 +319,21 @@ func (r *ConfigContextResource) Read(ctx context.Context, req resource.ReadReque
 	result, httpResp, err := r.client.ExtrasAPI.ExtrasConfigContextsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Warn(ctx, "Config context not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading config context",
 			utils.FormatAPIError("read config context", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read config context", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -477,14 +481,18 @@ func (r *ConfigContextResource) Delete(ctx context.Context, req resource.DeleteR
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		// If the resource was already deleted (404), consider it a success
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Config context already deleted", map[string]interface{}{"id": id})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting config context",
 			utils.FormatAPIError("delete config context", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete config context", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Trace(ctx, "Deleted config context", map[string]interface{}{

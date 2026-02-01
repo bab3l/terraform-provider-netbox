@@ -219,6 +219,9 @@ func (r *InventoryItemTemplateResource) Create(ctx context.Context, req resource
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create inventory item template", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapToState(result, &data)
@@ -251,14 +254,16 @@ func (r *InventoryItemTemplateResource) Read(ctx context.Context, req resource.R
 	result, httpResp, err := r.client.DcimAPI.DcimInventoryItemTemplatesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading inventory item template",
 			utils.FormatAPIError(fmt.Sprintf("read inventory item template ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read inventory item template", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -414,6 +419,9 @@ func (r *InventoryItemTemplateResource) Update(ctx context.Context, req resource
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update inventory item template", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Preserve display_name since it's computed but might change when other attributes update
 	// Map response to state
@@ -448,13 +456,16 @@ func (r *InventoryItemTemplateResource) Delete(ctx context.Context, req resource
 	httpResp, err := r.client.DcimAPI.DcimInventoryItemTemplatesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting inventory item template",
 			utils.FormatAPIError(fmt.Sprintf("delete inventory item template ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete inventory item template", httpResp, http.StatusNoContent) {
 		return
 	}
 }

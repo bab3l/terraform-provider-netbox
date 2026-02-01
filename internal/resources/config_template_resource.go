@@ -156,17 +156,21 @@ func (r *ConfigTemplateResource) Read(ctx context.Context, req resource.ReadRequ
 	response, httpResp, err := r.client.ExtrasAPI.ExtrasConfigTemplatesRetrieve(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Config template not found, removing from state", map[string]interface{}{
 				"id": templateID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading config template",
 			utils.FormatAPIError(fmt.Sprintf("read config template ID %d", templateID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, fmt.Sprintf("read config template ID %d", templateID), httpResp, http.StatusOK) {
 		return
 	}
 
@@ -230,14 +234,16 @@ func (r *ConfigTemplateResource) Delete(ctx context.Context, req resource.Delete
 	httpResp, err := r.client.ExtrasAPI.ExtrasConfigTemplatesDestroy(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			// Resource already deleted
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting config template",
 			utils.FormatAPIError(fmt.Sprintf("delete config template ID %d", templateID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, fmt.Sprintf("delete config template ID %d", templateID), httpResp, http.StatusNoContent) {
 		return
 	}
 }

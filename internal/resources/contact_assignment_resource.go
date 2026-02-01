@@ -207,6 +207,9 @@ func (r *ContactAssignmentResource) Create(ctx context.Context, req resource.Cre
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create contact assignment", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapResponseToState(assignment, &data)
@@ -244,17 +247,21 @@ func (r *ContactAssignmentResource) Read(ctx context.Context, req resource.ReadR
 	assignment, httpResp, err := r.client.TenancyAPI.TenancyContactAssignmentsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Info(ctx, "Contact assignment not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading contact assignment",
 			utils.FormatAPIError("read contact assignment", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read contact assignment", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -371,6 +378,9 @@ func (r *ContactAssignmentResource) Update(ctx context.Context, req resource.Upd
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update contact assignment", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to state
 	r.mapResponseToState(assignment, &plan)
@@ -409,16 +419,20 @@ func (r *ContactAssignmentResource) Delete(ctx context.Context, req resource.Del
 	httpResp, err := r.client.TenancyAPI.TenancyContactAssignmentsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Info(ctx, "Contact assignment already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting contact assignment",
 			utils.FormatAPIError("delete contact assignment", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete contact assignment", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted contact assignment", map[string]interface{}{
@@ -452,6 +466,9 @@ func (r *ContactAssignmentResource) ImportState(ctx context.Context, req resourc
 				"Error importing contact assignment",
 				utils.FormatAPIError("read contact assignment", err, httpResp),
 			)
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import contact assignment", httpResp, http.StatusOK) {
 			return
 		}
 

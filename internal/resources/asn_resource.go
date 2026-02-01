@@ -185,17 +185,21 @@ func (r *ASNResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	asn, httpResp, err := r.client.IpamAPI.IpamAsnsRetrieve(ctx, asnID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "ASN not found, removing from state", map[string]interface{}{
 				"id": asnID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading ASN",
 			utils.FormatAPIError(fmt.Sprintf("read ASN ID %d", asnID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read ASN", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -294,14 +298,16 @@ func (r *ASNResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	httpResp, err := r.client.IpamAPI.IpamAsnsDestroy(ctx, asnID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			// Resource already deleted
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting ASN",
 			utils.FormatAPIError(fmt.Sprintf("delete ASN ID %d", asnID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete ASN", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted ASN", map[string]interface{}{

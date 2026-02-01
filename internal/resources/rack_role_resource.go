@@ -154,11 +154,7 @@ func (r *RackRoleResource) Create(ctx context.Context, req resource.CreateReques
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError(
-			"Error creating rack role",
-			fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusCreated, httpResp.StatusCode),
-		)
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create rack role", httpResp, http.StatusCreated) {
 		return
 	}
 
@@ -206,9 +202,8 @@ func (r *RackRoleResource) Read(ctx context.Context, req resource.ReadRequest, r
 	rackRole, httpResp, err := r.client.DcimAPI.DcimRackRolesRetrieve(ctx, rackRoleIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			// Rack role no longer exists, remove from state
-			resp.State.RemoveResource(ctx)
 			return
 		}
 		resp.Diagnostics.AddError(
@@ -217,11 +212,7 @@ func (r *RackRoleResource) Read(ctx context.Context, req resource.ReadRequest, r
 		)
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError(
-			"Error reading rack role",
-			fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode),
-		)
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "reading rack role", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -303,11 +294,7 @@ func (r *RackRoleResource) Update(ctx context.Context, req resource.UpdateReques
 		)
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError(
-			"Error updating rack role",
-			fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode),
-		)
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "updating rack role", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -355,7 +342,7 @@ func (r *RackRoleResource) Delete(ctx context.Context, req resource.DeleteReques
 	httpResp, err := r.client.DcimAPI.DcimRackRolesDestroy(ctx, rackRoleIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
@@ -364,11 +351,7 @@ func (r *RackRoleResource) Delete(ctx context.Context, req resource.DeleteReques
 		)
 		return
 	}
-	if httpResp.StatusCode != 204 {
-		resp.Diagnostics.AddError(
-			"Error deleting rack role",
-			fmt.Sprintf("Expected HTTP 204, got: %d", httpResp.StatusCode),
-		)
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "deleting rack role", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Trace(ctx, "deleted a rack role resource")

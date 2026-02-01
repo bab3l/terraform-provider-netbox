@@ -171,6 +171,9 @@ func (r *IKEPolicyResource) Create(ctx context.Context, req resource.CreateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create IKE policy", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapIKEPolicyToState(ctx, ike, &data, &resp.Diagnostics)
@@ -213,17 +216,21 @@ func (r *IKEPolicyResource) Read(ctx context.Context, req resource.ReadRequest, 
 	ike, httpResp, err := r.client.VpnAPI.VpnIkePoliciesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "IKEPolicy not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading IKEPolicy",
 			utils.FormatAPIError("read IKE policy", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read IKE policy", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -293,6 +300,9 @@ func (r *IKEPolicyResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update IKE policy", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
 	planCustomFields := plan.CustomFields
@@ -346,7 +356,7 @@ func (r *IKEPolicyResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.VpnAPI.VpnIkePoliciesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Already deleted
 			return
 		}
@@ -354,6 +364,9 @@ func (r *IKEPolicyResource) Delete(ctx context.Context, req resource.DeleteReque
 			"Error deleting IKEPolicy",
 			utils.FormatAPIError("delete IKE policy", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete IKE policy", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted IKEPolicy", map[string]interface{}{

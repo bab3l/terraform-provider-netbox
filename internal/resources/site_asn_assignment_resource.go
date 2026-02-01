@@ -129,6 +129,9 @@ func (r *SiteASNAssignmentResource) Create(ctx context.Context, req resource.Cre
 		resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %d", siteID), err, httpResp))
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read site", httpResp, http.StatusOK) {
+		return
+	}
 	data.Site = utils.UpdateReferenceAttribute(data.Site, site.GetName(), site.GetSlug(), site.GetId())
 
 	data.ID = types.StringValue(fmt.Sprintf("%d:%d", siteID, asnID))
@@ -150,11 +153,13 @@ func (r *SiteASNAssignmentResource) Read(ctx context.Context, req resource.ReadR
 	site, httpResp, err := r.client.DcimAPI.DcimSitesRetrieve(ctx, siteID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %d", siteID), err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read site", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -199,6 +204,9 @@ func (r *SiteASNAssignmentResource) Update(ctx context.Context, req resource.Upd
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %d", newSiteID), err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read site", httpResp, http.StatusOK) {
 		return
 	}
 	plan.Site = utils.UpdateReferenceAttribute(plan.Site, site.GetName(), site.GetSlug(), site.GetId())
@@ -288,7 +296,7 @@ func (r *SiteASNAssignmentResource) updateSiteASNs(ctx context.Context, siteID i
 	site, httpResp, err := r.client.DcimAPI.DcimSitesRetrieve(ctx, siteID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		diags.AddError("Error reading site", utils.FormatAPIError(fmt.Sprintf("read site ID %d", siteID), err, httpResp))

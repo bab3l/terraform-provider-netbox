@@ -151,6 +151,9 @@ func (r *IPSecPolicyResource) Create(ctx context.Context, req resource.CreateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create IPSec policy", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapIPSecPolicyToState(ctx, ipsec, &data, &resp.Diagnostics)
@@ -193,17 +196,21 @@ func (r *IPSecPolicyResource) Read(ctx context.Context, req resource.ReadRequest
 	ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecPoliciesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "IPSecPolicy not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading IPSecPolicy",
 			utils.FormatAPIError("read IPSec policy", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read IPSec policy", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -281,6 +288,9 @@ func (r *IPSecPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update IPSec policy", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
 	planCustomFields := plan.CustomFields
@@ -334,7 +344,7 @@ func (r *IPSecPolicyResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.VpnAPI.VpnIpsecPoliciesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Already deleted
 			return
 		}
@@ -342,6 +352,9 @@ func (r *IPSecPolicyResource) Delete(ctx context.Context, req resource.DeleteReq
 			"Error deleting IPSecPolicy",
 			utils.FormatAPIError("delete IPSec policy", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete IPSec policy", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted IPSecPolicy", map[string]interface{}{
@@ -370,6 +383,9 @@ func (r *IPSecPolicyResource) ImportState(ctx context.Context, req resource.Impo
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing IPSecPolicy", utils.FormatAPIError("read IPSec policy", err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import IPSec policy", httpResp, http.StatusOK) {
 			return
 		}
 

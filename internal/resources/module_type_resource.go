@@ -188,6 +188,9 @@ func (r *ModuleTypeResource) Create(ctx context.Context, req resource.CreateRequ
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create module type", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -226,14 +229,16 @@ func (r *ModuleTypeResource) Read(ctx context.Context, req resource.ReadRequest,
 	response, httpResp, err := r.client.DcimAPI.DcimModuleTypesRetrieve(ctx, typeID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading module type",
 			utils.FormatAPIError(fmt.Sprintf("read module type ID %d", typeID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read module type", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -327,6 +332,9 @@ func (r *ModuleTypeResource) Update(ctx context.Context, req resource.UpdateRequ
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update module type", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -361,13 +369,16 @@ func (r *ModuleTypeResource) Delete(ctx context.Context, req resource.DeleteRequ
 	httpResp, err := r.client.DcimAPI.DcimModuleTypesDestroy(ctx, typeID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting module type",
 			utils.FormatAPIError(fmt.Sprintf("delete module type ID %d", typeID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete module type", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -392,6 +403,9 @@ func (r *ModuleTypeResource) ImportState(ctx context.Context, req resource.Impor
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing module type", utils.FormatAPIError(fmt.Sprintf("import module type ID %d", typeID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import module type", httpResp, http.StatusOK) {
 			return
 		}
 

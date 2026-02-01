@@ -134,6 +134,9 @@ func (r *VirtualChassisResource) Create(ctx context.Context, req resource.Create
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create virtual chassis", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapResponseToModel(ctx, vc, &data, &resp.Diagnostics)
@@ -174,14 +177,16 @@ func (r *VirtualChassisResource) Read(ctx context.Context, req resource.ReadRequ
 	vc, httpResp, err := r.client.DcimAPI.DcimVirtualChassisRetrieve(ctx, vcID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading virtual chassis",
 			utils.FormatAPIError(fmt.Sprintf("read virtual chassis ID %d", vcID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read virtual chassis", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -233,6 +238,9 @@ func (r *VirtualChassisResource) Update(ctx context.Context, req resource.Update
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update virtual chassis", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to state
 	r.mapResponseToModel(ctx, vc, &plan, &resp.Diagnostics)
@@ -268,13 +276,16 @@ func (r *VirtualChassisResource) Delete(ctx context.Context, req resource.Delete
 	httpResp, err := r.client.DcimAPI.DcimVirtualChassisDestroy(ctx, vcID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting virtual chassis",
 			utils.FormatAPIError(fmt.Sprintf("delete virtual chassis ID %d", vcID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete virtual chassis", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -300,6 +311,9 @@ func (r *VirtualChassisResource) ImportState(ctx context.Context, req resource.I
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing virtual chassis", utils.FormatAPIError(fmt.Sprintf("read virtual chassis ID %d", vcID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read virtual chassis", httpResp, http.StatusOK) {
 			return
 		}
 

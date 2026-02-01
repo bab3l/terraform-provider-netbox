@@ -228,14 +228,16 @@ func (r *ASNRangeResource) Read(ctx context.Context, req resource.ReadRequest, r
 	asnRange, httpResp, err := r.client.IpamAPI.IpamAsnRangesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading ASNRange",
 			utils.FormatAPIError(fmt.Sprintf("read ASNRange ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read ASNRange", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -378,14 +380,16 @@ func (r *ASNRangeResource) Delete(ctx context.Context, req resource.DeleteReques
 	httpResp, err := r.client.IpamAPI.IpamAsnRangesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			// Resource already deleted
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting ASNRange",
 			utils.FormatAPIError(fmt.Sprintf("delete ASNRange ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete ASNRange", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted ASNRange", map[string]interface{}{

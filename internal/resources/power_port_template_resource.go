@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -175,6 +176,9 @@ func (r *PowerPortTemplateResource) Create(ctx context.Context, req resource.Cre
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create power port template", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(response, &data)
@@ -199,17 +203,21 @@ func (r *PowerPortTemplateResource) Read(ctx context.Context, req resource.ReadR
 	response, httpResp, err := r.client.DcimAPI.DcimPowerPortTemplatesRetrieve(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Power port template not found, removing from state", map[string]interface{}{
 				"id": templateID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading power port template",
 			utils.FormatAPIError(fmt.Sprintf("read power port template ID %d", templateID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read power port template", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -286,6 +294,9 @@ func (r *PowerPortTemplateResource) Update(ctx context.Context, req resource.Upd
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update power port template", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(response, &data)
@@ -306,7 +317,7 @@ func (r *PowerPortTemplateResource) Delete(ctx context.Context, req resource.Del
 	httpResp, err := r.client.DcimAPI.DcimPowerPortTemplatesDestroy(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -314,6 +325,9 @@ func (r *PowerPortTemplateResource) Delete(ctx context.Context, req resource.Del
 			"Error deleting power port template",
 			utils.FormatAPIError(fmt.Sprintf("delete power port template ID %d", templateID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete power port template", httpResp, http.StatusNoContent) {
 		return
 	}
 }

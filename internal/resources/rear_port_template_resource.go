@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -177,6 +178,9 @@ func (r *RearPortTemplateResource) Create(ctx context.Context, req resource.Crea
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create rear port template", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(response, &data)
@@ -200,17 +204,21 @@ func (r *RearPortTemplateResource) Read(ctx context.Context, req resource.ReadRe
 	response, httpResp, err := r.client.DcimAPI.DcimRearPortTemplatesRetrieve(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Rear port template not found, removing from state", map[string]interface{}{
 				"id": templateID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading rear port template",
 			utils.FormatAPIError(fmt.Sprintf("read rear port template ID %d", templateID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read rear port template", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -276,6 +284,9 @@ func (r *RearPortTemplateResource) Update(ctx context.Context, req resource.Upda
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update rear port template", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(response, &data)
@@ -296,7 +307,7 @@ func (r *RearPortTemplateResource) Delete(ctx context.Context, req resource.Dele
 	httpResp, err := r.client.DcimAPI.DcimRearPortTemplatesDestroy(ctx, templateID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -304,6 +315,9 @@ func (r *RearPortTemplateResource) Delete(ctx context.Context, req resource.Dele
 			"Error deleting rear port template",
 			utils.FormatAPIError(fmt.Sprintf("delete rear port template ID %d", templateID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete rear port template", httpResp, http.StatusNoContent) {
 		return
 	}
 }

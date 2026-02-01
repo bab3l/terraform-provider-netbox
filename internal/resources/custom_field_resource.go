@@ -240,6 +240,9 @@ func (r *CustomFieldResource) Create(ctx context.Context, req resource.CreateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create custom field", httpResp, http.StatusCreated) {
+		return
+	}
 
 	tflog.Debug(ctx, "Created custom field", map[string]interface{}{
 		"id":   customField.GetId(),
@@ -282,17 +285,21 @@ func (r *CustomFieldResource) Read(ctx context.Context, req resource.ReadRequest
 	customField, httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldsRetrieve(ctx, customFieldID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Custom field not found, removing from state", map[string]interface{}{
 				"id": customFieldID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading custom field",
 			utils.FormatAPIError(fmt.Sprintf("read custom field ID %d", customFieldID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read custom field", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -346,6 +353,9 @@ func (r *CustomFieldResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update custom field", httpResp, http.StatusOK) {
+		return
+	}
 
 	tflog.Debug(ctx, "Updated custom field", map[string]interface{}{
 		"id":   customField.GetId(),
@@ -389,7 +399,7 @@ func (r *CustomFieldResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.ExtrasAPI.ExtrasCustomFieldsDestroy(ctx, customFieldID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -397,6 +407,9 @@ func (r *CustomFieldResource) Delete(ctx context.Context, req resource.DeleteReq
 			"Error deleting custom field",
 			utils.FormatAPIError(fmt.Sprintf("delete custom field ID %d", customFieldID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete custom field", httpResp, http.StatusNoContent) {
 		return
 	}
 

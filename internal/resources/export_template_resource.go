@@ -179,6 +179,9 @@ func (r *ExportTemplateResource) Create(ctx context.Context, req resource.Create
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create export template", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapResponseToState(ctx, exportTemplate, &data, &resp.Diagnostics)
@@ -213,14 +216,16 @@ func (r *ExportTemplateResource) Read(ctx context.Context, req resource.ReadRequ
 	exportTemplate, httpResp, err := r.client.ExtrasAPI.ExtrasExportTemplatesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading export template",
 			utils.FormatAPIError("read export template", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read export template", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -300,6 +305,9 @@ func (r *ExportTemplateResource) Update(ctx context.Context, req resource.Update
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update export template", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to state
 	r.mapResponseToState(ctx, exportTemplate, &data, &resp.Diagnostics)
@@ -333,13 +341,16 @@ func (r *ExportTemplateResource) Delete(ctx context.Context, req resource.Delete
 	httpResp, err := r.client.ExtrasAPI.ExtrasExportTemplatesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting export template",
 			utils.FormatAPIError("delete export template", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete export template", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted export template", map[string]interface{}{

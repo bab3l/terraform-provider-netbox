@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -143,6 +144,9 @@ func (r *VLANGroupResource) Create(ctx context.Context, req resource.CreateReque
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create VLAN Group", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created VLAN Group", map[string]interface{}{
 		"id":   vlanGroup.GetId(),
 		"name": vlanGroup.GetName(),
@@ -183,17 +187,21 @@ func (r *VLANGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	vlanGroup, httpResp, err := r.client.IpamAPI.IpamVlanGroupsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "VLAN Group not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading VLAN Group",
 			utils.FormatAPIError(fmt.Sprintf("read VLAN Group ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read VLAN Group", httpResp, http.StatusOK) {
 		return
 	}
 	tflog.Debug(ctx, "Read VLAN Group", map[string]interface{}{
@@ -256,6 +264,9 @@ func (r *VLANGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update VLAN Group", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated VLAN Group", map[string]interface{}{
 		"id":   vlanGroup.GetId(),
 		"name": vlanGroup.GetName(),
@@ -297,16 +308,20 @@ func (r *VLANGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.IpamAPI.IpamVlanGroupsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "VLAN Group already deleted", map[string]interface{}{
 				"id": id,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting VLAN Group",
 			utils.FormatAPIError(fmt.Sprintf("delete VLAN Group ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete VLAN Group", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted VLAN Group", map[string]interface{}{
@@ -334,6 +349,9 @@ func (r *VLANGroupResource) ImportState(ctx context.Context, req resource.Import
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing VLAN Group", utils.FormatAPIError(fmt.Sprintf("read VLAN Group ID %d", id), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read VLAN Group", httpResp, http.StatusOK) {
 			return
 		}
 

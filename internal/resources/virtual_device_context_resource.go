@@ -219,6 +219,9 @@ func (r *VirtualDeviceContextResource) Create(ctx context.Context, req resource.
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create virtual device context", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapToState(ctx, result, &data, &resp.Diagnostics)
@@ -258,14 +261,16 @@ func (r *VirtualDeviceContextResource) Read(ctx context.Context, req resource.Re
 	result, httpResp, err := r.client.DcimAPI.DcimVirtualDeviceContextsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading virtual device context",
 			utils.FormatAPIError(fmt.Sprintf("read virtual device context ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read virtual device context", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -398,6 +403,9 @@ func (r *VirtualDeviceContextResource) Update(ctx context.Context, req resource.
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update virtual device context", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Store plan's custom_fields to filter the response
 	planCustomFields := plan.CustomFields
@@ -444,13 +452,16 @@ func (r *VirtualDeviceContextResource) Delete(ctx context.Context, req resource.
 	httpResp, err := r.client.DcimAPI.DcimVirtualDeviceContextsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting virtual device context",
 			utils.FormatAPIError(fmt.Sprintf("delete virtual device context ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete virtual device context", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -476,6 +487,9 @@ func (r *VirtualDeviceContextResource) ImportState(ctx context.Context, req reso
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing virtual device context", utils.FormatAPIError(fmt.Sprintf("read virtual device context ID %d", id), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read virtual device context", httpResp, http.StatusOK) {
 			return
 		}
 

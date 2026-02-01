@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -141,6 +142,9 @@ func (r *RIRResource) Create(ctx context.Context, req resource.CreateRequest, re
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create RIR", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapRIRToState(ctx, rir, &data, &resp.Diagnostics)
@@ -184,14 +188,16 @@ func (r *RIRResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	rir, httpResp, err := r.client.IpamAPI.IpamRirsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading RIR",
 			utils.FormatAPIError(fmt.Sprintf("read RIR ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read RIR", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -273,6 +279,9 @@ func (r *RIRResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update RIR", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to model
 	r.mapRIRToState(ctx, rir, &data, &resp.Diagnostics)
@@ -316,7 +325,7 @@ func (r *RIRResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	httpResp, err := r.client.IpamAPI.IpamRirsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -324,6 +333,9 @@ func (r *RIRResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 			"Error deleting RIR",
 			utils.FormatAPIError(fmt.Sprintf("delete RIR ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete RIR", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted RIR", map[string]interface{}{
@@ -351,6 +363,9 @@ func (r *RIRResource) ImportState(ctx context.Context, req resource.ImportStateR
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing RIR", utils.FormatAPIError(fmt.Sprintf("read RIR ID %d", id), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import RIR", httpResp, http.StatusOK) {
 			return
 		}
 

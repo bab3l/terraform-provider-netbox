@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/netboxlookup"
@@ -155,6 +156,9 @@ func (r *ProviderNetworkResource) Create(ctx context.Context, req resource.Creat
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create provider network", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created provider network", map[string]interface{}{
 		"id":   pn.GetId(),
 		"name": pn.GetName(),
@@ -197,17 +201,21 @@ func (r *ProviderNetworkResource) Read(ctx context.Context, req resource.ReadReq
 	pn, httpResp, err := r.client.CircuitsAPI.CircuitsProviderNetworksRetrieve(ctx, pnID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Provider network not found, removing from state", map[string]interface{}{
 				"id": pnID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading provider network",
 			utils.FormatAPIError(fmt.Sprintf("read provider network ID %d", pnID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read provider network", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -263,6 +271,9 @@ func (r *ProviderNetworkResource) Update(ctx context.Context, req resource.Updat
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update provider network", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated provider network", map[string]interface{}{
 		"id":   pn.GetId(),
 		"name": pn.GetName(),
@@ -306,7 +317,7 @@ func (r *ProviderNetworkResource) Delete(ctx context.Context, req resource.Delet
 	httpResp, err := r.client.CircuitsAPI.CircuitsProviderNetworksDestroy(ctx, pnID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Resource already deleted
 			return
 		}
@@ -314,6 +325,9 @@ func (r *ProviderNetworkResource) Delete(ctx context.Context, req resource.Delet
 			"Error deleting provider network",
 			utils.FormatAPIError(fmt.Sprintf("delete provider network ID %d", pnID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete provider network", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted provider network", map[string]interface{}{
@@ -341,6 +355,9 @@ func (r *ProviderNetworkResource) ImportState(ctx context.Context, req resource.
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing provider network", utils.FormatAPIError(fmt.Sprintf("read provider network ID %d", pnID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import provider network", httpResp, http.StatusOK) {
 			return
 		}
 

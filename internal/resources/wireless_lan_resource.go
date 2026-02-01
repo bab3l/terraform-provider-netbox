@@ -237,6 +237,9 @@ func (r *WirelessLANResource) Create(ctx context.Context, req resource.CreateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create wireless LAN", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -284,14 +287,16 @@ func (r *WirelessLANResource) Read(ctx context.Context, req resource.ReadRequest
 	response, httpResp, err := r.client.WirelessAPI.WirelessWirelessLansRetrieve(ctx, wlanID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading wireless LAN",
 			utils.FormatAPIError(fmt.Sprintf("read wireless LAN ID %d", wlanID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read wireless LAN", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -432,6 +437,9 @@ func (r *WirelessLANResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update wireless LAN", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Preserve sensitive field from plan AND store plan custom fields/tags before mapping
 	planTags := plan.Tags
@@ -483,13 +491,16 @@ func (r *WirelessLANResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.WirelessAPI.WirelessWirelessLansDestroy(ctx, wlanID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting wireless LAN",
 			utils.FormatAPIError(fmt.Sprintf("delete wireless LAN ID %d", wlanID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete wireless LAN", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -515,6 +526,9 @@ func (r *WirelessLANResource) ImportState(ctx context.Context, req resource.Impo
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing wireless LAN", utils.FormatAPIError(fmt.Sprintf("import wireless LAN ID %d", wlanID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "read wireless LAN", httpResp, http.StatusOK) {
 			return
 		}
 

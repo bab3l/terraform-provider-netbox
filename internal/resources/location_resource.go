@@ -179,11 +179,7 @@ func (r *LocationResource) Create(ctx context.Context, req resource.CreateReques
 		)
 		return
 	}
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError(
-			"Error creating location",
-			fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusCreated, httpResp.StatusCode),
-		)
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create location", httpResp, http.StatusCreated) {
 		return
 	}
 
@@ -219,8 +215,7 @@ func (r *LocationResource) Read(ctx context.Context, req resource.ReadRequest, r
 	location, httpResp, err := r.client.DcimAPI.DcimLocationsRetrieve(ctx, locationIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
@@ -230,11 +225,7 @@ func (r *LocationResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError(
-			"Error reading location",
-			fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode),
-		)
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read location", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -343,11 +334,7 @@ func (r *LocationResource) Update(ctx context.Context, req resource.UpdateReques
 		)
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError(
-			"Error updating location",
-			fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode),
-		)
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update location", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -383,7 +370,7 @@ func (r *LocationResource) Delete(ctx context.Context, req resource.DeleteReques
 	httpResp, err := r.client.DcimAPI.DcimLocationsDestroy(ctx, locationIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {}) {
 			return
 		}
 		resp.Diagnostics.AddError(
@@ -392,11 +379,7 @@ func (r *LocationResource) Delete(ctx context.Context, req resource.DeleteReques
 		)
 		return
 	}
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError(
-			"Error deleting location",
-			fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusNoContent, httpResp.StatusCode),
-		)
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete location", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Trace(ctx, "deleted a location resource")

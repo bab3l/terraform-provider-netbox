@@ -210,8 +210,7 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 		resp.Diagnostics.AddError("Error creating webhook", utils.FormatAPIError("create webhook", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError("Error creating webhook", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusCreated, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create webhook", httpResp, http.StatusCreated) {
 		return
 	}
 	if webhook == nil {
@@ -254,11 +253,13 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 	webhook, httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksRetrieve(ctx, webhookID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading webhook", utils.FormatAPIError("read webhook", err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read webhook", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -361,8 +362,7 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 		resp.Diagnostics.AddError("Error updating webhook", utils.FormatAPIError("update webhook", err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating webhook", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update webhook", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -400,11 +400,13 @@ func (r *WebhookResource) Delete(ctx context.Context, req resource.DeleteRequest
 	httpResp, err := r.client.ExtrasAPI.ExtrasWebhooksDestroy(ctx, webhookID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			// Already deleted, nothing to do
+		if utils.HandleNotFound(httpResp, func() {}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting webhook", utils.FormatAPIError("delete webhook", err, httpResp))
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete webhook", httpResp, http.StatusNoContent) {
 		return
 	}
 

@@ -170,6 +170,9 @@ func (r *IPSecProposalResource) Create(ctx context.Context, req resource.CreateR
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create IPSec proposal", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapIPSecProposalToState(ctx, ipsec, &data, &resp.Diagnostics)
@@ -212,17 +215,21 @@ func (r *IPSecProposalResource) Read(ctx context.Context, req resource.ReadReque
 	ipsec, httpResp, err := r.client.VpnAPI.VpnIpsecProposalsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "IPSecProposal not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading IPSecProposal",
 			utils.FormatAPIError("read IPSec proposal", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read IPSec proposal", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -300,6 +307,9 @@ func (r *IPSecProposalResource) Update(ctx context.Context, req resource.UpdateR
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update IPSec proposal", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Save the plan's custom fields before mapping (for filter-to-owned pattern)
 	planCustomFields := plan.CustomFields
@@ -353,7 +363,7 @@ func (r *IPSecProposalResource) Delete(ctx context.Context, req resource.DeleteR
 	httpResp, err := r.client.VpnAPI.VpnIpsecProposalsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Already deleted
 			return
 		}
@@ -361,6 +371,9 @@ func (r *IPSecProposalResource) Delete(ctx context.Context, req resource.DeleteR
 			"Error deleting IPSecProposal",
 			utils.FormatAPIError("delete IPSec proposal", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete IPSec proposal", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted IPSecProposal", map[string]interface{}{
@@ -389,6 +402,9 @@ func (r *IPSecProposalResource) ImportState(ctx context.Context, req resource.Im
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing IPSecProposal", utils.FormatAPIError("read IPSec proposal", err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import IPSec proposal", httpResp, http.StatusOK) {
 			return
 		}
 

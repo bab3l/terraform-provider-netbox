@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/bab3l/go-netbox"
 	nbschema "github.com/bab3l/terraform-provider-netbox/internal/schema"
@@ -152,6 +153,9 @@ func (r *JournalEntryResource) Create(ctx context.Context, req resource.CreateRe
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create journal entry", httpResp, http.StatusCreated) {
+		return
+	}
 	tflog.Debug(ctx, "Created Journal Entry", map[string]interface{}{
 		"id": journalEntry.GetId(),
 	})
@@ -183,17 +187,21 @@ func (r *JournalEntryResource) Read(ctx context.Context, req resource.ReadReques
 	journalEntry, httpResp, err := r.client.ExtrasAPI.ExtrasJournalEntriesRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Journal Entry not found, removing from state", map[string]interface{}{
 				"id": id,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error Reading Journal Entry",
 			utils.FormatAPIError("reading journal entry", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read journal entry", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -261,6 +269,9 @@ func (r *JournalEntryResource) Update(ctx context.Context, req resource.UpdateRe
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update journal entry", httpResp, http.StatusOK) {
+		return
+	}
 	tflog.Debug(ctx, "Updated Journal Entry", map[string]interface{}{
 		"id": journalEntry.GetId(),
 	})
@@ -294,7 +305,7 @@ func (r *JournalEntryResource) Delete(ctx context.Context, req resource.DeleteRe
 	httpResp, err := r.client.ExtrasAPI.ExtrasJournalEntriesDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == 404 {
+		if utils.HandleNotFound(httpResp, nil) {
 			// Already deleted
 			return
 		}
@@ -302,6 +313,9 @@ func (r *JournalEntryResource) Delete(ctx context.Context, req resource.DeleteRe
 			"Error Deleting Journal Entry",
 			utils.FormatAPIError("deleting journal entry", err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete journal entry", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted Journal Entry", map[string]interface{}{
@@ -332,6 +346,9 @@ func (r *JournalEntryResource) ImportState(ctx context.Context, req resource.Imp
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing journal entry", utils.FormatAPIError("reading journal entry", err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import journal entry", httpResp, http.StatusOK) {
 			return
 		}
 

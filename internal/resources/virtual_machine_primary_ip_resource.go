@@ -130,6 +130,9 @@ func (r *VirtualMachinePrimaryIPResource) Create(ctx context.Context, req resour
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "set virtual machine primary IPs", httpResp, http.StatusOK) {
+		return
+	}
 
 	r.mapToState(result, &data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -155,14 +158,16 @@ func (r *VirtualMachinePrimaryIPResource) Read(ctx context.Context, req resource
 	vm, httpResp, err := r.client.VirtualizationAPI.VirtualizationVirtualMachinesRetrieve(ctx, vmID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading virtual machine",
 			utils.FormatAPIError(fmt.Sprintf("read virtual machine ID %d", vmID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read virtual machine", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -201,6 +206,9 @@ func (r *VirtualMachinePrimaryIPResource) Update(ctx context.Context, req resour
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update virtual machine primary IPs", httpResp, http.StatusOK) {
+		return
+	}
 
 	r.mapToState(result, &data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -232,13 +240,17 @@ func (r *VirtualMachinePrimaryIPResource) Delete(ctx context.Context, req resour
 		Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error clearing virtual machine primary IPs",
 			utils.FormatAPIError(fmt.Sprintf("update virtual machine ID %d", vmID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "clear virtual machine primary IPs", httpResp, http.StatusOK) {
+		return
 	}
 }
 

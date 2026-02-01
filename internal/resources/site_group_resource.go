@@ -149,8 +149,7 @@ func (r *SiteGroupResource) Create(ctx context.Context, req resource.CreateReque
 		handler.HandleCreateError(ctx, err, httpResp, &resp.Diagnostics)
 		return
 	}
-	if httpResp.StatusCode != http.StatusCreated {
-		resp.Diagnostics.AddError("Error creating site group", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusCreated, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create site group", httpResp, http.StatusCreated) {
 		return
 	}
 	if siteGroup == nil {
@@ -187,15 +186,13 @@ func (r *SiteGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	siteGroup, httpResp, err := r.client.DcimAPI.DcimSiteGroupsRetrieve(ctx, siteGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError("Error reading site group", utils.FormatAPIError(fmt.Sprintf("read site group ID %s", siteGroupID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error reading site group", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read site group", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -259,8 +256,7 @@ func (r *SiteGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		resp.Diagnostics.AddError("Error updating site group", utils.FormatAPIError(fmt.Sprintf("update site group ID %s", siteGroupID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusOK {
-		resp.Diagnostics.AddError("Error updating site group", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusOK, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update site group", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -289,14 +285,13 @@ func (r *SiteGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	httpResp, err := r.client.DcimAPI.DcimSiteGroupsDestroy(ctx, siteGroupIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {}) {
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting site group", utils.FormatAPIError(fmt.Sprintf("delete site group ID %s", siteGroupID), err, httpResp))
 		return
 	}
-	if httpResp.StatusCode != http.StatusNoContent {
-		resp.Diagnostics.AddError("Error deleting site group", fmt.Sprintf("Expected HTTP %d, got: %d", http.StatusNoContent, httpResp.StatusCode))
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete site group", httpResp, http.StatusNoContent) {
 		return
 	}
 }

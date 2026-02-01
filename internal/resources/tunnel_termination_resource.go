@@ -200,6 +200,9 @@ func (r *TunnelTerminationResource) Create(ctx context.Context, req resource.Cre
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create tunnel termination", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to state
 	r.mapTunnelTerminationToState(ctx, tunnelTermination, &data, &resp.Diagnostics)
@@ -239,14 +242,16 @@ func (r *TunnelTerminationResource) Read(ctx context.Context, req resource.ReadR
 	tunnelTermination, httpResp, err := r.client.VpnAPI.VpnTunnelTerminationsRetrieve(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading tunnel termination",
 			utils.FormatAPIError(fmt.Sprintf("read tunnel termination ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read tunnel termination", httpResp, http.StatusOK) {
 		return
 	}
 	r.mapTunnelTerminationToState(ctx, tunnelTermination, &data, &resp.Diagnostics)
@@ -352,6 +357,9 @@ func (r *TunnelTerminationResource) Update(ctx context.Context, req resource.Upd
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update tunnel termination", httpResp, http.StatusOK) {
+		return
+	}
 	r.mapTunnelTerminationToState(ctx, tunnelTermination, &data, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -385,13 +393,16 @@ func (r *TunnelTerminationResource) Delete(ctx context.Context, req resource.Del
 	httpResp, err := r.client.VpnAPI.VpnTunnelTerminationsDestroy(ctx, id).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting tunnel termination",
 			utils.FormatAPIError(fmt.Sprintf("delete tunnel termination ID %d", id), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete tunnel termination", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -416,6 +427,9 @@ func (r *TunnelTerminationResource) ImportState(ctx context.Context, req resourc
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing tunnel termination", utils.FormatAPIError(fmt.Sprintf("read tunnel termination ID %d", id), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import tunnel termination", httpResp, http.StatusOK) {
 			return
 		}
 

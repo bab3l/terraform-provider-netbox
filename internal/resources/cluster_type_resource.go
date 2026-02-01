@@ -198,17 +198,21 @@ func (r *ClusterTypeResource) Read(ctx context.Context, req resource.ReadRequest
 	clusterType, httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesRetrieve(ctx, clusterTypeIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			tflog.Debug(ctx, "Cluster type not found, removing from state", map[string]interface{}{
 				"id": clusterTypeID,
 			})
 			resp.State.RemoveResource(ctx)
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading cluster type",
 			utils.FormatAPIError(fmt.Sprintf("read cluster type ID %s", clusterTypeID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read cluster type", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -333,17 +337,21 @@ func (r *ClusterTypeResource) Delete(ctx context.Context, req resource.DeleteReq
 	httpResp, err := r.client.VirtualizationAPI.VirtualizationClusterTypesDestroy(ctx, clusterTypeIDInt).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, func() {
 			// Already deleted, consider success
 			tflog.Debug(ctx, "Cluster type already deleted", map[string]interface{}{
 				"id": clusterTypeID,
 			})
+		}) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting cluster type",
 			utils.FormatAPIError(fmt.Sprintf("delete cluster type ID %s", clusterTypeID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete cluster type", httpResp, http.StatusNoContent) {
 		return
 	}
 	tflog.Debug(ctx, "Deleted cluster type", map[string]interface{}{

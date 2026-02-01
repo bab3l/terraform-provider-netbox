@@ -227,6 +227,9 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "create service", httpResp, http.StatusCreated) {
+		return
+	}
 
 	// Map response to model
 	r.mapResponseToModel(ctx, response, &data, &resp.Diagnostics)
@@ -274,14 +277,16 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 	response, httpResp, err := r.client.IpamAPI.IpamServicesRetrieve(ctx, svcID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
+		if utils.HandleNotFound(httpResp, func() { resp.State.RemoveResource(ctx) }) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error reading service",
 			utils.FormatAPIError(fmt.Sprintf("read service ID %d", svcID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "read service", httpResp, http.StatusOK) {
 		return
 	}
 
@@ -419,6 +424,9 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 		)
 		return
 	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "update service", httpResp, http.StatusOK) {
+		return
+	}
 
 	// Map response to plan model
 	r.mapResponseToModel(ctx, response, &plan, &resp.Diagnostics)
@@ -459,13 +467,16 @@ func (r *ServiceResource) Delete(ctx context.Context, req resource.DeleteRequest
 	httpResp, err := r.client.IpamAPI.IpamServicesDestroy(ctx, svcID).Execute()
 	defer utils.CloseResponseBody(httpResp)
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if utils.HandleNotFound(httpResp, nil) {
 			return
 		}
 		resp.Diagnostics.AddError(
 			"Error deleting service",
 			utils.FormatAPIError(fmt.Sprintf("delete service ID %d", svcID), err, httpResp),
 		)
+		return
+	}
+	if !utils.ValidateStatusCode(&resp.Diagnostics, "delete service", httpResp, http.StatusNoContent) {
 		return
 	}
 }
@@ -491,6 +502,9 @@ func (r *ServiceResource) ImportState(ctx context.Context, req resource.ImportSt
 		defer utils.CloseResponseBody(httpResp)
 		if err != nil {
 			resp.Diagnostics.AddError("Error importing service", utils.FormatAPIError(fmt.Sprintf("import service ID %d", svcID), err, httpResp))
+			return
+		}
+		if !utils.ValidateStatusCode(&resp.Diagnostics, "import service", httpResp, http.StatusOK) {
 			return
 		}
 
