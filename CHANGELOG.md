@@ -2,14 +2,54 @@
 
 ## Unreleased
 
+_No changes yet._
+
+## v0.0.23 (2026-02-07)
+
 ### ✨ Enhancements
 - Added `local_config` to device resources for local context data management.
+- Added interface VLAN support.
 
 ### 🐛 Fixes
 - Removed virtual machine `config_context` from state to avoid unstable rendered context drift.
+- Standardized HTTP status handling with helper utilities across resources.
 
 ### 🧪 Testing
 - Acceptance tests: datasources, resources, customfields (2026-01-27).
+- Added explicit dependency ordering in customfields device role import test to prevent custom field creation races.
+
+### 🧹 Maintenance
+- Cleaned whitespace and unused code across the provider.
+- Updated Go module dependencies.
+
+## v0.0.22 (2026-01-27)
+
+### 🐛 Fixes
+- Removed virtual machine `config_context` attribute to avoid unstable rendered context drift.
+
+### 📚 Docs
+- Updated device and virtual machine documentation and examples after config context removal.
+
+## v0.0.21 (2026-01-27)
+
+### 🐛 Fixes
+- Fixed virtual machine `config_context` drift when local context data changes.
+- Normalized reference resolution using generic lookup helpers across resources.
+
+### 🧪 Testing
+- Updated acceptance tests for reference normalization consistency.
+
+## v0.0.20 (2026-01-27)
+
+### 🐛 Fixes
+- Stabilized virtual machine context handling by preserving null local context values and exposing computed config context.
+- Reduced acceptance test flakiness by avoiding shared test identifiers for VLANs, IPs, and FHRP group IDs.
+
+### 🧪 Testing
+- Updated acceptance tests to use randomized VLAN VIDs, FHRP group IDs, and IP addresses for parallel safety.
+
+### 📚 Docs
+- Regenerated virtual machine documentation and refreshed the VM example to include local context usage.
 
 ## v0.0.19 (2026-01-26)
 
