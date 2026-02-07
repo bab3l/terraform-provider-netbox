@@ -164,6 +164,16 @@ resource "netbox_device_role" "test" {
   name = %[1]q
   slug = %[2]q
 
+	depends_on = [
+		netbox_custom_field.role_text,
+		netbox_custom_field.role_longtext,
+		netbox_custom_field.role_integer,
+		netbox_custom_field.role_boolean,
+		netbox_custom_field.role_date,
+		netbox_custom_field.role_url,
+		netbox_custom_field.role_json,
+	]
+
   tags = [netbox_tag.role_test1.slug, netbox_tag.role_test2.slug]
 
   custom_fields = [
