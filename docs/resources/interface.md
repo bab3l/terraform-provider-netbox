@@ -159,7 +159,9 @@ resource "netbox_interface" "mgmt" {
 - `mtu` (Number) Maximum transmission unit (MTU) size. Common values: 1500 (Ethernet), 9000 (Jumbo frames).
 - `parent` (String) ID of the parent interface (for sub-interfaces).
 - `speed` (Number) Interface speed in Kbps (e.g., 1000000 for 1Gbps, 10000000 for 10Gbps).
+- `tagged_vlans` (Set of String) Set of VLAN names or IDs to tag on this interface. Can only be set when mode is `tagged` or `tagged-all`.
 - `tags` (Set of String) Tags assigned to this resource. Tags must already exist in Netbox.
+- `untagged_vlan` (String) The name or ID of the untagged VLAN (for access or tagged mode).
 - `wwn` (String) World Wide Name (WWN) for Fibre Channel interfaces.
 
 ### Read-Only

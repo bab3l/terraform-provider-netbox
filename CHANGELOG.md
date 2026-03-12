@@ -2,7 +2,38 @@
 
 ## Unreleased
 
-_No changes yet._
+## v1.0.0-rc1 (2026-03-12)
+
+Release candidate for the stable `1.0.0` line.
+
+### 📚 Docs
+- Updated provider docs and examples to target `1.0.0`.
+- Clarified Netbox `v4.1.11` support policy for the `1.0.0` release line.
+- Documented `1.0` behavior guarantees for reference handling, import expectations, and `custom_fields` ownership.
+- Added a concise `1.0` migration and expectations guide for adopters of the stable release line.
+
+### ✅ Stability and Behavior
+- Implemented real TLS skip-verification behavior for provider `insecure = true`.
+- Froze and documented the `1.0` contract for reference normalization, import behavior, and `custom_fields` ownership.
+- Removed the unused transitional `PopulateCustomFieldsFromMap()` helper before the release candidate.
+
+### 🧪 Testing
+- Aligned CI unit-test scope with the repository's real non-acceptance package selection.
+- Hardened provider registration tests with exact resource and data source coverage checks.
+- Added provider-surface smoke tests for all registered resources and data sources.
+- Added dedicated acceptance automation for non-customfields and serial customfields lanes.
+- Revalidated the non-customfields and customfields acceptance suites for the release candidate on 2026-03-12.
+
+### 🧹 Maintenance and Release Engineering
+- Set the local install default version to `1.0.0`.
+- Pinned CI and release automation to Go `1.24.5`.
+- Pinned GoReleaser to `v2.14.3` and removed release-time repository mutation hooks.
+- Added docs drift and module tidiness checks to CI and release validation.
+- Filled the remaining audited example gaps and added a guard test for Terraform integration script drift.
+
+### ⚠️ Known `1.0` Waivers
+- `netbox_cable_termination` acceptance coverage remains waived for `1.0` because the `netbox_cable` resource does not currently export created termination IDs and the data source only supports direct ID lookup.
+- `netbox_script` acceptance coverage remains waived for `1.0` because NetBox scripts are filesystem-managed server fixtures and cannot be created portably through the API.
 
 ## v0.0.23 (2026-02-07)
 

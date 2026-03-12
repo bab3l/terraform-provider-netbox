@@ -8,16 +8,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const cableTerminationAcceptanceWaiver = "Skipping for 1.0 readiness: netbox_cable does not expose created cable termination IDs, and netbox_cable_termination currently only supports direct ID lookup. This needs either improved fixture plumbing or broader datasource lookup support."
+
 func TestAccCableTerminationDataSource_IDPreservation(t *testing.T) {
 	t.Parallel()
 
-	t.Skip("Skipping cable_termination data source test because netbox_cable resource does not export termination IDs")
+	t.Skip(cableTerminationAcceptanceWaiver)
 }
 
 func TestAccCableTerminationDataSource_byID(t *testing.T) {
 
 	t.Parallel()
-	t.Skip("Skipping cable_termination data source test because netbox_cable resource does not export termination IDs")
+	t.Skip(cableTerminationAcceptanceWaiver)
 
 	siteName := testutil.RandomName("test-site-cable-term")
 	siteSlug := testutil.GenerateSlug(siteName)

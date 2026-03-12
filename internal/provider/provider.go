@@ -2,7 +2,10 @@ package provider
 
 import (
 	"context"
+	"crypto/tls"
+	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/bab3l/go-netbox"
 	"github.com/bab3l/terraform-provider-netbox/internal/datasources"
@@ -70,7 +73,13 @@ func (p *NetboxProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	// Configuration values are now available.
 	serverURL := os.Getenv("NETBOX_SERVER_URL")
 	apiToken := os.Getenv("NETBOX_API_TOKEN")
-	insecure := os.Getenv("NETBOX_INSECURE") == "true"
+	insecure := false
+	if insecureValue, ok := os.LookupEnv("NETBOX_INSECURE"); ok {
+		parsedInsecure, err := strconv.ParseBool(insecureValue)
+		if err == nil {
+			insecure = parsedInsecure
+		}
+	}
 
 	if !data.ServerURL.IsNull() {
 		serverURL = data.ServerURL.ValueString()
@@ -111,33 +120,70 @@ func (p *NetboxProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "netbox_api_token")
 	tflog.Debug(ctx, "Creating Netbox client")
 
-	// Create a new Netbox client using go-netbox
+	client := newNetboxClient(serverURL, apiToken, insecure)
+	if insecure {
+		tflog.Debug(ctx, "Insecure mode enabled - TLS verification disabled")
+	}
+	// Make the Netbox client available during DataSource and Resource
+	// type Configure methods.
+	resp.DataSourceData = client
+	resp.ResourceData = client
+	tflog.Info(ctx, "Configured Netbox client", map[string]any{"success": true})
+}
+
+func newNetboxClient(serverURL, apiToken string, insecure bool) *netbox.APIClient {
+	cfg := newNetboxConfiguration(serverURL, apiToken, insecure)
+
+	return netbox.NewAPIClient(cfg)
+}
+
+func newNetboxConfiguration(serverURL, apiToken string, insecure bool) *netbox.Configuration {
 	cfg := netbox.NewConfiguration()
 	cfg.Servers = netbox.ServerConfigurations{
 		{
 			URL: serverURL,
 		},
 	}
-
-	// Set up authentication
 	cfg.DefaultHeader = map[string]string{
 		"Authorization": "Token " + apiToken,
 	}
+	cfg.HTTPClient = newHTTPClient(insecure)
 
-	// Handle insecure connections
-	if insecure {
-		// Note: go-netbox uses a standard HTTP client, so TLS verification
-		// would need to be configured on the HTTP client if needed
-		tflog.Debug(ctx, "Insecure mode enabled - TLS verification disabled")
+	return cfg
+}
 
+func newHTTPClient(insecure bool) *http.Client {
+	if !insecure {
+		return http.DefaultClient
 	}
 
-	client := netbox.NewAPIClient(cfg)
-	// Make the Netbox client available during DataSource and Resource
-	// type Configure methods.
-	resp.DataSourceData = client
-	resp.ResourceData = client
-	tflog.Info(ctx, "Configured Netbox client", map[string]any{"success": true})
+	client := *http.DefaultClient
+
+	baseTransport, ok := http.DefaultTransport.(*http.Transport)
+	if ok {
+		client.Transport = baseTransport.Clone()
+	} else {
+		client.Transport = &http.Transport{}
+	}
+
+	transport, ok := client.Transport.(*http.Transport)
+	if !ok {
+		transport = &http.Transport{}
+		client.Transport = transport
+	}
+
+	if transport.TLSClientConfig != nil {
+		transport.TLSClientConfig = transport.TLSClientConfig.Clone()
+	} else {
+		transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+	}
+
+	if transport.TLSClientConfig.MinVersion == 0 {
+		transport.TLSClientConfig.MinVersion = tls.VersionTLS12
+	}
+	transport.TLSClientConfig.InsecureSkipVerify = true
+
+	return &client
 }
 
 func (p *NetboxProvider) Resources(ctx context.Context) []func() resource.Resource {

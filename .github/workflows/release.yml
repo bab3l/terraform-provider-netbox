@@ -20,12 +20,17 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 'stable'
+          go-version: '1.24.5'
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false
+
+      - name: Verify release inputs
+        run: |
+          make tidy-check
+          make docs-check
 
       - name: Import GPG key
         id: import_gpg
@@ -35,10 +40,10 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
-          version: latest
+          version: v2.14.3
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

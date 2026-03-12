@@ -8,9 +8,9 @@ Thank you for your interest in contributing!
 - Include the MPL-2.0 notice where appropriate for new files.
 
 ## Development Prerequisites
-- Go 1.24.x
+- Go 1.24.5
 - Terraform 1.0+
-- NetBox v4.1.x (for acceptance tests)
+- NetBox v4.1.11 (for acceptance tests)
 - Docker (for local acceptance tests)
 
 ## Workflow
@@ -20,7 +20,8 @@ Thank you for your interest in contributing!
   - `go vet ./...`
   - `go test ./internal/... -v`
 - For acceptance tests, see Testing section below.
-- Ensure docs are generated: `c:\GitRoot\terraform-plugin-docs\tfplugindocs.exe generate --provider-dir=. --rendered-website-dir=docs`.
+- Ensure generated docs and examples are current: `make docs`.
+- Verify there is no docs/example drift before opening a PR: `make docs-check`.
 
 ## Testing
 

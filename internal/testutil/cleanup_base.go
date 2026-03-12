@@ -4,6 +4,7 @@ package testutil
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/bab3l/go-netbox"
@@ -48,4 +49,14 @@ func NewCleanupResource(t *testing.T) *CleanupResource {
 		t: t,
 	}
 
+}
+
+func isHTTPNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errText := strings.ToLower(err.Error())
+
+	return strings.Contains(errText, "404 not found") || strings.Contains(errText, "status code 404")
 }

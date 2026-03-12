@@ -15,11 +15,13 @@ import (
 // are preserved when updating other resource attributes without custom_fields in config.
 // This is the core bug fix test - ensuring no data loss on updates.
 func TestAccWirelessLANResource_CustomFieldsPreservation(t *testing.T) {
+	// NOTE: customfields acceptance must stay serial because NetBox custom fields
+	// are global per object type and can deadlock under concurrent create/delete.
 	randomSSID := fmt.Sprintf("test-ssid-%s", acctest.RandString(8))
 	cf1Name := fmt.Sprintf("test_cf1_%s", acctest.RandString(8))
 	cf2Name := fmt.Sprintf("test_cf2_%s", acctest.RandString(8))
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{

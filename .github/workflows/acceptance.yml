@@ -1,0 +1,144 @@
+name: Acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_non_customfields:
+        description: Run the parallel-safe non-customfields acceptance lane
+        required: false
+        default: true
+        type: boolean
+      run_customfields:
+        description: Run the serial customfields acceptance lane
+        required: false
+        default: true
+        type: boolean
+  schedule:
+    - cron: '0 3 * * *'
+
+concurrency:
+  group: acceptance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GO_VERSION: '1.24.5'
+  NETBOX_SERVER_URL: http://localhost:8000
+  NETBOX_API_TOKEN: 0123456789abcdef0123456789abcdef01234567
+  TF_ACC: '1'
+
+jobs:
+  non-customfields:
+    name: Acceptance Smoke (non-customfields)
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_non_customfields }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Cache Go modules
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Start NetBox stack
+        run: docker compose up -d --wait
+
+      - name: Run acceptance smoke tests
+        shell: bash
+        env:
+          NETBOX_TEST_TIMEOUT: 90m
+        run: |
+          set -o pipefail
+          pwsh -File ./scripts/run-acceptance-tests.ps1 -Mode NonCustomFields 2>&1 | tee acceptance-non-customfields.log
+
+      - name: Capture docker compose logs
+        if: always()
+        shell: bash
+        run: docker compose logs --no-color > docker-compose-non-customfields.log
+
+      - name: Upload acceptance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-non-customfields-${{ github.run_id }}
+          path: |
+            acceptance-non-customfields.log
+            docker-compose-non-customfields.log
+          if-no-files-found: warn
+
+      - name: Stop NetBox stack
+        if: always()
+        run: docker compose down -v
+
+  customfields:
+    name: Acceptance Serial (customfields)
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_customfields }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Cache Go modules
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Start NetBox stack
+        run: docker compose up -d --wait
+
+      - name: Run customfields acceptance tests
+        shell: bash
+        env:
+          NETBOX_TEST_TIMEOUT: 120m
+        run: |
+          set -o pipefail
+          pwsh -File ./scripts/run-acceptance-tests.ps1 -Mode CustomFields 2>&1 | tee acceptance-customfields.log
+
+      - name: Capture docker compose logs
+        if: always()
+        shell: bash
+        run: docker compose logs --no-color > docker-compose-customfields.log
+
+      - name: Upload acceptance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-customfields-${{ github.run_id }}
+          path: |
+            acceptance-customfields.log
+            docker-compose-customfields.log
+          if-no-files-found: warn
+
+      - name: Stop NetBox stack
+        if: always()
+        run: docker compose down -v

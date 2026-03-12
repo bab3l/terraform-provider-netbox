@@ -886,6 +886,10 @@ func (c *CleanupResource) RegisterVirtualDeviceContextCleanup(id int32) {
 		_, err := c.client.DcimAPI.DcimVirtualDeviceContextsDestroy(ctx, id).Execute()
 
 		if err != nil {
+			if isHTTPNotFoundError(err) {
+				c.t.Logf("Cleanup: virtual device context %d not found (already deleted)", id)
+				return
+			}
 
 			c.t.Logf("Cleanup: failed to delete virtual device context %d: %v", id, err)
 

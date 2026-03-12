@@ -9,10 +9,16 @@ License: This project is licensed under the Mozilla Public License 2.0 (MPL-2.0)
 ## Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) >= 1.0
-- [Go](https://golang.org/doc/install) >= 1.21
+- [Go](https://golang.org/doc/install) >= 1.24.5
 - [Netbox](https://github.com/netbox-community/netbox) **v4.1.11** (tested version)
 
-> **Note:** This provider is built and tested against Netbox v4.1.11. Other versions may work but are not officially supported.
+> **Note:** This provider is supported and tested against Netbox v4.1.11. Other versions may work but are not officially supported for `1.0.0`.
+
+> **Versioning policy:** After `1.0.0`, provider releases will track breaking Netbox API versions with at least minor-version increases.
+
+> **Behavior guarantees:** See [docs/BEHAVIOR-GUARANTEES.md](docs/BEHAVIOR-GUARANTEES.md) for the `1.0` contract covering reference normalization, import expectations, and `custom_fields` ownership semantics.
+
+> **Migration guide:** See [docs/1.0-MIGRATION.md](docs/1.0-MIGRATION.md) for the concise `1.0` adoption notes and known `1.0` waivers.
 
 ## Building the Provider
 
@@ -35,7 +41,7 @@ terraform {
   required_providers {
     netbox = {
       source = "bab3l/netbox"
-      version = "~> 0.1.0"
+      version = "~> 1.0.0"
     }
   }
 }
@@ -84,7 +90,7 @@ The provider supports authentication via API token. You can provide the token in
 
 ### Prerequisites
 
-- Go 1.21+
+- Go 1.24.5+
 - Make (optional, but recommended)
 
 ### Local Development Setup
@@ -105,7 +111,7 @@ To install the provider locally for testing:
 make install
 ```
 
-This builds and installs the provider to `~/.terraform.d/plugins/bab3l/netbox/0.1.0/<GOOS>_<GOARCH>/`.
+This builds and installs the provider to `~/.terraform.d/plugins/bab3l/netbox/1.0.0/<GOOS>_<GOARCH>/`.
 
 ### Running Tests
 
@@ -142,7 +148,13 @@ make testacc
 
 For a complete list of available resources and data sources, including detailed documentation and examples, see the [docs/](./docs/) directory.
 
-📖 **[View Full Documentation Index](./docs/README.md)**
+📖 **[View Full Documentation Index](./docs/index.md)**
+
+### 1.0 behavior guarantees
+
+The provider's stable `1.0` behavior for reference handling, import flows, and `custom_fields` ownership is documented in [docs/BEHAVIOR-GUARANTEES.md](docs/BEHAVIOR-GUARANTEES.md).
+
+For a short adoption checklist for users moving onto the stable `1.0` line, see [docs/1.0-MIGRATION.md](docs/1.0-MIGRATION.md).
 
 ### Quick Examples
 

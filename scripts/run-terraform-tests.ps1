@@ -86,6 +86,7 @@ $global:ResourceApiMap = @{
     "netbox_tenant" = @{ Endpoint = "/api/tenancy/tenants/"; NameField = "name" }
     "netbox_tenant_group" = @{ Endpoint = "/api/tenancy/tenant-groups/"; NameField = "name" }
     "netbox_contact" = @{ Endpoint = "/api/tenancy/contacts/"; NameField = "name" }
+    "netbox_contact_assignment" = @{ Endpoint = "/api/tenancy/contact-assignments/"; NameField = "id" }
     "netbox_contact_group" = @{ Endpoint = "/api/tenancy/contact-groups/"; NameField = "name" }
     "netbox_contact_role" = @{ Endpoint = "/api/tenancy/contact-roles/"; NameField = "name" }
 
@@ -109,6 +110,7 @@ $global:ResourceApiMap = @{
     # Wireless
     "netbox_wireless_lan" = @{ Endpoint = "/api/wireless/wireless-lans/"; NameField = "ssid" }
     "netbox_wireless_lan_group" = @{ Endpoint = "/api/wireless/wireless-lan-groups/"; NameField = "name" }
+    "netbox_wireless_link" = @{ Endpoint = "/api/wireless/wireless-links/"; NameField = "id" }
 
     # VPN
     "netbox_ike_proposal" = @{ Endpoint = "/api/vpn/ike-proposals/"; NameField = "name" }
@@ -131,6 +133,8 @@ $global:ResourceApiMap = @{
     "netbox_config_context" = @{ Endpoint = "/api/extras/config-contexts/"; NameField = "name" }
     "netbox_config_template" = @{ Endpoint = "/api/extras/config-templates/"; NameField = "name" }
     "netbox_journal_entry" = @{ Endpoint = "/api/extras/journal-entries/"; NameField = "id" }
+    "netbox_event_rule" = @{ Endpoint = "/api/extras/event-rules/"; NameField = "name" }
+    "netbox_notification_group" = @{ Endpoint = "/api/extras/notification-groups/"; NameField = "name" }
     "netbox_export_template" = @{ Endpoint = "/api/extras/export-templates/"; NameField = "name" }
 }
 

@@ -585,39 +585,6 @@ func PopulateTagsSlugListFromAPI(ctx context.Context, hasTags bool, tags []netbo
 	return types.ListNull(types.StringType)
 }
 
-// PopulateCustomFieldsFromMap converts Netbox custom fields map to a Terraform Set value.
-// This function is kept for backwards compatibility during migration to PopulateCustomFieldsFromAPI.
-// TODO: Mark as deprecated after all resources migrate to PopulateCustomFieldsFromAPI (Batches 2-29).
-//
-// Example:
-//
-//	data.CustomFields = utils.PopulateCustomFieldsFromMap(ctx, cluster.HasCustomFields(), cluster.GetCustomFields(), data.CustomFields, &diags)
-func PopulateCustomFieldsFromMap(ctx context.Context, hasCustomFields bool, customFieldsMap map[string]interface{}, stateCustomFields types.Set, diags *diag.Diagnostics) types.Set {
-	// If the API has no custom fields or state doesn't have custom fields configured, return null
-	if !hasCustomFields || stateCustomFields.IsNull() {
-		return types.SetNull(GetCustomFieldsAttributeType().ElemType)
-	}
-
-	// Extract existing state custom fields to preserve type information
-	var existingFields []CustomFieldModel
-	cfDiags := stateCustomFields.ElementsAs(ctx, &existingFields, false)
-	diags.Append(cfDiags...)
-	if diags.HasError() {
-		return stateCustomFields
-	}
-
-	// Convert API custom fields using state type information
-	customFields := MapToCustomFieldModels(customFieldsMap, existingFields)
-
-	customFieldsValue, cfValueDiags := types.SetValueFrom(ctx, GetCustomFieldsAttributeType().ElemType, customFields)
-	diags.Append(cfValueDiags...)
-	if diags.HasError() {
-		return stateCustomFields
-	}
-
-	return customFieldsValue
-}
-
 // PopulateCustomFieldsFromAPI converts Netbox custom fields to a Terraform Set value.
 // This is the comprehensive helper that handles all custom fields scenarios:
 //   - Normal Create/Read/Update: Uses state type information to preserve field types

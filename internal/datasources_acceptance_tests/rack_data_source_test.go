@@ -125,7 +125,7 @@ terraform {
   required_providers {
     netbox = {
       source = "bab3l/netbox"
-      version = ">= 0.1.0"
+	version = ">= 1.0.0"
     }
   }
 }
@@ -155,7 +155,7 @@ terraform {
   required_providers {
     netbox = {
       source = "bab3l/netbox"
-      version = ">= 0.1.0"
+	version = ">= 1.0.0"
     }
   }
 }

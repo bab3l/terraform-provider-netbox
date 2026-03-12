@@ -14,12 +14,14 @@ import (
 // TestAccWirelessLANGroupResource_CustomFieldsPreservation tests that custom fields
 // are preserved when updating other resource attributes without custom_fields in config.
 func TestAccWirelessLANGroupResource_CustomFieldsPreservation(t *testing.T) {
+	// NOTE: customfields acceptance must stay serial because NetBox custom fields
+	// are global per object type and can deadlock under concurrent create/delete.
 	randomName := fmt.Sprintf("test-wlan-group-%s", acctest.RandString(8))
 	randomSlug := fmt.Sprintf("test-wlan-group-%s", acctest.RandString(8))
 	cf1Name := fmt.Sprintf("test_cf1_%s", acctest.RandString(8))
 	cf2Name := fmt.Sprintf("test_cf2_%s", acctest.RandString(8))
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutil.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{

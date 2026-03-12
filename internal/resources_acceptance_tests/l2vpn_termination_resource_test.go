@@ -417,7 +417,6 @@ resource "netbox_l2vpn_termination" "test" {
 }
 
 func TestAccL2VPNTerminationResource_removeOptionalFields(t *testing.T) {
-	t.Skip("Skipping: L2VPN termination only has tags/custom_fields as optional, and tags removal exposes a provider consistency bug. Since resource has no other optional fields to test, skipping this test.")
 	t.Parallel()
 
 	l2vpnName := testutil.RandomName("tf-test-l2vpn-term-rem")
@@ -474,12 +473,7 @@ resource "netbox_l2vpn_termination" "test" {
   l2vpn                = netbox_l2vpn.test.id
   assigned_object_type = "ipam.vlan"
   assigned_object_id   = netbox_vlan.test.id
-  tags = [
-    {
-      name = netbox_tag.test.name
-      slug = netbox_tag.test.slug
-    }
-  ]
+	tags                 = [netbox_tag.test.slug]
 }
 `, tagName, tagSlug, l2vpnName, l2vpnName, l2vpnName, vlanVID)
 }

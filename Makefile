@@ -1,9 +1,9 @@
 SHELL := /bin/sh
 
-.PHONY: dev fmt vet test build install clean testacc test-acceptance test-acceptance-customfields test-acceptance-all test-fast
+.PHONY: dev fmt vet test build install clean docs docs-check tidy-check testacc test-acceptance test-acceptance-customfields test-acceptance-all test-fast
 
 # Default version used for local install path
-VERSION ?= 0.1.0
+VERSION ?= 1.0.0
 PROVIDER_NAME := terraform-provider-netbox
 MODULE_NAMESPACE := bab3l
 MODULE_NAME := netbox
@@ -21,6 +21,16 @@ test:
 
 build:
 	go build .
+
+docs:
+	go generate ./...
+
+docs-check: docs
+	git diff --exit-code -- docs/ examples/
+
+tidy-check:
+	go mod tidy
+	git diff --exit-code -- go.mod go.sum
 
 # Install the provider binary into the local Terraform plugin directory
 # This supports cross-platform using GOOS/GOARCH from `go env`
